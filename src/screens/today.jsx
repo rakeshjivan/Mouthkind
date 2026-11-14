@@ -1,35 +1,37 @@
-import { useState } from "react";
-import { Gauge, Icon, Sheet, Sources } from "../components/ui.jsx";
-import { REGIONS, SIP_INTERVAL_DAYS, WEEKLY_INTERVAL_DAYS, sipBand, telHref, phColor, phBand, PH_ROOT_CRITICAL } from "../data/clinical.js";
-import { LEVELS, adviceFor, cycleWindow, redFlags, trendFlags } from "../lib/rules.js";
-import { DAY, dayKey, fmtDate, fmtShort } from "../lib/store.js";
+import { Icon, Sheet, Sources } from "../components/ui.jsx";
+import { REGIONS, SIP_INTERVAL_DAYS, WEEKLY_INTERVAL_DAYS, telHref } from "../data/clinical.js";
+import { LEVELS, adviceFor, cycleWindow, redFlags, topTips, trendFlags } from "../lib/rules.js";
+import { DAY, dayKey } from "../lib/store.js";
+import { dryWord, painWord } from "./check.jsx";
+
+// ─── Who to call — numbers always visible as text, because a tap may not dial ─
+function CallRow({ label, number, tone = "ghost" }) {
+  return (
+    <a className={`call-row ${tone}`} href={telHref(number)}>
+      <Icon name="phone" />
+      <span><strong>{label}</strong><em>{number}</em></span>
+    </a>
+  );
+}
 
 export function CallButtons({ profile, emergency }) {
   const R = REGIONS[profile.region] || REGIONS.AU;
   return (
     <div className="call-stack">
-      {profile.team?.phone24 ? (
-        <a className={`btn big ${emergency ? "danger" : "primary"}`} href={telHref(profile.team.phone24)}>
-          <Icon name="phone" /> Call {profile.team.name || "my treatment team"}
-        </a>
-      ) : (
-        <p className="note">Add your team's 24-hour number under <strong>You</strong> so it's here when you need it.</p>
-      )}
-      {emergency && (
-        <a className="btn big ghost danger-outline" href={telHref(R.emergency)}><Icon name="phone" /> Call {R.emergency}</a>
-      )}
-      {!emergency && (
-        <a className="btn ghost" href={telHref(R.nurseLine.number)}><Icon name="phone" /> {R.nurseLine.name} {R.nurseLine.number}</a>
-      )}
+      {profile.team?.phone24
+        ? <CallRow label={profile.team.name || "My treatment team"} number={profile.team.phone24} tone={emergency ? "danger" : "primary"} />
+        : <p className="soft-note">Add your team's 24-hour number under Me so it's here when you need it.</p>}
+      {emergency
+        ? <CallRow label="Emergency" number={R.emergency} tone="danger-outline" />
+        : <CallRow label={`${R.nurseLine.name} — nurse advice`} number={R.nurseLine.number} />}
     </div>
   );
 }
 
 function AlertCard({ a, profile }) {
-  const lvl = LEVELS[a.level];
   return (
     <section className={`alert ${a.level}`} role={a.level === "emergency" ? "alert" : undefined}>
-      <p className="alert-level"><Icon name="alert" size={16} /> {lvl.label}</p>
+      <p className="alert-level"><Icon name="alert" size={16} /> {LEVELS[a.level].label}</p>
       <h3>{a.title}</h3>
       <p>{a.body}</p>
       {(a.level === "emergency" || a.level === "sameday") && <CallButtons profile={profile} emergency={a.level === "emergency"} />}
@@ -38,28 +40,67 @@ function AlertCard({ a, profile }) {
   );
 }
 
-// Shown straight after saving a check-in.
+// ─── "I need help now" ─────────────────────────────────────────────────────
+export function HelpNow({ profile, onClose }) {
+  const R = REGIONS[profile.region] || REGIONS.AU;
+  return (
+    <Sheet title="Get help" onClose={onClose} tone="urgent">
+      <h2 className="q">Who to call</h2>
+      <div className="help-block">
+        <p><strong>Fever of 38 °C or more, shivering, bleeding that won't stop, swelling, or trouble breathing or swallowing</strong></p>
+        {profile.team?.phone24 && <CallRow label={profile.team.name || "My treatment team"} number={profile.team.phone24} tone="danger" />}
+        <CallRow label="Emergency" number={R.emergency} tone="danger-outline" />
+      </div>
+      <div className="help-block">
+        <p><strong>Mouth very sore, can't eat or drink, or something new is worrying you</strong></p>
+        {profile.team?.phone24
+          ? <CallRow label={profile.team.name || "My treatment team"} number={profile.team.phone24} tone="primary" />
+          : <p className="soft-note">Call the number your treatment team gave you.</p>}
+      </div>
+      <div className="help-block">
+        <p><strong>Not sure, or just want to talk it through</strong></p>
+        <CallRow label={`${R.nurseLine.name} — nurse advice, any time`} number={R.nurseLine.number} />
+        <CallRow label={`${R.cancerLine.name} — support and information`} number={R.cancerLine.number} />
+      </div>
+      {profile.dentist?.phone && (
+        <div className="help-block">
+          <p><strong>Toothache, a broken tooth, or a denture problem</strong></p>
+          <CallRow label={profile.dentist.name || "My dentist"} number={profile.dentist.phone} />
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+// ─── After a check-in ──────────────────────────────────────────────────────
 export function ResultSheet({ entry, profile, onClose }) {
   const alerts = redFlags(entry, profile);
-  const emergency = alerts.some((a) => a.level === "emergency");
+  const level = alerts[0]?.level;
+  const emergency = level === "emergency";
+  const tips = topTips(adviceFor(entry, profile));
+  const head = emergency ? null
+    : level === "sameday" ? { tone: "amber", title: "Please call your team today", sub: "Here's why, and who to call." }
+      : level ? { tone: "blue", title: "Mostly OK — one thing to keep an eye on", sub: "Nothing urgent. Details below." }
+        : { tone: "green", title: "You're doing OK today", sub: "Nothing in your answers needs a call." };
+
   return (
-    <Sheet title={emergency ? "Get help now" : "Saved"} onClose={onClose} tone={emergency ? "urgent" : ""}
-      footer={<button className="btn ghost big" onClick={onClose}>{emergency ? "I've called for help" : "Done"}</button>}>
+    <Sheet title={emergency ? "Get help now" : "Today's result"} onClose={onClose} tone={emergency ? "urgent" : ""}
+      footer={<button className="btn primary big" onClick={onClose}>{emergency ? "I've called for help" : "Done"}</button>}>
       {emergency ? (
         alerts.filter((a) => a.level === "emergency").map((a) => <AlertCard key={a.id} a={a} profile={profile} />)
       ) : (
         <>
-          {alerts.length === 0 ? (
-            <div className="calm">
-              <div className="calm-mark"><Icon name="check" size={28} stroke={2.5} /></div>
-              <h2 className="q">Thanks{profile.name && !profile.carer ? `, ${profile.name}` : ""} — that's saved.</h2>
-              <p className="lede">Nothing in today's answers needs urgent attention. Your suggestions for today are on the home screen.</p>
-            </div>
-          ) : (
-            <>
-              <h2 className="q">Thanks — here's what to do next.</h2>
-              {alerts.map((a) => <AlertCard key={a.id} a={a} profile={profile} />)}
-            </>
+          <div className={`verdict ${head.tone}`}>
+            <span className="verdict-mark"><Icon name={head.tone === "green" ? "check" : "info"} size={26} stroke={2.6} /></span>
+            <div><h2>{head.title}</h2><p>{head.sub}</p></div>
+          </div>
+          {alerts.map((a) => <AlertCard key={a.id} a={a} profile={profile} />)}
+          {tips.length > 0 && (
+            <section className="tips">
+              <h3>What may help today</h3>
+              <ul>{tips.map((c) => <li key={c.id}>{c.tip}</li>)}</ul>
+              <p className="soft-note">More detail is in the Help tab.</p>
+            </section>
           )}
         </>
       )}
@@ -67,127 +108,83 @@ export function ResultSheet({ entry, profile, onClose }) {
   );
 }
 
-function AdviceCard({ c, open, onToggle }) {
-  return (
-    <section className={`advice${c.tone === "key" ? " key" : ""}`}>
-      <button className="advice-head" onClick={onToggle} aria-expanded={open}>
-        <span>{c.title}</span><Icon name="chev" className={open ? "rot" : ""} />
-      </button>
-      {open && (
-        <div className="advice-body">
-          <ul>{c.points.map((p, i) => <li key={i}>{p}</li>)}</ul>
-          <Sources refs={c.refs} />
-        </div>
-      )}
-    </section>
-  );
-}
+// ─── Home ──────────────────────────────────────────────────────────────────
+// Extra questions are spread out so no single day feels long: none on the very
+// first check-in, and never the weekly and fortnightly extras on the same day.
+export const dueFor = (entries) => {
+  if (!entries.some((e) => e.kind === "daily")) return { sip: false, weekly: false };
+  const last = (pred) => [...entries].filter(pred).sort((a, b) => b.ts - a.ts)[0];
+  const sip = last((e) => e.sip != null), wk = last((e) => e.weight != null || e.opening != null);
+  const sipDue = !sip || Date.now() - sip.ts >= SIP_INTERVAL_DAYS * DAY;
+  const wkDue = !wk || Date.now() - wk.ts >= WEEKLY_INTERVAL_DAYS * DAY;
+  return { sip: sipDue, weekly: wkDue && !sipDue };
+};
 
 export function Today({ profile, entries, open, go }) {
-  const [openCard, setOpenCard] = useState("dental-first");
   const sorted = [...entries].sort((a, b) => b.ts - a.ts);
-  const todayLog = sorted.find((e) => e.kind === "daily" && dayKey(e.ts) === dayKey(Date.now()));
-  const latestDaily = sorted.find((e) => e.kind === "daily");
-  const latestSip = sorted.find((e) => e.sip != null);
-  const firstSip = [...entries].filter((e) => e.sip != null).sort((a, b) => a.ts - b.ts)[0];
-  const latestPh = sorted.find((e) => e.ph != null);
-  const sipDue = !latestSip || Date.now() - latestSip.ts >= SIP_INTERVAL_DAYS * DAY;
-  const latestWeekly = sorted.find((e) => e.kind === "weekly");
-  const weeklyDue = !latestWeekly || Date.now() - latestWeekly.ts >= WEEKLY_INTERVAL_DAYS * DAY;
+  const today = sorted.find((e) => e.kind === "daily" && dayKey(e.ts) === dayKey(Date.now()));
+  const latest = sorted.find((e) => e.kind === "daily");
+  const live = latest && Date.now() - latest.ts < DAY
+    ? redFlags(latest, profile).filter((a) => a.level === "emergency" || a.level === "sameday") : [];
+  const trend = trendFlags(entries)[0];
   const cyc = cycleWindow(profile);
-  const your = profile.carer ? "their" : "your";
-
-  // Alerts stay visible for 24 hours after the entry that raised them.
-  const live = [
-    ...(latestDaily && Date.now() - latestDaily.ts < DAY ? redFlags(latestDaily, profile) : []),
-    ...(latestWeekly && Date.now() - latestWeekly.ts < 7 * DAY ? redFlags(latestWeekly, profile) : []),
-  ];
-  const trends = trendFlags(entries);
-  const merged = { ...(latestDaily || {}), sip: latestSip?.sip, ph: latestPh?.ph };
-  const cards = adviceFor(merged, profile, entries);
+  const tips = topTips(adviceFor({ ...(latest || {}), sip: sorted.find((e) => e.sip != null)?.sip }, profile));
+  const name = profile.carer ? "" : profile.name;
+  const whose = profile.carer ? (profile.name ? `${profile.name}'s` : "their") : "your";
   const hour = new Date().getHours();
   const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="screen">
-      <header className="hero">
-        <p className="eyebrow">{hello}{profile.name && !profile.carer ? `, ${profile.name}` : ""}</p>
-        <h1 className="display">{profile.carer ? `How's ${profile.name ? profile.name + "'s" : "their"} mouth today?` : "How's your mouth today?"}</h1>
-      </header>
+    <div className="screen home">
+      <p className="hello">{hello}{name ? `, ${name}` : ""}</p>
+
+      {live.map((a) => <AlertCard key={a.id} a={a} profile={profile} />)}
+
+      {!today ? (
+        <section className="main-card">
+          <h1 className="display">Let's check {whose} mouth</h1>
+          <p className="lede">A few taps. About a minute.</p>
+          <button className="btn primary huge" onClick={() => open("check")}>Start</button>
+        </section>
+      ) : (
+        <section className="main-card done">
+          <div className="done-mark"><Icon name="check" size={28} stroke={2.6} /></div>
+          <h1 className="display sm">Done for today</h1>
+          <p className="lede">
+            {[painWord(today.pain), dryWord(today.dryness)?.toLowerCase()].filter(Boolean).join(", ")}.
+            {" "}Well done for keeping track.
+          </p>
+          <button className="link-btn" onClick={() => open("check")}>Something changed? Check again</button>
+        </section>
+      )}
 
       {cyc && (
         <section className={`cycle${cyc.peak ? " peak" : ""}`}>
           <strong>Day {cyc.day} after chemotherapy</strong>
           <span>{cyc.peak
-            ? `Days 5 to 14 are usually when mouth soreness peaks and infection risk is highest. Check ${your} temperature every day this week, and keep up the mouth routine.`
-            : cyc.day < 5
-              ? "Mouth soreness usually starts 4 to 7 days after treatment. Now is the time to be extra careful with your routine."
-              : "The highest-risk days are behind you. Keep going with your routine."}</span>
-          <Sources refs={["elad2022", "healthdirectFN"]} />
+            ? "This week is usually the hardest for the mouth, and the highest risk for infection. Check for a temperature every day."
+            : cyc.day < 5 ? "Mouth soreness often starts in the next few days. Keep up the routine." : "The hardest days are usually behind you."}</span>
         </section>
       )}
 
-      {live.map((a) => <AlertCard key={a.id} a={a} profile={profile} />)}
+      {tips.length > 0 && (
+        <section className="tips">
+          <h2>What may help</h2>
+          <ul>{tips.map((c) => <li key={c.id}>{c.tip}</li>)}</ul>
+          <button className="link-btn" onClick={() => go("help")}>More help and products →</button>
+        </section>
+      )}
 
-      <div className="actions">
-        {todayLog ? (
-          <div className="done-strip"><Icon name="check" size={18} stroke={2.6} /> Checked in today · pain {todayLog.pain}/10 · dryness {todayLog.dryness}/10</div>
-        ) : (
-          <button className="btn primary big" onClick={() => open("checkin")}><Icon name="plus" /> Start today's check-in</button>
-        )}
-        {sipDue && (
-          <button className="due" onClick={() => open("sip")}>
-            <span className="due-dot" />
-            <span className="due-txt"><strong>Your fortnightly dry mouth score is due</strong>
-              <span>{latestSip ? `Last done ${fmtShort(latestSip.ts)}` : "Five quick questions — sets your starting point"}</span></span>
-            <span className="due-go">Start</span>
-          </button>
-        )}
-        {weeklyDue && (
-          <button className="due" onClick={() => open("weekly")}>
-            <span className="due-dot" />
-            <span className="due-txt"><strong>Weekly check: weight and mouth opening</strong>
-              <span>{latestWeekly ? `Last done ${fmtShort(latestWeekly.ts)}` : "Two quick measures that catch problems early"}</span></span>
-            <span className="due-go">Start</span>
-          </button>
-        )}
-      </div>
+      {trend && (
+        <section className="nudge">
+          <Icon name="info" size={18} />
+          <span><strong>{trend.title}.</strong> {trend.body}</span>
+        </section>
+      )}
 
-      <section className="card gauge-card">
-        <Gauge score={latestSip?.sip ?? null} />
-        {latestSip ? (
-          <>
-            <div className="score-line"><span className="score-num">{latestSip.sip}</span><span className="score-den">/ 15</span></div>
-            <p className="score-band" style={{ color: sipBand(latestSip.sip).color }}>{sipBand(latestSip.sip).full}</p>
-            <p className="score-meta">
-              {fmtDate(latestSip.ts)}
-              {firstSip && firstSip.id !== latestSip.id && (
-                <span>{latestSip.sip - firstSip.sip === 0 ? "Same as when you started"
-                  : `${latestSip.sip > firstSip.sip ? "Up" : "Down"} ${Math.abs(latestSip.sip - firstSip.sip)} since you started`}</span>
-              )}
-            </p>
-          </>
-        ) : (
-          <p className="lede center">Your dry mouth score will show here after your first fortnightly check.</p>
-        )}
-        {latestPh && (
-          <div className="ph-mini">
-            <span className="ph-dot" style={{ background: phColor(latestPh.ph) }} />
-            Saliva pH {latestPh.ph.toFixed(1)} · {phBand(latestPh.ph)}{latestPh.ph < PH_ROOT_CRITICAL ? " — worth showing your dentist" : ""}
-          </div>
-        )}
-      </section>
-
-      {trends.map((a) => <AlertCard key={a.id} a={a} profile={profile} />)}
-
-      <h2 className="section-h">What may help</h2>
-      {cards.map((c) => (
-        <AdviceCard key={c.id} c={c} open={openCard === c.id} onToggle={() => setOpenCard(openCard === c.id ? "" : c.id)} />
-      ))}
-      <button className="link-btn" onClick={() => go("products")}>See products that help →</button>
-
-      <p className="disclaimer"><Icon name="info" size={16} /> This app helps you keep track and know when to ask for help.
-        It doesn't replace your treatment team. If you're worried, call them.</p>
+      <button className="help-now" onClick={() => open("helpnow")}>
+        <Icon name="phone" /> I need help now
+      </button>
     </div>
   );
 }

@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "./components/ui.jsx";
-import { CheckIn, Onboarding, SipCheck, WeeklyCheck } from "./screens/flows.jsx";
-import { ResultSheet, Today } from "./screens/today.jsx";
-import { AlertCardSheet, Backup, Learn, Products, QuestionsSheet, Report, Trends, You } from "./screens/more.jsx";
+import { Onboarding } from "./screens/flows.jsx";
+import { CheckFlow } from "./screens/check.jsx";
+import { HelpNow, ResultSheet, Today, dueFor } from "./screens/today.jsx";
+import { AlertCardSheet, Backup, Help, QuestionsSheet, Report, Trends, You } from "./screens/more.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js";
 
 const TABS = [
   { id: "today", label: "Today", icon: "home" },
-  { id: "trends", label: "Trends", icon: "chart" },
-  { id: "products", label: "Products", icon: "bag" },
-  { id: "learn", label: "Learn", icon: "book" },
-  { id: "you", label: "You", icon: "user" },
+  { id: "notes", label: "My notes", icon: "chart" },
+  { id: "help", label: "Help", icon: "book" },
+  { id: "you", label: "Me", icon: "user" },
 ];
 
 const mergeProfile = (p) => ({
@@ -64,9 +64,8 @@ export default function App() {
     <div className="app">
       <main className="main" id="main">
         {tab === "today" && <Today profile={profile} entries={entries} open={setSheet} go={setTab} />}
-        {tab === "trends" && <Trends entries={entries} profile={profile} onDelete={delEntries} />}
-        {tab === "products" && <Products profile={profile} />}
-        {tab === "learn" && <Learn profile={profile} />}
+        {tab === "notes" && <Trends entries={entries} profile={profile} onDelete={delEntries} open={setSheet} />}
+        {tab === "help" && <Help profile={profile} entries={entries} />}
         {tab === "you" && <You profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={setSheet} onErase={erase} />}
       </main>
 
@@ -78,15 +77,11 @@ export default function App() {
         ))}
       </nav>
 
-      {sheet === "checkin" && (
-        <CheckIn profile={profile} prefs={prefs} onClose={() => setSheet(null)}
+      {sheet === "check" && (
+        <CheckFlow profile={profile} due={dueFor(entries)} onClose={() => setSheet(null)}
           onSave={(e) => { addEntry(e); setSheet(null); setResult(e); }} />
       )}
-      {sheet === "sip" && <SipCheck onClose={() => setSheet(null)} onSave={(e) => { addEntry(e); setSheet(null); }} />}
-      {sheet === "weekly" && (
-        <WeeklyCheck lastWeight={[...entries].sort((a, b) => b.ts - a.ts).find((e) => e.weight != null)?.weight}
-          onClose={() => setSheet(null)} onSave={(e) => { addEntry(e); setSheet(null); if (e.opening != null && e.opening <= 2) setResult(e); }} />
-      )}
+      {sheet === "helpnow" && <HelpNow profile={profile} onClose={() => setSheet(null)} />}
       {sheet === "alertcard" && <AlertCardSheet profile={profile} onClose={() => setSheet(null)} />}
       {sheet === "questions" && <QuestionsSheet profile={profile} setProfile={setProfile} onClose={() => setSheet(null)} />}
       {sheet === "report" && <Report profile={profile} entries={entries} onClose={() => setSheet(null)} />}

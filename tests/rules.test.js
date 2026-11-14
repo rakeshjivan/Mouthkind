@@ -102,3 +102,23 @@ test("chemo day 7 is in the peak window; day 2 and day 25 are not", () => {
   assert.equal(cycleWindow({ chemoDates: [ago(2)] }).peak, false);
   assert.equal(cycleWindow({ chemoDates: [ago(25)] }), null);
 });
+
+test("plain-word fever answers escalate the same as a measured 38 °C", () => {
+  assert.equal(topLevel(redFlags({ ...base, fever: "yes" }, chemoNow)), "emergency");
+  assert.equal(topLevel(redFlags({ ...base, fever: "shivery" }, chemoNow)), "emergency");
+  assert.equal(redFlags({ ...base, fever: "no" }, chemoNow).length, 0);
+  assert.equal(redFlags({ ...base, fever: "unknown" }, chemoNow).length, 0);
+});
+
+import { SUPPORT, supportFor } from "../src/data/support.js";
+test("support directory: every group has a phone and https site, filtered by country", () => {
+  for (const s of SUPPORT) {
+    assert.match(s.phone, /^[0-9 ]+$/, s.id);
+    assert.match(s.web, /^https:\/\//, s.id);
+  }
+  assert.ok(supportFor("NZ").every((s) => s.region === "NZ"));
+  assert.equal(supportFor("AU", ["rt_hn"])[0].id, "hanca", "head and neck group leads for H&N radiotherapy");
+});
+test("order button only appears where a link exists", () => {
+  for (const p of PRODUCTS) for (const u of Object.values(p.buy || {})) assert.match(u, /^https:\/\//, p.id);
+});

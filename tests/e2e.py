@@ -1,56 +1,88 @@
 """Click-through check of the main journey. Start `npm run build && npx vite preview` first."""
 import asyncio, os
-BASE = os.environ.get("BASE_URL", "http://localhost:4173/")
 from playwright.async_api import async_playwright
-OUT=os.environ.get("SHOTS","shots")
+
+BASE = os.environ.get("BASE_URL", "http://localhost:4173/")
+OUT = os.environ.get("SHOTS", "shots")
+
+
 async def main():
     async with async_playwright() as p:
         b = await p.chromium.launch()
-        ctx = await b.new_context(viewport={"width":390,"height":844}, device_scale_factor=2)
+        ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2)
         pg = await ctx.new_page()
-        errs=[]
-        pg.on("console", lambda m: errs.append(m.text) if m.type=="error" else None)
+        errs = []
+        pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
         pg.on("pageerror", lambda e: errs.append(str(e)))
         os.makedirs(OUT, exist_ok=True)
+        shot = lambda n, full=False: pg.screenshot(path=f"{OUT}/{n}.png", full_page=full)
+        btn = lambda name: pg.get_by_role("button", name=name, exact=True)
+
         await pg.goto(BASE)
-        await pg.screenshot(path=f"{OUT}/01-welcome.png")
-        await pg.fill("input[autocomplete=given-name]","Margaret")
+        await shot("01-welcome")
+        await pg.fill("input[autocomplete=given-name]", "Margaret")
         await pg.click("text=Continue")
         await pg.click("text=Chemotherapy"); await pg.click("text=Radiotherapy to the head or neck")
-        await pg.screenshot(path=f"{OUT}/02-treatments.png")
+        await shot("02-treatments")
         await pg.click("text=Continue")
-        await pg.fill("input[placeholder^='e.g.']","Sunshine Coast Cancer Care")
-        await pg.fill("input[placeholder^='Found']","07 5202 0000")
+        await pg.fill("input[placeholder^='e.g.']", "Sunshine Coast Cancer Care")
+        await pg.fill("input[placeholder^='Found']", "07 5202 0000")
         await pg.click("text=Start")
         await pg.wait_for_timeout(400)
-        await pg.screenshot(path=f"{OUT}/03-today.png", full_page=True)
-        # check-in with fever
-        await pg.click("text=Start today's check-in")
-        await pg.click("text=Yes, add it")
-        await pg.fill("input[aria-label^='Temperature']","38.2")
-        await pg.screenshot(path=f"{OUT}/04-temp.png")
-        await pg.get_by_role("button", name="Next", exact=True).click()
-        await pg.get_by_role('radio', name='6 out of 10').first.click()
-        await pg.get_by_role('radio', name='7 out of 10').nth(1).click()
-        await pg.get_by_role("button", name="Next", exact=True).click()
-        await pg.click("text=Soft foods only")
-        await pg.get_by_role("button", name="Next", exact=True).click()
-        await pg.click("text=Mouth sores or ulcers"); await pg.click("text=White patches or red sore areas")
-        await pg.get_by_role("button", name="Save today").click()
+        await shot("03-today", True)
+
+        # A calm check-in: nothing urgent
+        await btn("Start").click(); await pg.wait_for_timeout(500)
+        await shot("04-fever")
+        await btn("No").click(); await pg.wait_for_timeout(350)
+        await shot("05-danger")
+        await btn("No, none of these").click(); await pg.wait_for_timeout(200)
+        await pg.click("text=A little sore"); await pg.wait_for_timeout(350)
+        await shot("06-dry")
+        await pg.click("text=Quite dry"); await pg.wait_for_timeout(350)
+        await pg.click("text=Only soft food"); await pg.wait_for_timeout(350)
+        await shot("07-new")
+        # skip everything optional through to the end
+        for _ in range(20):
+            done = pg.get_by_role("button", name="finish")
+            if await done.count() and await done.first.is_enabled():
+                await done.first.click(); break
+            if await btn("Not today").count():
+                await btn("Not today").click()
+            elif await btn("Skip").count():
+                await btn("Skip").click()
+            elif await btn("Nothing new").count():
+                await btn("Nothing new").click()
+            else:
+                await btn("Next").click()
+            await pg.wait_for_timeout(250)
         await pg.wait_for_timeout(400)
-        await pg.screenshot(path=f"{OUT}/05-result.png")
-        await pg.click("text=I've called for help")
-        await pg.wait_for_timeout(300)
-        await pg.screenshot(path=f"{OUT}/06-today-after.png", full_page=True)
-        await pg.click("nav >> text=Products"); await pg.wait_for_timeout(200)
-        await pg.click("text=GC Tooth Mousse Plus")
-        await pg.screenshot(path=f"{OUT}/07-products.png", full_page=True)
-        await pg.click("nav >> text=Trends"); await pg.wait_for_timeout(200)
-        await pg.screenshot(path=f"{OUT}/08-trends.png", full_page=True)
+        await shot("08-result")
+        await btn("Done").click(); await pg.wait_for_timeout(300)
+        await shot("09-today-done", True)
+
+        await pg.click("nav >> text=Help"); await pg.wait_for_timeout(200)
+        await shot("10-help-tips", True)
+        await btn("Products").click(); await pg.click("text=GC Dry Mouth Gel")
+        await shot("11-products", True)
+        await btn("Support").click(); await pg.wait_for_timeout(200)
+        await shot("12-support", True)
+        await btn("New Zealand").click(); await pg.wait_for_timeout(200)
+        await shot("13-support-nz", True)
+
+        await pg.click("nav >> text=My notes"); await pg.wait_for_timeout(200)
+        await shot("14-notes", True)
+
+        await pg.click("nav >> text=Today"); await pg.click("text=I need help now"); await pg.wait_for_timeout(300)
+        await shot("15-help-now")
+        await pg.keyboard.press("Escape")
+
         await pg.emulate_media(color_scheme="dark")
-        await pg.click("nav >> text=Learn"); await pg.wait_for_timeout(200)
-        await pg.screenshot(path=f"{OUT}/09-learn-dark.png")
+        await pg.click("nav >> text=Me"); await pg.wait_for_timeout(200)
+        await shot("16-me-dark", True)
         print("errors:", errs)
         assert not errs, errs
         await b.close()
+
+
 asyncio.run(main())

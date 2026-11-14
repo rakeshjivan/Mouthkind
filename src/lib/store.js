@@ -24,7 +24,7 @@ export const wipe = () => KEYS.forEach((k) => driver.del(k));
 export const DEFAULT_PROFILE = {
   name: "", region: "AU", treatments: [], phase: "during", endDate: "",
   team: { name: "", phone24: "" }, dentist: { name: "", phone: "" },
-  carer: false, chemoDates: [], asked: [], ownQuestions: [],
+  carer: false, phStrips: false, chemoDates: [], asked: [], ownQuestions: [],
   onboarded: false,
 };
 export const DEFAULT_PREFS = { theme: "auto", text: "m", askTemp: true };

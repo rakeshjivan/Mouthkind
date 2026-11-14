@@ -1,69 +1,89 @@
 import { useMemo, useState } from "react";
-import { Icon, Sheet, Sources, Toggle } from "../components/ui.jsx";
+import { Gauge, Icon, Sheet, Sources, Toggle } from "../components/ui.jsx";
+import { dryWord, painWord } from "./check.jsx";
 import { TrendPanels } from "../components/charts.jsx";
 import {
   CARER_SIGNS, EATING, OPENING, PHASES, PH_ROOT_CRITICAL, QUESTIONS, REGIONS, SIP_QUESTIONS, SYMPTOMS, TREATMENTS, sipBand, telHref,
 } from "../data/clinical.js";
 import { JOBS, visibleProducts } from "../data/products.js";
 import { LEARN } from "../data/learn.js";
+import { host, supportFor } from "../data/support.js";
 import { REFS } from "../data/references.js";
-import { redFlags, trendFlags, LEVELS } from "../lib/rules.js";
+import { adviceFor, redFlags, trendFlags, LEVELS } from "../lib/rules.js";
 import { DAY, downloadText, fmtDate, fmtShort, fmtTime, makeBackup, readBackup, dayKey } from "../lib/store.js";
 
 const symLabel = (id) => [...SYMPTOMS, ...CARER_SIGNS].find((s) => s.id === id)?.label || id;
 const eatLabel = (id) => EATING.find((s) => s.id === id)?.label || "—";
 
 // ═══ Trends ════════════════════════════════════════════════════════════════
-export function Trends({ entries, profile, onDelete }) {
+export function Trends({ entries, profile, onDelete, open }) {
   const [selecting, setSelecting] = useState(false);
   const [sel, setSel] = useState([]);
   const sorted = [...entries].sort((a, b) => b.ts - a.ts);
-  const recent = entries.filter((e) => Date.now() - e.ts <= 14 * DAY && e.kind === "daily");
-  const mean = (k) => {
-    const v = recent.filter((e) => e[k] != null).map((e) => e[k]);
-    return v.length ? Math.round((v.reduce((a, b) => a + b, 0) / v.length) * 10) / 10 : "—";
-  };
+  const latestSip = sorted.find((e) => e.sip != null);
+  const week = sorted.filter((e) => e.kind === "daily" && Date.now() - e.ts <= 7 * DAY);
   const toggle = (id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Your trends</h1></header>
+      <header className="hero"><h1 className="display">My notes</h1>
+        <p className="lede">Everything you've recorded, to look back on or show your team.</p></header>
       {entries.length === 0 ? (
-        <section className="card"><p className="lede">Nothing to show yet. After a few check-ins you'll see how things are changing.</p></section>
+        <section className="card"><p className="lede">Nothing here yet. After a few check-ins you'll see how things are going.</p></section>
       ) : (
         <>
           <section className="card">
-            <h2 className="card-h">Last 14 days</h2>
-            <div className="stats">
-              <div className="stat"><b>{mean("pain")}</b><span>average pain</span></div>
-              <div className="stat"><b>{mean("dryness")}</b><span>average dryness</span></div>
-              <div className="stat"><b>{recent.length}</b><span>check-ins</span></div>
+            <h2 className="card-h">This week</h2>
+            <div className="week-dots" aria-label="Last 7 days">
+              {Array.from({ length: 7 }, (_, k) => {
+                const d = new Date(Date.now() - (6 - k) * DAY);
+                const e = sorted.find((x) => x.kind === "daily" && dayKey(x.ts) === dayKey(d.getTime()));
+                const lvl = e ? (redFlags(e, profile)[0]?.level || "ok") : "none";
+                return (
+                  <div key={k} className="wd">
+                    <span className={`wd-dot ${lvl}`} title={e ? painWord(e.pain) || "" : "No check-in"} />
+                    <span className="wd-day">{d.toLocaleDateString("en-AU", { weekday: "narrow" })}</span>
+                  </div>
+                );
+              })}
             </div>
+            <p className="soft-note">{week.length} check-in{week.length === 1 ? "" : "s"} this week. Green means nothing needed a call.</p>
           </section>
-          <section className="card"><TrendPanels entries={entries} /></section>
+          {latestSip && (
+            <section className="card gauge-card">
+              <h2 className="card-h">Dry mouth score</h2>
+              <Gauge score={latestSip.sip} />
+              <p className="score-band" style={{ color: sipBand(latestSip.sip).color }}>{sipBand(latestSip.sip).full}</p>
+              <p className="score-meta">{latestSip.sip} out of 15 · {fmtDate(latestSip.ts)}</p>
+            </section>
+          )}
+          <section className="card"><h2 className="card-h">Over time</h2><TrendPanels entries={entries} /></section>
+          <section className="card">
+            <h2 className="card-h">Share with your team</h2>
+            <p className="muted">A one-page summary to print or save as a PDF.</p>
+            <button className="btn primary big" onClick={() => open("report")}><Icon name="doc" /> Make a report</button>
+          </section>
           <div className="list-head">
-            <h2 className="card-h">{entries.length} {entries.length === 1 ? "entry" : "entries"}</h2>
-            <button className="link-btn" onClick={() => { setSelecting(!selecting); setSel([]); }}>{selecting ? "Cancel" : "Select"}</button>
+            <h2 className="card-h">Every entry</h2>
+            <button className="link-btn" onClick={() => { setSelecting(!selecting); setSel([]); }}>{selecting ? "Cancel" : "Delete some"}</button>
           </div>
           <div className="entries">
             {sorted.slice(0, 120).map((e) => {
               const on = sel.includes(e.id);
-              const bits = e.kind === "sip" ? [sipBand(e.sip).label] : e.kind === "weekly" ? [
-                e.weight != null && `${e.weight} kg`, e.opening != null && OPENING.find((o) => o.v === e.opening)?.label].filter(Boolean) : [
-                e.pain != null && `pain ${e.pain}`, e.dryness != null && `dryness ${e.dryness}`,
-                e.temp != null && `${e.temp} °C`, e.ph != null && `pH ${e.ph.toFixed(1)}`,
-                ...(e.symptoms || []).map(symLabel)].filter(Boolean);
-              const flagged = e.kind === "daily" && redFlags(e, profile).length > 0;
+              const bits = [painWord(e.pain), dryWord(e.dryness)?.toLowerCase(),
+                e.sip != null && `dry mouth score ${e.sip}`, e.weight != null && `${e.weight} kg`,
+                ...(e.symptoms || []).map((x) => symLabel(x).toLowerCase())].filter(Boolean);
+              const lvl = redFlags(e, profile)[0]?.level;
               return (
                 <button key={e.id} className={`entry${selecting ? " sel-mode" : ""}${on ? " sel" : ""}`}
                   onClick={() => selecting && toggle(e.id)} disabled={!selecting}>
                   {selecting && <span className={`box${on ? " on" : ""}`}>{on && <Icon name="check" size={14} stroke={3} />}</span>}
-                  <span className="entry-bar" style={{ background: e.kind === "sip" ? sipBand(e.sip).color : flagged ? "var(--red)" : "var(--accent)" }} />
+                  <span className={`entry-bar ${lvl || "ok"}`} />
                   <span className="entry-main">
-                    <strong>{e.kind === "sip" ? `Dry mouth score ${e.sip}/15` : e.kind === "weekly" ? "Weekly check" : "Daily check-in"}</strong>
-                    <span>{bits.join(" · ") || "—"}</span>
+                    <strong>{new Date(e.ts).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "short" })}</strong>
+                    <span>{bits.join(", ") || "—"}</span>
                   </span>
-                  <span className="entry-date">{fmtShort(e.ts)}<br />{fmtTime(e.ts)}</span>
+                  <span className="entry-date">{fmtTime(e.ts)}</span>
                 </button>
               );
             })}
@@ -81,17 +101,78 @@ export function Trends({ entries, profile, onDelete }) {
   );
 }
 
+// ═══ Help (tips, products, background) ═════════════════════════════════════
+export function Help({ profile, entries }) {
+  const [view, setView] = useState("tips");
+  const sorted = [...entries].sort((a, b) => b.ts - a.ts);
+  const latest = sorted.find((e) => e.kind === "daily");
+  const cards = adviceFor({ ...(latest || {}), sip: sorted.find((e) => e.sip != null)?.sip }, profile);
+  const [openCard, setOpenCard] = useState(cards[0]?.id);
+  return (
+    <div className="screen">
+      <header className="hero"><h1 className="display">Help</h1></header>
+      <div className="seg full" style={{ marginBottom: 18 }}>
+        {[["tips", "Tips"], ["products", "Products"], ["support", "Support"], ["learn", "Learn"]].map(([v, t]) => (
+          <button key={v} className={view === v ? "on" : ""} onClick={() => setView(v)} aria-pressed={view === v}>{t}</button>
+        ))}
+      </div>
+      {view === "tips" && cards.map((c) => (
+        <section key={c.id} className={`advice${c.tone === "key" ? " key" : ""}`}>
+          <button className="advice-head" onClick={() => setOpenCard(openCard === c.id ? "" : c.id)} aria-expanded={openCard === c.id}>
+            <span>{c.title}</span><Icon name="chev" className={openCard === c.id ? "rot" : ""} />
+          </button>
+          {openCard === c.id && (
+            <div className="advice-body"><ul>{c.points.map((p, i) => <li key={i}>{p}</li>)}</ul><Sources refs={c.refs} /></div>
+          )}
+        </section>
+      ))}
+      {view === "products" && <Products profile={profile} embedded />}
+      {view === "support" && <Support profile={profile} />}
+      {view === "learn" && <Learn profile={profile} embedded />}
+    </div>
+  );
+}
+
+// ═══ Support groups ════════════════════════════════════════════════════════
+export function Support({ profile }) {
+  const [region, setRegion] = useState(profile.region || "AU");
+  const list = supportFor(region, profile.treatments);
+  return (
+    <div>
+      <p className="lede tight">Cancer charities with nurses and counsellors you can call. Free, and you don't need a referral.</p>
+      <div className="seg full" style={{ marginBottom: 18 }}>
+        {Object.entries(REGIONS).map(([k, r]) => (
+          <button key={k} className={region === k ? "on" : ""} onClick={() => setRegion(k)}>{r.name}</button>
+        ))}
+      </div>
+      {list.map((s) => (
+        <article key={s.id} className="org">
+          <h3>{s.name}</h3>
+          <p>{s.what}</p>
+          <div className="org-actions">
+            <a className="call-row primary" href={telHref(s.phone)}>
+              <Icon name="phone" /><span><strong>Call</strong><em>{s.phone}</em></span>
+            </a>
+            <a className="call-row ghost" href={s.web} target="_blank" rel="noopener noreferrer">
+              <Icon name="globe" /><span><strong>Website</strong><em>{host(s.web)}</em></span>
+            </a>
+          </div>
+          {(s.hours || s.email) && <p className="soft-note">{[s.hours, s.email].filter(Boolean).join(" · ")}</p>}
+        </article>
+      ))}
+      <p className="disclaimer"><Icon name="info" size={16} /> These groups give support and information. For a fever or anything urgent, call your treatment team.</p>
+    </div>
+  );
+}
+
 // ═══ Products ══════════════════════════════════════════════════════════════
-export function Products({ profile }) {
+export function Products({ profile, embedded }) {
   const [region, setRegion] = useState(profile.region || "AU");
   const list = visibleProducts(region, profile.treatments);
   const [openId, setOpenId] = useState(null);
   return (
-    <div className="screen">
-      <header className="hero">
-        <h1 className="display">Products that help</h1>
-        <p className="lede">Grouped by what they do. Everything here is sold in pharmacies or through dentists in {REGIONS[region].name}.</p>
-      </header>
+    <div className={embedded ? "" : "screen"}>
+      <p className="lede tight">Grouped by what they do. Tap one to see how to use it.</p>
       <div className="seg full" style={{ marginBottom: 18 }}>
         {Object.entries(REGIONS).map(([k, r]) => (
           <button key={k} className={region === k ? "on" : ""} onClick={() => setRegion(k)}>{r.name}</button>
@@ -120,6 +201,11 @@ export function Products({ profile }) {
                       {p.evidence && <p className="evidence">{p.evidence}</p>}
                       {p.flavours && <p className="muted">Flavours: {p.flavours}</p>}
                       {p.cautions?.length > 0 && <div className="warn">{p.cautions.map((c, i) => <p key={i}>{c}</p>)}</div>}
+                      {p.buy?.[region] && (
+                        <a className="btn primary big order" href={p.buy[region]} target="_blank" rel="noopener noreferrer">
+                          <Icon name="cart" /> Order online
+                        </a>
+                      )}
                       <Sources refs={p.refs} />
                     </div>
                   )}
@@ -138,15 +224,14 @@ export function Products({ profile }) {
 }
 
 // ═══ Learn ═════════════════════════════════════════════════════════════════
-export function Learn({ profile }) {
+export function Learn({ profile, embedded }) {
   const mine = (s) => !s.for || s.for.some((t) => profile.treatments.includes(t));
   const sections = [...LEARN.filter(mine), ...LEARN.filter((s) => !mine(s))];
   const [open, setOpen] = useState(sections[0]?.id);
   const [showRefs, setShowRefs] = useState(false);
   return (
-    <div className="screen">
-      <header className="hero"><h1 className="display">Understanding your mouth</h1>
-        <p className="lede">Topics for your treatment come first.</p></header>
+    <div className={embedded ? "" : "screen"}>
+      <p className="lede tight">Why treatment affects the mouth. Topics for your treatment come first.</p>
       {sections.map((s) => (
         <section key={s.id} className={`advice${mine(s) && s.for ? " key" : ""}`}>
           <button className="advice-head" onClick={() => setOpen(open === s.id ? null : s.id)} aria-expanded={open === s.id}>
@@ -232,10 +317,10 @@ export function Report({ profile, entries, onClose }) {
               <p className="rep-foot">{phs.filter((e) => e.ph < PH_ROOT_CRITICAL).length} of {phs.length} readings below {PH_ROOT_CRITICAL} (root dentine critical pH).</p>
             </section>
           )}
-          {sorted.some((e) => e.kind === "weekly") && (
+          {sorted.some((e) => e.weight != null || e.opening != null) && (
             <section><h2>Weight and mouth opening</h2>
               <table className="rep-table"><thead><tr><th>Date</th><th>Weight (kg)</th><th>Mouth opening (finger test)</th></tr></thead>
-                <tbody>{sorted.filter((e) => e.kind === "weekly").slice(0, 12).map((e) => (
+                <tbody>{sorted.filter((e) => e.weight != null || e.opening != null).slice(0, 12).map((e) => (
                   <tr key={e.id}><td>{fmtShort(e.ts)}</td><td>{e.weight ?? "—"}</td><td>{OPENING.find((o) => o.v === e.opening)?.label || "—"}</td></tr>))}</tbody></table>
             </section>
           )}
@@ -298,7 +383,7 @@ export function You({ profile, setProfile, prefs, setPrefs, open, onErase }) {
   const R = REGIONS[profile.region];
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">You</h1></header>
+      <header className="hero"><h1 className="display">Me</h1></header>
 
       <section className="card">
         <h2 className="card-h">Who to call</h2>
@@ -340,6 +425,7 @@ export function You({ profile, setProfile, prefs, setPrefs, open, onErase }) {
       <section className="card">
         <h2 className="card-h">Your details</h2>
         <div className="set-row"><span>I'm helping someone else (carer mode)</span><Toggle on={!!profile.carer} onChange={(v) => set({ carer: v })} label="Carer mode" /></div>
+        <div className="set-row"><span>I test my saliva with pH strips</span><Toggle on={!!profile.phStrips} onChange={(v) => set({ phStrips: v })} label="pH strips" /></div>
         <label className="field"><span>Name</span><input value={profile.name} onChange={(e) => set({ name: e.target.value })} /></label>
         <div className="field"><span>Country</span>
           <div className="seg full">{Object.entries(REGIONS).map(([k, r]) => (

@@ -39,13 +39,15 @@ export function redFlags(entry, profile, now = Date.now()) {
   const add = (level, id, title, body, refs = []) => out.push({ level, id, title, body, refs });
 
   // ── Emergency
-  if (entry.temp != null && entry.temp >= 38.0) {
+  // Fever: a measured 38.0 °C+, or the plain-word answers "yes" / "hot or shivery".
+  const febrile = (entry.temp != null && entry.temp >= 38.0) || entry.fever === "yes" || entry.fever === "shivery";
+  if (febrile) {
     if (stillAtFeverRisk(profile, now)) {
-      add("emergency", "fever", "A temperature of 38 °C or more needs help now",
+      add("emergency", "fever", entry.fever === "shivery" ? "Feeling hot, cold or shivery needs help now" : "A temperature of 38 °C or more needs help now",
         "During or soon after chemotherapy, fever can mean a serious infection while your defences are low. Call your treatment team's 24-hour number now, or go to the nearest emergency department. Don't wait to see if it settles, and don't take paracetamol to bring it down unless your team tells you to — it can hide a fever.",
         ["healthdirectFN", "ccaMouth"]);
     } else {
-      add("sameday", "fever-other", "You have a temperature of 38 °C or more",
+      add("sameday", "fever-other", "You may have a fever",
         "Call your treatment team or GP today. If you also feel very unwell, shivery or confused, go to an emergency department.",
         ["ccaMouth"]);
     }
@@ -175,13 +177,28 @@ export function cycleWindow(profile, now = Date.now()) {
 }
 
 // ─── Self-care advice ──────────────────────────────────────────────────────
+// One plain sentence per card, for people too tired to read a list.
+const TIPS = {
+  "dental-first": "Book a dental check before your treatment starts.",
+  routine: "Brush gently twice a day with a soft brush, then spit — don't rinse.",
+  dry: "Sip water often, and use a saliva gel before meals and at bedtime.",
+  sore: "Choose soft, lukewarm food, and ask your team about pain relief early.",
+  eating: "Ask your team about seeing a dietitian. Small meals often are easier.",
+  taste: "Try stronger flavours, or plastic cutlery if food tastes metallic.",
+  teeth: "Use a high-fluoride toothpaste every day — teeth decay faster now.",
+  bone: "Tell every dentist about your injections before any tooth comes out.",
+  immuno: "Tell your team early about any new change in your mouth.",
+};
+const TIP_ORDER = ["dental-first", "sore", "eating", "dry", "taste", "teeth", "bone", "immuno", "routine"];
+export const topTips = (cards, n = 3) =>
+  [...cards].sort((a, b) => TIP_ORDER.indexOf(a.id) - TIP_ORDER.indexOf(b.id)).slice(0, n);
 // Each card: what to do, in plain words, with sources. Cards are chosen from
 // the latest entry and the treatment profile.
 export function adviceFor(latest, profile, entries = []) {
   const t = profile.treatments || [];
   const sx = latest?.symptoms || [];
   const cards = [];
-  const add = (id, title, points, refs, tone = "care") => cards.push({ id, title, points, refs, tone });
+  const add = (id, title, points, refs, tone = "care") => cards.push({ id, title, points, refs, tone, tip: TIPS[id] });
 
   if (profile.phase === "before") {
     const why = [];
