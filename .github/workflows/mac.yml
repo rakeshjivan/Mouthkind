@@ -1,0 +1,35 @@
+# Builds the Mac app (.dmg) when you push a version tag, e.g. v1.0.0.
+# The app loads the live website, so you only need a new Mac build when the
+# native shell itself changes — content updates arrive automatically.
+name: Build Mac app
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: "aarch64-apple-darwin,x86_64-apple-darwin" }
+      - run: npm ci
+      - name: Point the app at the website
+        env:
+          # Defaults to this repo's GitHub Pages address; set the APP_URL variable to override.
+          APP_URL: ${{ vars.APP_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+        run: |
+          node -e 'const f="src-tauri/tauri.conf.json",c=require("./"+f);c.build.frontendDist=process.env.APP_URL;require("fs").writeFileSync(f,JSON.stringify(c,null,2))'
+      - run: npx tauri icon public/icon-1024.png
+      - uses: tauri-apps/tauri-action@v0
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Mouthkind ${{ github.ref_name }}"
+          releaseBody: "Download the .dmg below, open it and drag Mouthkind to Applications."
+          releaseDraft: false
+          args: --target universal-apple-darwin
