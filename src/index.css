@@ -419,3 +419,6 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 650; 
 /* Check-in footer: buttons share the width and are big enough to hit easily */
 .sheet-foot > .btn { flex: 1; min-height: 56px; font-size: calc(18px * var(--s)); }
 .sheet-foot > .btn.ghost { flex: 0 1 auto; padding-inline: 20px; }
+
+.follow-up { margin-top: 18px; padding: 16px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+.follow-up h3 { margin: 0 0 12px; font-size: calc(18px * var(--s)); }

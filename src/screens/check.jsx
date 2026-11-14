@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon, PhInput, Sheet } from "../components/ui.jsx";
-import { CARER_SIGNS, DANGER_SIGNS, OPENING, SIP_OPTIONS, SIP_QUESTIONS, SYMPTOMS } from "../data/clinical.js";
+import { CARER_SIGNS, DANGER_SIGNS, EMERGENCY_SIGNS, OPENING, SIP_OPTIONS, SIP_QUESTIONS, SYMPTOMS } from "../data/clinical.js";
 import { stillAtFeverRisk } from "../lib/rules.js";
 
 // ─── Plain-word answers ────────────────────────────────────────────────────
@@ -96,8 +96,14 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
   const next = () => (last ? finish() : setI(i + 1));
   const auto = (patch) => { set(patch); setTimeout(() => setI((n) => Math.min(n + 1, visible.length - 1)), 220); };
 
-  // Danger answers end the check-in at once — nothing else matters then.
-  const urgentNow = e.danger.length > 0 || e.fever === "yes" || e.fever === "shivery";
+  // Emergency answers end the check-in at once — nothing else matters then.
+  const urgentNow = e.danger.some((d) => EMERGENCY_SIGNS.includes(d)) || e.fever === "yes" || e.fever === "shivery";
+  const bleeds = e.danger.includes("gum_bleed");
+  const followRef = useRef(null);
+  useEffect(() => { if (bleeds) followRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }, [bleeds]);
+  const setBleedStops = (stops) => set({ bleedStops: stops,
+    danger: stops ? e.danger.filter((d) => d !== "bleed_wont_stop") : [...new Set([...e.danger, "bleed_wont_stop"])] });
+  const setDanger = (v) => set(v.includes("gum_bleed") ? { danger: v } : { danger: v.filter((d) => d !== "bleed_wont_stop"), bleedStops: null });
 
   function finish(cutShort = false) {
     const sipDone = e.items.every(Boolean);
@@ -113,7 +119,7 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
     });
   }
 
-  const needs = { pain: e.pain != null, dry: e.dryness != null, eat: e.eating != null };
+  const needs = { danger: !bleeds || e.bleedStops != null, pain: e.pain != null, dry: e.dryness != null, eat: e.eating != null };
   const canNext = needs[step] ?? true;
   const sipIdx = /^sip(\d)$/.exec(step || "")?.[1];
 
@@ -131,7 +137,15 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
     case "danger":
       body = (<>
         <h2 className="q">Right now, is any of this happening?</h2>
-        <Many options={DANGER_SIGNS} value={e.danger} onChange={(v) => set({ danger: v })} />
+        <p className="lede tight">Tap any that apply.</p>
+        <Many options={DANGER_SIGNS} value={e.danger.filter((d) => d !== "bleed_wont_stop")} onChange={setDanger} />
+        {bleeds && (
+          <div className="follow-up" ref={followRef}>
+            <h3>Does the bleeding stop if you press on it for 10 minutes?</h3>
+            <Choice options={[{ v: true, label: "Yes, it stops" }, { v: false, label: "No, it won't stop" }]}
+              value={e.bleedStops} onPick={setBleedStops} />
+          </div>
+        )}
         {e.danger.length === 0 && <button className="btn ghost big" onClick={next}>No, none of these</button>}
       </>);
       break;

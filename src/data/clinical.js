@@ -94,20 +94,26 @@ export const SYMPTOMS = [
   { id: "corners", label: "Sore or cracked corners of the mouth" },
   { id: "taste", label: "Taste has changed" },
   { id: "swallow", label: "Swallowing is hard or painful" },
-  { id: "bleeding", label: "Bleeding gums or mouth" },
   { id: "opening", label: "Can't open my mouth as wide" },
-  { id: "toothache", label: "Toothache or a broken tooth" },
   { id: "jaw", label: "Jaw pain or swelling" },
   { id: "bone", label: "Bone showing in my mouth" },
   { id: "denture", label: "Dentures rubbing or loose" },
 ];
 
-// Things that are always an emergency. Asked separately, answered yes/no.
+// First question after fever. Plain, everyday problems first; the two
+// emergencies last. Bleeding gets a follow-up (does it stop with pressure?).
 export const DANGER_SIGNS = [
-  { id: "bleed_wont_stop", label: "Bleeding that won't stop after 10 minutes of firm pressure" },
+  { id: "gum_bleed", label: "My gums bleed" },
+  { id: "sensitive", label: "My teeth are sensitive" },
+  { id: "toothache", label: "I have a toothache" },
+  { id: "broken", label: "I have a broken tooth or filling" },
   { id: "cant_swallow_saliva", label: "Can't swallow my own saliva, or trouble breathing" },
   { id: "swelling_spreading", label: "Face or neck swelling that is spreading" },
 ];
+// Answers on that screen that end the check-in at once.
+export const EMERGENCY_SIGNS = ["cant_swallow_saliva", "swelling_spreading", "bleed_wont_stop"];
+// Labels for answers older entries may hold.
+export const OLD_LABELS = { bleeding: "Bleeding gums or mouth", toothache: "Toothache or a broken tooth", bleed_wont_stop: "Bleeding that won't stop" };
 
 // ─── Regions ───────────────────────────────────────────────────────────────
 export const REGIONS = {

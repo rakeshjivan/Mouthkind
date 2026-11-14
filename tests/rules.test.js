@@ -29,7 +29,7 @@ test("fever on radiotherapy alone is same-day", () => {
   assert.equal(topLevel(redFlags({ ...base, temp: 38.5 }, { treatments: ["rt_hn"], phase: "during" })), "sameday");
 });
 test("every danger sign is an emergency for anyone", () => {
-  for (const d of ["bleed_wont_stop", "cant_swallow_saliva", "swelling_spreading"])
+  for (const d of ["bleed_wont_stop", "cant_swallow_saliva", "swelling_spreading"]) // bleed_wont_stop comes from the follow-up
     assert.equal(topLevel(redFlags({ ...base, danger: [d] }, { treatments: [] })), "emergency", d);
 });
 test("can't eat or drink → same day", () => {
@@ -121,4 +121,14 @@ test("support directory: every group has a phone and https site, filtered by cou
 });
 test("order button only appears where a link exists", () => {
   for (const p of PRODUCTS) for (const u of Object.values(p.buy || {})) assert.match(u, /^https:\/\//, p.id);
+});
+
+test("dental answers on the first screen: bleeding that stops is not an emergency; one that won't is", () => {
+  assert.equal(topLevel(redFlags({ ...base, danger: ["gum_bleed"] }, chemoNow)), "soon");
+  assert.equal(topLevel(redFlags({ ...base, danger: ["gum_bleed", "bleed_wont_stop"] }, chemoNow)), "emergency");
+});
+test("toothache, broken tooth and sensitivity route to the dentist, sooner after H&N radiotherapy", () => {
+  assert.equal(topLevel(redFlags({ ...base, danger: ["broken"] }, chemoNow)), "dentist");
+  assert.equal(topLevel(redFlags({ ...base, danger: ["toothache"] }, { treatments: ["rt_hn"], phase: "after" })), "soon");
+  assert.ok(redFlags({ ...base, danger: ["sensitive"] }, chemoNow).some((a) => a.id === "sensitive" && a.level === "dentist"));
 });

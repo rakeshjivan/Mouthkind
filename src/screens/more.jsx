@@ -3,7 +3,7 @@ import { Gauge, Icon, Sheet, Sources, Toggle } from "../components/ui.jsx";
 import { dryWord, painWord } from "./check.jsx";
 import { TrendPanels } from "../components/charts.jsx";
 import {
-  CARER_SIGNS, EATING, OPENING, PHASES, PH_ROOT_CRITICAL, QUESTIONS, REGIONS, SIP_QUESTIONS, SYMPTOMS, TREATMENTS, sipBand, telHref,
+  CARER_SIGNS, DANGER_SIGNS, OLD_LABELS, EATING, OPENING, PHASES, PH_ROOT_CRITICAL, QUESTIONS, REGIONS, SIP_QUESTIONS, SYMPTOMS, TREATMENTS, sipBand, telHref,
 } from "../data/clinical.js";
 import { JOBS, visibleProducts } from "../data/products.js";
 import { LEARN } from "../data/learn.js";
@@ -12,7 +12,7 @@ import { REFS } from "../data/references.js";
 import { adviceFor, redFlags, trendFlags, LEVELS } from "../lib/rules.js";
 import { DAY, downloadText, fmtDate, fmtShort, fmtTime, makeBackup, readBackup, dayKey } from "../lib/store.js";
 
-const symLabel = (id) => [...SYMPTOMS, ...CARER_SIGNS].find((s) => s.id === id)?.label || id;
+const symLabel = (id) => [...SYMPTOMS, ...CARER_SIGNS, ...DANGER_SIGNS].find((s) => s.id === id)?.label || OLD_LABELS[id] || id;
 const eatLabel = (id) => EATING.find((s) => s.id === id)?.label || "—";
 
 // ═══ Trends ════════════════════════════════════════════════════════════════
@@ -72,7 +72,7 @@ export function Trends({ entries, profile, onDelete, open }) {
               const on = sel.includes(e.id);
               const bits = [painWord(e.pain), dryWord(e.dryness)?.toLowerCase(),
                 e.sip != null && `dry mouth score ${e.sip}`, e.weight != null && `${e.weight} kg`,
-                ...(e.symptoms || []).map((x) => symLabel(x).toLowerCase())].filter(Boolean);
+                ...[...(e.danger || []), ...(e.symptoms || [])].map((x) => symLabel(x).toLowerCase())].filter(Boolean);
               const lvl = redFlags(e, profile)[0]?.level;
               return (
                 <button key={e.id} className={`entry${selecting ? " sel-mode" : ""}${on ? " sel" : ""}`}
@@ -269,7 +269,7 @@ export function Report({ profile, entries, onClose }) {
   const avg = (k) => { const v = recent.filter((e) => e[k] != null).map((e) => e[k]); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : "—"; };
   const flags = [...(daily[0] ? redFlags(daily[0], profile) : []), ...trendFlags(entries)];
   const counts = {};
-  recent.forEach((e) => (e.symptoms || []).forEach((s) => (counts[s] = (counts[s] || 0) + 1)));
+  recent.forEach((e) => [...(e.danger || []), ...(e.symptoms || [])].forEach((s) => (counts[s] = (counts[s] || 0) + 1)));
   const phs = sorted.filter((e) => e.ph != null);
 
   return (
@@ -332,7 +332,7 @@ export function Report({ profile, entries, onClose }) {
             <table className="rep-table"><thead><tr><th>Date</th><th>Pain</th><th>Dry</th><th>Eating</th><th>Temp</th><th>Symptoms</th></tr></thead>
               <tbody>{daily.slice(0, 30).map((e) => (
                 <tr key={e.id}><td>{fmtShort(e.ts)}</td><td>{e.pain ?? "—"}</td><td>{e.dryness ?? "—"}</td><td>{eatLabel(e.eating)}</td>
-                  <td>{e.temp ?? "—"}</td><td>{(e.symptoms || []).map(symLabel).join(", ") || "—"}</td></tr>))}</tbody></table>
+                  <td>{e.temp ?? "—"}</td><td>{[...(e.danger || []), ...(e.symptoms || [])].map(symLabel).join(", ") || "—"}</td></tr>))}</tbody></table>
           </section>
           <p className="rep-foot strong">Patient-reported data. Not a diagnosis. Escalation rules follow MASCC/ISOO guidance and Australian public health advice.</p>
         </div>
