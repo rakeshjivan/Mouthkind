@@ -22,7 +22,7 @@
   "bundle": {
     "active": true,
     "targets": ["dmg", "app"],
-    "category": "MedicalApplication",
+    "category": "Medical",
     "shortDescription": "Track mouth symptoms during cancer treatment",
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.png"],
     "macOS": { "minimumSystemVersion": "11.0" }
