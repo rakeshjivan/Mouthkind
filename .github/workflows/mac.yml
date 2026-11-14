@@ -1,10 +1,12 @@
-# Builds the Mac app (.dmg) when you push a version tag, e.g. v1.0.0.
+# Builds the Mac app (.dmg) and publishes it as a GitHub release named after
+# the version in src-tauri/tauri.conf.json. Runs on a push to the `release`
+# branch, or from Actions ▸ Build Mac app ▸ Run workflow.
 # The app loads the live website, so you only need a new Mac build when the
 # native shell itself changes — content updates arrive automatically.
 name: Build Mac app
 on:
   push:
-    tags: ["v*"]
+    branches: [release]
   workflow_dispatch:
 permissions:
   contents: write
@@ -28,8 +30,8 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Mouthkind ${{ github.ref_name }}"
+          tagName: v__VERSION__
+          releaseName: "Mouthkind v__VERSION__"
           releaseBody: "Download the .dmg below, open it and drag Mouthkind to Applications."
           releaseDraft: false
           args: --target universal-apple-darwin

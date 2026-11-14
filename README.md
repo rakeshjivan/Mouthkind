@@ -57,11 +57,7 @@ The repository is public: `github.com/rakeshjivan/Mouthkind`. No licence file me
 
 **Website** — Settings ▸ Pages ▸ Source: **GitHub Actions**. Every push to `main` then runs the tests and publishes to `https://rakeshjivan.github.io/Mouthkind/`.
 
-**Mac app** — create a release tag:
-
-```bash
-git tag v1.0.0 && git push origin v1.0.0
-```
+**Mac app** — on GitHub: Actions ▸ **Build Mac app** ▸ **Run workflow** (or push to the `release` branch). It builds the version set in `src-tauri/tauri.conf.json`.
 
 The `.dmg` appears under the repo's Releases about 10–15 minutes later. It loads the website above, so later website changes reach it automatically. (To point it somewhere else, add a repository variable `APP_URL`.)
 
