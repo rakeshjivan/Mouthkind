@@ -109,4 +109,40 @@ export const REFS = {
     where: "Oral Surg Oral Med Oral Pathol Oral Radiol Endod 2011;112:322–7",
     url: "https://doi.org/10.1016/j.tripleo.2011.03.024",
   },
+  sdcep2026: {
+    short: "SDCEP 2026",
+    title: "Management of Acute Dental Problems, 2nd edition",
+    where: "Scottish Dental Clinical Effectiveness Programme, March 2026",
+    url: "https://www.acutedentalproblems.sdcep.org.uk/guidance/management-of-oral-conditions/common-oral-conditions/",
+  },
+  elad2015: {
+    short: "Elad 2015",
+    title: "Basic oral care for haematology–oncology patients and HSCT recipients: MASCC/ISOO/EBMT position paper",
+    where: "Support Care Cancer 2015;23:223–36",
+    url: "https://doi.org/10.1007/s00520-014-2378-x",
+  },
+  ruggiero2022: {
+    short: "Ruggiero 2022",
+    title: "AAOMS position paper on medication-related osteonecrosis of the jaws — 2022 update",
+    where: "J Oral Maxillofac Surg 2022;80:920–43",
+    url: "https://doi.org/10.1016/j.joms.2022.02.008",
+  },
+  ccBleeding: {
+    short: "Cancer Council NSW",
+    title: "Bleeding problems during chemotherapy",
+    where: "Cancer Council NSW",
+    url: "https://www.cancercouncil.com.au/cancer-information/cancer-treatment/chemotherapy/side-effects/how-chemotherapy-affects-the-blood/bleeding-problems/",
+  },
+  adaOnc: {
+    short: "ADA",
+    title: "Cancer therapies and dental considerations",
+    where: "American Dental Association, Oral Health Topics",
+    url: "https://www.ada.org/resources/research/science-and-research-institute/oral-health-topics/cancer-therapies-and-dental-considerations",
+  },
+  nciPdq: {
+    short: "NCI PDQ",
+    title: "Oral complications of cancer therapies — health professional version",
+    where: "National Cancer Institute",
+    url: "https://www.cancer.gov/about-cancer/treatment/side-effects/mouth-throat/oral-complications-hp-pdq",
+  },
 };

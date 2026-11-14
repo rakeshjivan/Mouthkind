@@ -61,6 +61,34 @@ async def main():
         await btn("Done").click(); await pg.wait_for_timeout(300)
         await shot("09-today-done", True)
 
+        # A second check-in that goes down the dental branches
+        await pg.click("text=Something changed? Check again"); await pg.wait_for_timeout(500)
+        await btn("No").click(); await pg.wait_for_timeout(350)
+        await pg.click("text=My gums bleed"); await pg.click("text=I have a toothache")
+        await shot("20-dental-pick")
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        await shot("21-gums-when")
+        await pg.click("text=On their own, without touching them"); await pg.wait_for_timeout(350)
+        await shot("22-gums-now")
+        await pg.click("text=No, it has stopped"); await pg.wait_for_timeout(350)
+        await pg.click("text=Tiny red or purple spots"); await shot("23-gums-signs")
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        await shot("24-tooth-kind")
+        await pg.click("text=It hurts to bite on one tooth"); await pg.wait_for_timeout(350)
+        await btn("None of these").click(); await pg.wait_for_timeout(250); await shot("24b-after")
+        dlg = pg.get_by_role("dialog")
+        await dlg.get_by_text("A little sore", exact=True).click(); await pg.wait_for_timeout(350)
+        await dlg.get_by_text("Not dry", exact=True).click(); await pg.wait_for_timeout(350)
+        await dlg.get_by_text("Eating as usual", exact=True).click(); await pg.wait_for_timeout(350)
+        for _ in range(15):
+            done = pg.get_by_role("button", name="finish")
+            if await done.count(): await done.first.click(); break
+            for name in ["Not today", "Skip", "Nothing new", "Next"]:
+                if await btn(name).count() and await btn(name).is_enabled(): await btn(name).click(); break
+            await pg.wait_for_timeout(250); await pg.wait_for_timeout(500)
+        await shot("25-dental-result", True)
+        await btn("Done").click(); await pg.wait_for_timeout(300)
+
         await pg.click("nav >> text=Help"); await pg.wait_for_timeout(200)
         await shot("10-help-tips", True)
         await btn("Products").click(); await pg.click("text=GC Dry Mouth Gel")

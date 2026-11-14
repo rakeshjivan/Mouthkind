@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Icon, PhInput, Sheet } from "../components/ui.jsx";
 import { CARER_SIGNS, DANGER_SIGNS, EMERGENCY_SIGNS, OPENING, SIP_OPTIONS, SIP_QUESTIONS, SYMPTOMS } from "../data/clinical.js";
 import { stillAtFeverRisk } from "../lib/rules.js";
+import { DENTAL_IDS, TRIAGE, dentalEmergency, stepsFor } from "../data/triage.js";
 
 // ─── Plain-word answers ────────────────────────────────────────────────────
 // Numbers are stored so the rules and charts keep working; people only see words.
@@ -71,39 +72,43 @@ function Many({ options, value, onChange, noneLabel }) {
  */
 export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
   const feverRisk = stillAtFeverRisk(profile) || (profile.treatments || []).length > 0;
+  const [e, setE] = useState({ fever: null, temp: null, danger: [], dental: {}, pain: null, dryness: null, eating: null,
+    symptoms: [], carerSigns: [], weight: "", opening: null, items: [null, null, null, null, null], ph: null });
+  // Each dental answer on the first screen opens its own short branch of questions.
+  const dentalSteps = DENTAL_IDS.filter((id) => e.danger.includes(id))
+    .flatMap((id) => stepsFor(id, e.dental[id]).map((st) => `t:${id}:${st.id}`));
   const steps = useMemo(() => {
     const s = [];
     if (feverRisk) s.push("fever");
-    s.push("danger", "pain", "dry", "eat", "mouth");
+    s.push("danger", ...dentalSteps, "pain", "dry", "eat", "mouth");
     if (profile.carer) s.push("carer");
     if (due.weekly) s.push("weekIntro", "weight", "opening");
     if (due.sip) s.push("sipIntro", "sip0", "sip1", "sip2", "sip3", "sip4");
     if (profile.phStrips) s.push("ph");
     return s;
-  }, [feverRisk, profile.carer, profile.phStrips, due.weekly, due.sip]);
+  }, [feverRisk, profile.carer, profile.phStrips, due.weekly, due.sip, dentalSteps.join()]);
 
-  const [i, setI] = useState(0);
-  const [e, setE] = useState({ fever: null, temp: null, danger: [], pain: null, dryness: null, eating: null,
-    symptoms: [], carerSigns: [], weight: "", opening: null, items: [null, null, null, null, null], ph: null });
+  const [rawI, setI] = useState(0);
   const [skipWeek, setSkipWeek] = useState(false);
   const [skipSip, setSkipSip] = useState(false);
   const set = (patch) => setE((x) => ({ ...x, ...patch }));
 
   const visible = steps.filter((k) =>
     !(skipWeek && (k === "weight" || k === "opening")) && !(skipSip && /^sip\d$/.test(k)));
+  // Skipping a section shortens the list, so keep the position inside it.
+  const i = Math.min(rawI, visible.length - 1);
   const step = visible[i];
   const last = i === visible.length - 1;
   const next = () => (last ? finish() : setI(i + 1));
-  const auto = (patch) => { set(patch); setTimeout(() => setI((n) => Math.min(n + 1, visible.length - 1)), 220); };
+  const advance = () => setTimeout(() => setI((n) => Math.min(Math.min(n, visible.length - 1) + 1, visible.length - 1)), 220);
+  const auto = (patch) => { set(patch); advance(); };
 
   // Emergency answers end the check-in at once — nothing else matters then.
-  const urgentNow = e.danger.some((d) => EMERGENCY_SIGNS.includes(d)) || e.fever === "yes" || e.fever === "shivery";
-  const bleeds = e.danger.includes("gum_bleed");
-  const followRef = useRef(null);
-  useEffect(() => { if (bleeds) followRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }); }, [bleeds]);
-  const setBleedStops = (stops) => set({ bleedStops: stops,
-    danger: stops ? e.danger.filter((d) => d !== "bleed_wont_stop") : [...new Set([...e.danger, "bleed_wont_stop"])] });
-  const setDanger = (v) => set(v.includes("gum_bleed") ? { danger: v } : { danger: v.filter((d) => d !== "bleed_wont_stop"), bleedStops: null });
+  const urgentNow = e.danger.some((d) => EMERGENCY_SIGNS.includes(d)) || dentalEmergency(e.dental) || e.fever === "yes" || e.fever === "shivery";
+  const tri = /^t:(\w+):(\w+)$/.exec(step || "");
+  const triStep = tri && TRIAGE[tri[1]].find((x) => x.id === tri[2]);
+  const triAns = tri ? e.dental[tri[1]] || {} : {};
+  const setTri = (patch) => set({ dental: { ...e.dental, [tri[1]]: { ...triAns, ...patch } } });
 
   function finish(cutShort = false) {
     const sipDone = e.items.every(Boolean);
@@ -111,6 +116,7 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
     onSave({
       id: `d_${Date.now()}`, ts: Date.now(), kind: "daily",
       fever: e.fever, temp: e.temp, danger: e.danger,
+      dental: Object.fromEntries(Object.entries(e.dental).filter(([k]) => e.danger.includes(k))),
       pain: e.pain, dryness: e.dryness, eating: e.eating,
       symptoms: [...e.symptoms, ...e.carerSigns],
       weight: Number.isFinite(w) ? w : null, opening: e.opening,
@@ -119,8 +125,8 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
     });
   }
 
-  const needs = { danger: !bleeds || e.bleedStops != null, pain: e.pain != null, dry: e.dryness != null, eat: e.eating != null };
-  const canNext = needs[step] ?? true;
+  const needs = { pain: e.pain != null, dry: e.dryness != null, eat: e.eating != null };
+  const canNext = triStep ? (triStep.type === "many" || triAns[triStep.id] != null) : needs[step] ?? true;
   const sipIdx = /^sip(\d)$/.exec(step || "")?.[1];
 
   let body;
@@ -138,14 +144,7 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
       body = (<>
         <h2 className="q">Right now, is any of this happening?</h2>
         <p className="lede tight">Tap any that apply.</p>
-        <Many options={DANGER_SIGNS} value={e.danger.filter((d) => d !== "bleed_wont_stop")} onChange={setDanger} />
-        {bleeds && (
-          <div className="follow-up" ref={followRef}>
-            <h3>Does the bleeding stop if you press on it for 10 minutes?</h3>
-            <Choice options={[{ v: true, label: "Yes, it stops" }, { v: false, label: "No, it won't stop" }]}
-              value={e.bleedStops} onPick={setBleedStops} />
-          </div>
-        )}
+        <Many options={DANGER_SIGNS} value={e.danger} onChange={(v) => set({ danger: v })} />
         {e.danger.length === 0 && <button className="btn ghost big" onClick={next}>No, none of these</button>}
       </>);
       break;
@@ -207,7 +206,20 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
       </>);
       break;
     default:
-      if (sipIdx != null) {
+      if (triStep) {
+        const vals = triAns[triStep.id] || [];
+        body = (<>
+          <p className="eyebrow">{DANGER_SIGNS.find((d) => d.id === tri[1])?.label}</p>
+          <h2 className="q">{triStep.q}</h2>
+          {triStep.type === "one" ? (
+            <Choice options={triStep.options} value={triAns[triStep.id]}
+              onPick={(v) => { const p = { [triStep.id]: v }; dentalEmergency({ ...e.dental, [tri[1]]: { ...triAns, ...p } }) ? setTri(p) : (setTri(p), setTimeout(() => setI((n) => Math.min(n, visible.length) + 1), 220)); }} />
+          ) : (
+            <Many options={triStep.options.map((o) => ({ id: o.v, label: o.label }))} value={vals}
+              onChange={(v) => setTri({ [triStep.id]: v })} />
+          )}
+        </>);
+      } else if (sipIdx != null) {
         const k = Number(sipIdx);
         body = (<>
           <p className="eyebrow">Over the last two weeks · {k + 1} of 5</p>
@@ -219,26 +231,32 @@ export function CheckFlow({ profile, due, lastWeight, onClose, onSave }) {
   }
 
   // Tick-box steps: one button that reads "Nothing new" until something is ticked.
-  const multi = step === "mouth" || step === "carer";
-  const picked = step === "mouth" ? e.symptoms.length > 0 : e.carerSigns.length > 0;
+  const multi = step === "mouth" || step === "carer" || triStep?.type === "many";
+  const picked = triStep ? (triAns[triStep.id] || []).length > 0 : step === "mouth" ? e.symptoms.length > 0 : e.carerSigns.length > 0;
+  const noneLabel = triStep?.none || "Nothing new";
   const skippable = ["weight", "opening", "ph"].includes(step) || /^sip\d$/.test(step || "");
   const introStep = step === "weekIntro" || step === "sipIntro";
 
   return (
     <Sheet title="Today's check" onClose={onClose} onBack={i ? () => setI(i - 1) : null}
       progress={{ of: visible.length, at: i, label: `${i + 1} of ${visible.length}` }}
-      footer={urgentNow && (step === "fever" || step === "danger") ? (
+      footer={urgentNow && (step === "fever" || step === "danger" || triStep) ? (
         <button className="btn danger big" onClick={() => finish(true)}>Show me what to do now</button>
       ) : introStep ? (
         <>
-          <button className="btn ghost" onClick={() => { step === "weekIntro" ? setSkipWeek(true) : setSkipSip(true); setI(i + 1); }}>Not today</button>
+          <button className="btn ghost" onClick={() => {
+            const group = step === "weekIntro" ? 2 : 5;
+            step === "weekIntro" ? setSkipWeek(true) : setSkipSip(true);
+            // If nothing comes after the skipped questions, this was the end of the check-in.
+            i >= visible.length - 1 - group ? finish() : setI(i + 1);
+          }}>Not today</button>
           <button className="btn primary" onClick={() => setI(i + 1)}>OK</button>
         </>
       ) : (
         <>
           {skippable && !multi && <button className="btn ghost" onClick={next}>Skip</button>}
           <button className="btn primary" disabled={!canNext} onClick={next}>
-            {multi && !picked ? (last ? "Nothing new — finish" : "Nothing new") : last ? "Finish" : "Next"}
+            {multi && !picked ? (last ? `${noneLabel} — finish` : noneLabel) : last ? "Finish" : "Next"}
           </button>
         </>
       )}>

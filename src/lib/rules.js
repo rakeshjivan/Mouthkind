@@ -4,6 +4,7 @@
 // nothing else on that screen.
 
 import { PH_ROOT_CRITICAL, TREATMENTS } from "../data/clinical.js";
+import { dentalAlerts } from "../data/triage.js";
 
 const DAY = 86400000;
 export const LEVELS = {
@@ -34,11 +35,7 @@ export function stillAtFeverRisk(profile, now = Date.now()) {
 export function redFlags(entry, profile, now = Date.now()) {
   const t = profile.treatments || [];
   const danger = entry.danger || [];
-  // Dental answers from the first screen count the same as the matching symptoms.
-  const sx = [...(entry.symptoms || []),
-    ...(has(danger, "gum_bleed") ? ["bleeding"] : []),
-    ...(has(danger, "toothache") || has(danger, "broken") ? ["toothache"] : []),
-    ...(has(danger, "sensitive") ? ["sensitive"] : [])];
+  const sx = entry.symptoms || [];
   const out = [];
   const add = (level, id, title, body, refs = []) => out.push({ level, id, title, body, refs });
 
@@ -103,12 +100,8 @@ export function redFlags(entry, profile, now = Date.now()) {
     add("dentist", "trismus", "Your mouth isn't opening as wide",
       "Ask your team for a referral to a speech pathologist or physiotherapist for jaw exercises. Starting early helps most.",
       ["wranicz2010"]);
-  if (has(sx, "sensitive") && !has(sx, "toothache"))
-    add("dentist", "sensitive", "Sensitive teeth",
-      "Mention it to your dentist. A dry mouth leaves teeth less protected, so sensitivity often goes with a higher risk of decay. Use a high-fluoride toothpaste, spit don't rinse, and ask about a calcium-phosphate crème such as GC Tooth Mousse Plus. If it becomes a constant ache, see your dentist sooner.",
-      ["peterson2024"]);
   if (has(sx, "toothache"))
-    add(boneRisk ? "soon" : "dentist", "tooth", has(danger, "broken") && !has(danger, "toothache") ? "A broken tooth or filling" : "Toothache or a broken tooth",
+    add(boneRisk ? "soon" : "dentist", "tooth", "Toothache or a broken tooth",
       boneRisk
         ? "See your dentist soon, and make sure they know about your radiotherapy or injections before any treatment."
         : "See your dentist. During chemotherapy, check with your team first — they may want a blood test before dental work.",
@@ -134,6 +127,9 @@ export function redFlags(entry, profile, now = Date.now()) {
       entry.opening === 1 ? "Mouth opening is clearly restricted" : "Mouth opening is a little restricted",
       "Ask your team for a referral to a speech pathologist or physiotherapist for jaw exercises. Starting early helps most.",
       ["wranicz2010"]);
+
+  // ── Dental follow-up answers (data/triage.js)
+  out.push(...dentalAlerts(danger, entry.dental, { lowCounts: stillAtFeverRisk(profile, now), boneRisk }));
 
   const order = (a, b) => LEVELS[b.level].rank - LEVELS[a.level].rank;
   return out.sort(order);
