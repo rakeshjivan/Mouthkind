@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Gauge, Icon, Sheet, Sources, Toggle } from "../components/ui.jsx";
-import { dryWord, painWord } from "./check.jsx";
 import { TrendPanels } from "../components/charts.jsx";
 import {
   CARER_SIGNS, DANGER_SIGNS, OLD_LABELS, EATING, OPENING, PHASES, PH_ROOT_CRITICAL, QUESTIONS, REGIONS, SIP_QUESTIONS, SYMPTOMS, TREATMENTS, sipBand, telHref,
@@ -9,131 +8,14 @@ import { JOBS, visibleProducts } from "../data/products.js";
 import { LEARN } from "../data/learn.js";
 import { host, supportFor } from "../data/support.js";
 import { BANDS, TREES, describeAnswers } from "../data/dental.js";
-import { bandLevel } from "./symptom.jsx";
 import { REFS } from "../data/references.js";
+import { DRY_SIGNS, SORE_LEVELS, SORE_SIGNS, areaWord, eatWord, lastDays, soreLevel } from "../data/tracker.js";
+import { TwoLineChart } from "../components/kit.jsx";
 import { adviceFor, redFlags, trendFlags, LEVELS } from "../lib/rules.js";
 import { DAY, downloadText, fmtDate, fmtShort, fmtTime, makeBackup, readBackup, dayKey } from "../lib/store.js";
 
-const symLabel = (id) => [...SYMPTOMS, ...CARER_SIGNS, ...DANGER_SIGNS].find((s) => s.id === id)?.label || OLD_LABELS[id] || id;
-const eatLabel = (id) => EATING.find((s) => s.id === id)?.label || "—";
-
-// ═══ Trends ════════════════════════════════════════════════════════════════
-export function Trends({ entries, profile, onDelete, open }) {
-  const [selecting, setSelecting] = useState(false);
-  const [sel, setSel] = useState([]);
-  const sorted = [...entries].sort((a, b) => b.ts - a.ts);
-  const latestSip = sorted.find((e) => e.sip != null);
-  const week = sorted.filter((e) => e.kind === "daily" && Date.now() - e.ts <= 7 * DAY);
-  const toggle = (id) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
-
-  return (
-    <div className="screen">
-      <header className="hero"><h1 className="display">My notes</h1>
-        <p className="lede">Everything you've recorded, to look back on or show your team.</p></header>
-      {entries.length === 0 ? (
-        <section className="card"><p className="lede">Nothing here yet. After a few check-ins you'll see how things are going.</p></section>
-      ) : (
-        <>
-          <section className="card">
-            <h2 className="card-h">This week</h2>
-            <div className="week-dots" aria-label="Last 7 days">
-              {Array.from({ length: 7 }, (_, k) => {
-                const d = new Date(Date.now() - (6 - k) * DAY);
-                const e = sorted.find((x) => x.kind === "daily" && dayKey(x.ts) === dayKey(d.getTime()));
-                const lvl = e ? (redFlags(e, profile)[0]?.level || "ok") : "none";
-                return (
-                  <div key={k} className="wd">
-                    <span className={`wd-dot ${lvl}`} title={e ? painWord(e.pain) || "" : "No check-in"} />
-                    <span className="wd-day">{d.toLocaleDateString("en-AU", { weekday: "narrow" })}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="soft-note">{week.length} check-in{week.length === 1 ? "" : "s"} this week. Green means nothing needed a call.</p>
-          </section>
-          {latestSip && (
-            <section className="card gauge-card">
-              <h2 className="card-h">Dry mouth score</h2>
-              <Gauge score={latestSip.sip} />
-              <p className="score-band" style={{ color: sipBand(latestSip.sip).color }}>{sipBand(latestSip.sip).full}</p>
-              <p className="score-meta">{latestSip.sip} out of 15 · {fmtDate(latestSip.ts)}</p>
-            </section>
-          )}
-          <section className="card"><h2 className="card-h">Over time</h2><TrendPanels entries={entries} /></section>
-          <section className="card">
-            <h2 className="card-h">Share with your team</h2>
-            <p className="muted">A one-page summary to print or save as a PDF.</p>
-            <button className="btn primary big" onClick={() => open("report")}><Icon name="doc" /> Make a report</button>
-          </section>
-          <div className="list-head">
-            <h2 className="card-h">Every entry</h2>
-            <button className="link-btn" onClick={() => { setSelecting(!selecting); setSel([]); }}>{selecting ? "Cancel" : "Delete some"}</button>
-          </div>
-          <div className="entries">
-            {sorted.slice(0, 120).map((e) => {
-              const on = sel.includes(e.id);
-              const bits = e.kind === "symptom" ? [`${TREES[e.tree]?.label || "Symptom check"} — ${BANDS[e.band]?.label.toLowerCase()}`] : [painWord(e.pain), dryWord(e.dryness)?.toLowerCase(),
-                e.sip != null && `dry mouth score ${e.sip}`, e.weight != null && `${e.weight} kg`,
-                ...[...(e.danger || []), ...(e.symptoms || [])].map((x) => symLabel(x).toLowerCase())].filter(Boolean);
-              const lvl = e.kind === "symptom" ? bandLevel[e.band] : redFlags(e, profile)[0]?.level;
-              return (
-                <button key={e.id} className={`entry${selecting ? " sel-mode" : ""}${on ? " sel" : ""}`}
-                  onClick={() => selecting && toggle(e.id)} disabled={!selecting}>
-                  {selecting && <span className={`box${on ? " on" : ""}`}>{on && <Icon name="check" size={14} stroke={3} />}</span>}
-                  <span className={`entry-bar ${lvl || "ok"}`} />
-                  <span className="entry-main">
-                    <strong>{new Date(e.ts).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "short" })}</strong>
-                    <span>{bits.join(", ") || "—"}</span>
-                  </span>
-                  <span className="entry-date">{fmtTime(e.ts)}</span>
-                </button>
-              );
-            })}
-          </div>
-          {selecting && sel.length > 0 && (
-            <div className="sticky-bar">
-              <button className="btn danger big" onClick={() => { onDelete(sel); setSel([]); setSelecting(false); }}>
-                <Icon name="trash" /> Delete {sel.length} {sel.length === 1 ? "entry" : "entries"}
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-// ═══ Help (tips, products, background) ═════════════════════════════════════
-export function Help({ profile, entries }) {
-  const [view, setView] = useState("tips");
-  const sorted = [...entries].sort((a, b) => b.ts - a.ts);
-  const latest = sorted.find((e) => e.kind === "daily");
-  const cards = adviceFor({ ...(latest || {}), sip: sorted.find((e) => e.sip != null)?.sip }, profile);
-  const [openCard, setOpenCard] = useState(cards[0]?.id);
-  return (
-    <div className="screen">
-      <header className="hero"><h1 className="display">Help</h1></header>
-      <div className="seg full" style={{ marginBottom: 18 }}>
-        {[["tips", "Tips"], ["products", "Products"], ["support", "Support"], ["learn", "Learn"]].map(([v, t]) => (
-          <button key={v} className={view === v ? "on" : ""} onClick={() => setView(v)} aria-pressed={view === v}>{t}</button>
-        ))}
-      </div>
-      {view === "tips" && cards.map((c) => (
-        <section key={c.id} className={`advice${c.tone === "key" ? " key" : ""}`}>
-          <button className="advice-head" onClick={() => setOpenCard(openCard === c.id ? "" : c.id)} aria-expanded={openCard === c.id}>
-            <span>{c.title}</span><Icon name="chev" className={openCard === c.id ? "rot" : ""} />
-          </button>
-          {openCard === c.id && (
-            <div className="advice-body"><ul>{c.points.map((p, i) => <li key={i}>{p}</li>)}</ul><Sources refs={c.refs} /></div>
-          )}
-        </section>
-      ))}
-      {view === "products" && <Products profile={profile} embedded />}
-      {view === "support" && <Support profile={profile} />}
-      {view === "learn" && <Learn profile={profile} embedded />}
-    </div>
-  );
-}
+const symLabel = (id) => [...SORE_SIGNS, ...DRY_SIGNS, ...SYMPTOMS, ...CARER_SIGNS, ...DANGER_SIGNS].find((s) => s.id === id)?.label || OLD_LABELS[id] || id;
+const eatLabel = (id) => eatWord(id) || EATING.find((s) => s.id === id)?.label || "—";
 
 // ═══ Support groups ════════════════════════════════════════════════════════
 export function Support({ profile }) {
@@ -271,7 +153,7 @@ export function Report({ profile, entries, onClose }) {
   const avg = (k) => { const v = recent.filter((e) => e[k] != null).map((e) => e[k]); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : "—"; };
   const flags = [...(daily[0] ? redFlags(daily[0], profile) : []), ...trendFlags(entries)];
   const counts = {};
-  recent.forEach((e) => [...(e.danger || []), ...(e.symptoms || [])].forEach((s) => (counts[s] = (counts[s] || 0) + 1)));
+  recent.forEach((e) => [...(e.danger || []), ...(e.symptoms || []), ...(e.dryExtras || [])].forEach((s) => (counts[s] = (counts[s] || 0) + 1)));
   const phs = sorted.filter((e) => e.ph != null);
 
   return (
@@ -293,12 +175,18 @@ export function Report({ profile, entries, onClose }) {
             <div className="rr"><span>Stage</span><b>{PHASES.find((p) => p.id === profile.phase)?.label}{profile.endDate ? ` (finished ${profile.endDate})` : ""}</b></div>
             <div className="rr"><span>Monitoring since</span><b>{entries.length ? fmtDate(Math.min(...entries.map((e) => e.ts))) : "—"}</b></div>
           </section>
+          <section><h2>Soreness and dryness, last 30 days</h2>
+            <TwoLineChart days={lastDays(entries, 30)} markers={(profile.chemoDates || []).map((d) => ({ key: dayKey(Date.parse(d)), label: "Chemo" }))} />
+            <p className="rep-foot">Patient-rated 0–10. Rose: mouth soreness. Blue: mouth dryness.</p>
+          </section>
           <section><h2>Last 14 days</h2>
             <div className="rr"><span>Check-ins</span><b>{recent.length}</b></div>
             <div className="rr"><span>Mean mouth pain (0–10)</span><b>{avg("pain")}</b></div>
             <div className="rr"><span>Mean dryness (0–10)</span><b>{avg("dryness")}</b></div>
             <div className="rr"><span>Days eating less than normally</span><b>{recent.filter((e) => e.eating && e.eating !== "normal").length}</b></div>
-            <div className="rr"><span>Highest temperature recorded</span><b>{recent.some((e) => e.temp != null) ? `${Math.max(...recent.filter((e) => e.temp != null).map((e) => e.temp))} °C` : "not recorded"}</b></div>
+            <div className="rr"><span>Days with fever reported (38 °C+ or shivery)</span><b>{recent.filter((e) => e.fever === "yes" || e.fever === "shivery" || (e.temp ?? 0) >= 38).length}</b></div>
+            <div className="rr"><span>Worst self-reported soreness level</span><b>{(() => { const l = Math.max(-1, ...recent.map(soreLevel).filter((x) => x != null)); return l < 0 ? "—" : `${l} — ${SORE_LEVELS[l]}`; })()}</b></div>
+            <div className="rr"><span>Sore areas (days)</span><b>{(() => { const c = {}; recent.forEach((e) => (e.sites || []).forEach((x) => (c[x] = (c[x] || 0) + 1))); return Object.entries(c).map(([k, n]) => `${areaWord(k)} (${n})`).join("; ") || "none"; })()}</b></div>
             <div className="rr"><span>Symptoms reported (days)</span><b>{Object.entries(counts).map(([k, n]) => `${symLabel(k)} (${n})`).join("; ") || "none"}</b></div>
           </section>
           {flags.length > 0 && (

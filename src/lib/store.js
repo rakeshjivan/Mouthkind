@@ -16,7 +16,7 @@ const driver = {
   },
 };
 
-export const KEYS = ["profile", "entries", "prefs"];
+export const KEYS = ["profile", "entries", "prefs", "care"];
 export const load = (k, fallback) => driver.get(k) ?? fallback;
 export const save = (k, v) => driver.set(k, v);
 export const wipe = () => KEYS.forEach((k) => driver.del(k));

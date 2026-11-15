@@ -1,9 +1,27 @@
-"""Click-through check of the main journey. Start `npm run build && npx vite preview` first."""
-import asyncio, os
+"""Click-through of the main journey. Start `npm run build && npx vite preview` first."""
+import asyncio, json, os, time
 from playwright.async_api import async_playwright
 
 BASE = os.environ.get("BASE_URL", "http://localhost:4173/")
 OUT = os.environ.get("SHOTS", "shots")
+DAY = 86400000
+
+
+def sample_history():
+    """Two weeks of a typical chemotherapy cycle: soreness peaks in week two, dryness creeps up."""
+    now = int(time.time() * 1000)
+    pain = [0, 0, 1, 1, 2, 3, 5, 6, 7, 6, 5, 4, 3]
+    dry = [2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5, 5, 4]
+    eat = ["normal"] * 6 + ["soft", "soft", "liquids", "soft", "soft", "normal", "normal"]
+    out = []
+    for i, (p, d, e) in enumerate(zip(pain, dry, eat)):
+        ts = now - (13 - i) * DAY - 3 * 3600000
+        out.append({"id": f"d{i}", "ts": ts, "kind": "daily", "pain": p, "dryness": d, "eating": e,
+                    "symptoms": ["sores"] if p >= 5 else [], "sites": ["tongue", "cheekL"] if p >= 3 else [], "dryExtras": []})
+    out.append({"id": "s0", "ts": now - 13 * DAY, "kind": "sip", "sip": 8, "items": [2, 1, 2, 2, 1]})
+    for i, ph in enumerate([6.8, 6.6, 6.4, 6.2, 6.6]):
+        out.append({"id": f"p{i}", "ts": now - (12 - i * 3) * DAY, "kind": "ph", "ph": ph})
+    return out
 
 
 async def main():
@@ -17,94 +35,79 @@ async def main():
         os.makedirs(OUT, exist_ok=True)
         shot = lambda n, full=False: pg.screenshot(path=f"{OUT}/{n}.png", full_page=full)
         btn = lambda name: pg.get_by_role("button", name=name, exact=True)
+        dlg = pg.get_by_role("dialog")
 
+        # Onboarding
         await pg.goto(BASE)
         await shot("01-welcome")
         await pg.fill("input[autocomplete=given-name]", "Margaret")
         await pg.click("text=Continue")
-        await pg.click("text=Chemotherapy"); await pg.click("text=Radiotherapy to the head or neck")
-        await shot("02-treatments")
+        await pg.click("text=Chemotherapy")
         await pg.click("text=Continue")
         await pg.fill("input[placeholder^='e.g.']", "Sunshine Coast Cancer Care")
         await pg.fill("input[placeholder^='Found']", "07 5202 0000")
         await pg.click("text=Start")
         await pg.wait_for_timeout(400)
-        await shot("03-today", True)
+        await shot("02-home-empty", True)
 
-        # A calm check-in: nothing urgent
-        await btn("Start").click(); await pg.wait_for_timeout(500)
-        await shot("04-fever")
-        await btn("No").click(); await pg.wait_for_timeout(350)
-        await shot("05-danger")
-        await btn("No, none of these").click(); await pg.wait_for_timeout(200)
-        await pg.click("text=A little sore"); await pg.wait_for_timeout(350)
-        await shot("06-dry")
-        await pg.click("text=Quite dry"); await pg.wait_for_timeout(350)
-        await pg.click("text=Only soft food"); await pg.wait_for_timeout(350)
-        await shot("07-new")
-        # skip everything optional through to the end
-        for _ in range(20):
-            done = pg.get_by_role("button", name="finish")
-            if await done.count() and await done.first.is_enabled():
-                await done.first.click(); break
-            if await btn("Not today").count():
-                await btn("Not today").click()
-            elif await btn("Skip").count():
-                await btn("Skip").click()
-            elif await btn("Nothing new").count():
-                await btn("Nothing new").click()
-            else:
-                await btn("Next").click()
-            await pg.wait_for_timeout(250)
-        await pg.wait_for_timeout(400)
-        await shot("08-result")
-        await btn("Done").click(); await pg.wait_for_timeout(300)
-        await shot("09-today-done", True)
-
-        # Check a symptom → Teeth and gums
-        await pg.click("nav >> text=Check"); await pg.wait_for_timeout(250)
-        await shot("20-check-home", True)
-        await pg.click("text=My gums bleed"); await pg.wait_for_timeout(400)
-        await shot("21-gums-when")
-        dlg = pg.get_by_role("dialog")
-        await dlg.get_by_text("On their own, without touching them").click(); await pg.wait_for_timeout(400)
-        await shot("22-gums-now")
-        await dlg.get_by_text("No, it has stopped").click(); await pg.wait_for_timeout(400)
-        await dlg.get_by_text("Tiny red or purple spots in my mouth or on my skin").click()
-        await shot("23-gums-signs")
-        await btn("Next").click(); await pg.wait_for_timeout(400)
-        await shot("24-gums-result", True)
-        await btn("Done").click(); await pg.wait_for_timeout(300)
-        await pg.click("text=I have a toothache"); await pg.wait_for_timeout(400)
-        await dlg.get_by_text("It hurts to bite on one tooth").click(); await pg.wait_for_timeout(400)
-        await btn("None of these").click(); await pg.wait_for_timeout(400)
-        await shot("25-tooth-result", True)
-        await btn("Done").click(); await pg.wait_for_timeout(300)
-        await pg.click("text=My teeth are sensitive"); await pg.wait_for_timeout(400)
-        await dlg.get_by_text("A few seconds, then it's gone").click(); await pg.wait_for_timeout(400)
-        await btn("No, my teeth look normal").click(); await pg.wait_for_timeout(400)
-        await shot("26-sensitive-result", True)
+        # Log today
+        await btn("Log today").click(); await pg.wait_for_timeout(500)
+        await dlg.get_by_role("button", name="No", exact=True).click(); await pg.wait_for_timeout(350)
+        await shot("03-sore")
+        await dlg.get_by_role("button", name="6", exact=True).click()
+        await shot("04-sore-set")
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        await pg.click("[aria-label='Tongue'][role=button]"); await pg.click("[aria-label='Left cheek'][role=button]")
+        await pg.wait_for_timeout(300); await shot("05-where")
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        await dlg.get_by_role("button", name="Ulcers or raw spots").click()
+        await shot("06-notice")
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        await dlg.get_by_text("Soft food only").click(); await pg.wait_for_timeout(400)
+        await dlg.get_by_role("button", name="7", exact=True).click()
+        await shot("07-dry")
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        await dlg.get_by_role("button", name="Thick or sticky saliva").click()
+        await btn("Finish").click(); await pg.wait_for_timeout(400)
+        await shot("08-logged", True)
         await btn("Done").click(); await pg.wait_for_timeout(300)
 
-        await pg.click("nav >> text=Help"); await pg.wait_for_timeout(200)
-        await shot("10-help-tips", True)
-        await btn("Products").click(); await pg.click("text=GC Dry Mouth Gel")
-        await shot("11-products", True)
-        await btn("Support").click(); await pg.wait_for_timeout(200)
-        await shot("12-support", True)
-        await btn("New Zealand").click(); await pg.wait_for_timeout(200)
-        await shot("13-support-nz", True)
+        # Fill in two weeks of history, then look again
+        hist = sample_history()
+        await pg.evaluate("""(h) => { const cur = JSON.parse(localStorage.getItem('mc:entries') || '[]');
+            localStorage.setItem('mc:entries', JSON.stringify([...h, ...cur])); }""", hist)
+        await pg.reload(); await pg.wait_for_timeout(500)
+        await pg.click("text=Rinse with a bland mouthwash"); await pg.click("text=Brush gently, morning and night")
+        await shot("09-home", True)
 
-        await pg.click("nav >> text=My notes"); await pg.wait_for_timeout(200)
-        await shot("14-notes", True)
+        await pg.click("nav >> text=Diary"); await pg.wait_for_timeout(300)
+        await shot("10-diary", True)
+        await pg.click("nav >> text=Relief"); await pg.wait_for_timeout(300)
+        await shot("11-relief", True)
+        await pg.click(".tchip.dry"); await pg.wait_for_timeout(200)
+        await shot("12-relief-dry", True)
+        await pg.click(".tchip.products"); await pg.wait_for_timeout(200)
+        await shot("13-products", True)
 
-        await pg.click("nav >> text=Today"); await pg.click("text=I need help now"); await pg.wait_for_timeout(300)
-        await shot("15-help-now")
+        # SIP score
+        await pg.click("nav >> text=Diary"); await pg.wait_for_timeout(200)
+        await btn("Do it again").click(); await pg.wait_for_timeout(400)
+        await shot("14-sip-intro")
+        await btn("Start").click(); await pg.wait_for_timeout(250)
+        for v in ["Often", "Sometimes", "Often", "Sometimes", "Often"]:
+            await dlg.get_by_text(v, exact=True).click(); await pg.wait_for_timeout(350)
+        await shot("15-sip-result")
+        await btn("Done").click(); await pg.wait_for_timeout(300)
+
+        await pg.click("nav >> text=Today"); await pg.click("text=Get help"); await pg.wait_for_timeout(300)
+        await shot("16-help-now")
         await pg.keyboard.press("Escape")
 
         await pg.emulate_media(color_scheme="dark")
+        await pg.wait_for_timeout(300)
+        await shot("17-home-dark", True)
         await pg.click("nav >> text=Me"); await pg.wait_for_timeout(200)
-        await shot("16-me-dark", True)
+        await shot("18-me-dark", True)
         print("errors:", errs)
         assert not errs, errs
         await b.close()

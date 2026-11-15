@@ -89,6 +89,13 @@ export function redFlags(entry, profile, now = Date.now()) {
       "Tell your team at your next contact, sooner if it's new or getting worse — your platelet count may be low. Keep brushing gently with an ultra-soft brush.",
       ["ccaMouth"]);
 
+  if (has(sx, "blisters"))
+    add(stillAtFeverRisk(profile, now) ? "sameday" : "soon", "blisters", "Blood blisters in your mouth",
+      stillAtFeverRisk(profile, now)
+        ? "Call your treatment team today. Blood blisters during chemotherapy can mean your platelets are low. Brush very gently and don't take aspirin or ibuprofen unless they say it's OK."
+        : "Tell your team or GP in the next day or two. Blood blisters can be a sign of low platelets.",
+      ["ccBleeding", "nciPdq"]);
+
   // ── Within a week: bone and jaw
   const boneRisk = has(t, "rt_hn") || has(t, "bone");
   if (has(sx, "bone") || (boneRisk && has(sx, "jaw")))
