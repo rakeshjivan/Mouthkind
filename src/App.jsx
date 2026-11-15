@@ -3,11 +3,13 @@ import { Icon } from "./components/ui.jsx";
 import { Onboarding } from "./screens/flows.jsx";
 import { CheckFlow } from "./screens/check.jsx";
 import { HelpNow, ResultSheet, Today, dueFor } from "./screens/today.jsx";
+import { CheckHome, SymptomFlow } from "./screens/symptom.jsx";
 import { AlertCardSheet, Backup, Help, QuestionsSheet, Report, Trends, You } from "./screens/more.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js";
 
 const TABS = [
   { id: "today", label: "Today", icon: "home" },
+  { id: "check", label: "Check", icon: "search" },
   { id: "notes", label: "My notes", icon: "chart" },
   { id: "help", label: "Help", icon: "book" },
   { id: "you", label: "Me", icon: "user" },
@@ -64,6 +66,7 @@ export default function App() {
     <div className="app">
       <main className="main" id="main">
         {tab === "today" && <Today profile={profile} entries={entries} open={setSheet} go={setTab} />}
+        {tab === "check" && <CheckHome open={setSheet} />}
         {tab === "notes" && <Trends entries={entries} profile={profile} onDelete={delEntries} open={setSheet} />}
         {tab === "help" && <Help profile={profile} entries={entries} />}
         {tab === "you" && <You profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={setSheet} onErase={erase} />}
@@ -80,6 +83,9 @@ export default function App() {
       {sheet === "check" && (
         <CheckFlow profile={profile} due={dueFor(entries)} onClose={() => setSheet(null)}
           onSave={(e) => { addEntry(e); setSheet(null); setResult(e); }} />
+      )}
+      {sheet?.startsWith("sym:") && (
+        <SymptomFlow key={sheet} tree={sheet.slice(4)} profile={profile} onClose={() => setSheet(null)} onSave={addEntry} />
       )}
       {sheet === "helpnow" && <HelpNow profile={profile} onClose={() => setSheet(null)} />}
       {sheet === "alertcard" && <AlertCardSheet profile={profile} onClose={() => setSheet(null)} />}

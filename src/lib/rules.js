@@ -4,7 +4,6 @@
 // nothing else on that screen.
 
 import { PH_ROOT_CRITICAL, TREATMENTS } from "../data/clinical.js";
-import { dentalAlerts } from "../data/triage.js";
 
 const DAY = 86400000;
 export const LEVELS = {
@@ -127,9 +126,6 @@ export function redFlags(entry, profile, now = Date.now()) {
       entry.opening === 1 ? "Mouth opening is clearly restricted" : "Mouth opening is a little restricted",
       "Ask your team for a referral to a speech pathologist or physiotherapist for jaw exercises. Starting early helps most.",
       ["wranicz2010"]);
-
-  // ── Dental follow-up answers (data/triage.js)
-  out.push(...dentalAlerts(danger, entry.dental, { lowCounts: stillAtFeverRisk(profile, now), boneRisk }));
 
   const order = (a, b) => LEVELS[b.level].rank - LEVELS[a.level].rank;
   return out.sort(order);

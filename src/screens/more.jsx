@@ -8,6 +8,8 @@ import {
 import { JOBS, visibleProducts } from "../data/products.js";
 import { LEARN } from "../data/learn.js";
 import { host, supportFor } from "../data/support.js";
+import { BANDS, TREES, describeAnswers } from "../data/dental.js";
+import { bandLevel } from "./symptom.jsx";
 import { REFS } from "../data/references.js";
 import { adviceFor, redFlags, trendFlags, LEVELS } from "../lib/rules.js";
 import { DAY, downloadText, fmtDate, fmtShort, fmtTime, makeBackup, readBackup, dayKey } from "../lib/store.js";
@@ -70,10 +72,10 @@ export function Trends({ entries, profile, onDelete, open }) {
           <div className="entries">
             {sorted.slice(0, 120).map((e) => {
               const on = sel.includes(e.id);
-              const bits = [painWord(e.pain), dryWord(e.dryness)?.toLowerCase(),
+              const bits = e.kind === "symptom" ? [`${TREES[e.tree]?.label || "Symptom check"} — ${BANDS[e.band]?.label.toLowerCase()}`] : [painWord(e.pain), dryWord(e.dryness)?.toLowerCase(),
                 e.sip != null && `dry mouth score ${e.sip}`, e.weight != null && `${e.weight} kg`,
                 ...[...(e.danger || []), ...(e.symptoms || [])].map((x) => symLabel(x).toLowerCase())].filter(Boolean);
-              const lvl = redFlags(e, profile)[0]?.level;
+              const lvl = e.kind === "symptom" ? bandLevel[e.band] : redFlags(e, profile)[0]?.level;
               return (
                 <button key={e.id} className={`entry${selecting ? " sel-mode" : ""}${on ? " sel" : ""}`}
                   onClick={() => selecting && toggle(e.id)} disabled={!selecting}>
@@ -302,6 +304,16 @@ export function Report({ profile, entries, onClose }) {
           {flags.length > 0 && (
             <section><h2>Flags raised by the app</h2>
               <ul>{flags.map((f) => <li key={f.id}><b>{LEVELS[f.level].label}:</b> {f.title}</li>)}</ul></section>
+          )}
+          {sorted.some((e) => e.kind === "symptom") && (
+            <section><h2>Symptom checks (teeth and gums)</h2>
+              <table className="rep-table"><thead><tr><th>Date</th><th>Symptom</th><th>Answers</th><th>Advice given</th></tr></thead>
+                <tbody>{sorted.filter((e) => e.kind === "symptom").slice(0, 20).map((e) => (
+                  <tr key={e.id}><td>{fmtShort(e.ts)}</td><td>{TREES[e.tree]?.label}</td>
+                    <td>{describeAnswers(e.answers).map((x) => `${x.q} ${x.a}`).join(" · ")}</td>
+                    <td><b>{BANDS[e.band]?.label}</b> — {e.title}</td></tr>))}</tbody></table>
+              <p className="rep-foot">Urgency bands follow SDCEP Management of Acute Dental Problems (2nd ed., 2026), adjusted for cancer treatment.</p>
+            </section>
           )}
           {sips.length > 0 && (
             <section><h2>GC SIP-SCORE (5–15)</h2>

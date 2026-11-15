@@ -5,7 +5,7 @@ import { DAY, dayKey } from "../lib/store.js";
 import { dryWord, painWord } from "./check.jsx";
 
 // ─── Who to call — numbers always visible as text, because a tap may not dial ─
-function CallRow({ label, number, tone = "ghost" }) {
+export function CallRow({ label, number, tone = "ghost" }) {
   return (
     <a className={`call-row ${tone}`} href={telHref(number)}>
       <Icon name="phone" />
@@ -157,6 +157,11 @@ export function Today({ profile, entries, open, go }) {
           <button className="link-btn" onClick={() => open("check")}>Something changed? Check again</button>
         </section>
       )}
+
+      <button className="check-link" onClick={() => go("check")}>
+        <span><strong>Problem with a tooth or your gums?</strong><em>Check a symptom and find out what to do</em></span>
+        <Icon name="chev" />
+      </button>
 
       {cyc && (
         <section className={`cycle${cyc.peak ? " peak" : ""}`}>

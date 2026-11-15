@@ -100,20 +100,17 @@ export const SYMPTOMS = [
   { id: "denture", label: "Dentures rubbing or loose" },
 ];
 
-// First question after fever. Plain, everyday problems first; the two
-// emergencies last. Bleeding gets a follow-up (does it stop with pressure?).
+// First question after fever: the two true emergencies. Dental problems
+// have their own checker (data/dental.js).
 export const DANGER_SIGNS = [
-  { id: "gum_bleed", label: "My gums bleed" },
-  { id: "sensitive", label: "My teeth are sensitive" },
-  { id: "toothache", label: "I have a toothache" },
-  { id: "broken", label: "I have a broken tooth or filling" },
   { id: "cant_swallow_saliva", label: "Can't swallow my own saliva, or trouble breathing" },
   { id: "swelling_spreading", label: "Face or neck swelling that is spreading" },
 ];
 // Answers on that screen that end the check-in at once.
 export const EMERGENCY_SIGNS = ["cant_swallow_saliva", "swelling_spreading", "bleed_wont_stop"];
 // Labels for answers older entries may hold.
-export const OLD_LABELS = { bleeding: "Bleeding gums or mouth", toothache: "Toothache or a broken tooth", bleed_wont_stop: "Bleeding that won't stop" };
+export const OLD_LABELS = { bleeding: "Bleeding gums or mouth", toothache: "Toothache or a broken tooth", bleed_wont_stop: "Bleeding that won't stop",
+  gum_bleed: "Gums bleed", sensitive: "Sensitive teeth", broken: "Broken tooth or filling" };
 
 // ─── Regions ───────────────────────────────────────────────────────────────
 export const REGIONS = {

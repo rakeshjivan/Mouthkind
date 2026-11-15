@@ -145,4 +145,34 @@ export const REFS = {
     where: "National Cancer Institute",
     url: "https://www.cancer.gov/about-cancer/treatment/side-effects/mouth-throat/oral-complications-hp-pdq",
   },
+  healthdirectBleed: {
+    short: "healthdirect",
+    title: "Bleeding gums and dental bleeding",
+    where: "healthdirect Australia",
+    url: "https://healthdirect.gov.au/bleeding-gums-and-dental-bleeding",
+  },
+  adaAusGums: {
+    short: "ADA Australia 2024",
+    title: "Bleeding gums are a red flag",
+    where: "Australian Dental Association, Dental Health Week 2024",
+    url: "https://ada.org.au/dental-health-week-2024-1-bleeding-gums-are-a-red-flag",
+  },
+  adaAusToothache: {
+    short: "ADA Australia",
+    title: "Toothache",
+    where: "Australian Dental Association, teeth.org.au",
+    url: "https://teeth.org.au/toothache",
+  },
+  adaAusSensitive: {
+    short: "ADA Australia",
+    title: "Sensitive teeth factsheet",
+    where: "Australian Dental Association, teeth.org.au",
+    url: "https://www.teeth.org.au/media/0tuajrw5/ada2022-factsheet-sensitive-teeth.pdf",
+  },
+  rcsBooklet: {
+    short: "RCS England",
+    title: "Oral health care for patients having cancer treatment",
+    where: "Patient booklet hosted by the Royal College of Surgeons of England",
+    url: "https://www.rcseng.ac.uk/-/media/Oral-health-care-for-patients-having-cancer-treatment.pdf",
+  },
 };

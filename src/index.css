@@ -422,3 +422,25 @@ details.more summary { cursor: pointer; color: var(--accent); font-weight: 650; 
 
 .follow-up { margin-top: 18px; padding: 16px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
 .follow-up h3 { margin: 0 0 12px; font-size: calc(18px * var(--s)); }
+
+/* Check a symptom */
+.sym-list { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 18px; }
+.sym-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 60px;
+  padding: 14px 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  font: inherit; font-size: calc(18px * var(--s)); font-weight: 600; text-align: left; cursor: pointer; }
+.sym-row:active { transform: scale(.99); }
+.sym-row svg { color: var(--ink2); flex: none; }
+.check-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 16px 18px;
+  margin: 14px 0; border-radius: 20px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.check-link span { display: flex; flex-direction: column; gap: 2px; }
+.check-link strong { font-size: calc(18px * var(--s)); }
+.check-link em { font-style: normal; color: var(--ink2); }
+.check-link svg { color: var(--ink2); flex: none; }
+.verdict.red { background: var(--redbg); } .verdict.red .verdict-mark { background: var(--red); }
+.verdict-kicker { margin: 0 0 2px; font-size: calc(14px * var(--s)); font-weight: 600; color: var(--ink2); text-transform: uppercase; letter-spacing: .04em; }
+.outcome { margin: 16px 0; }
+.outcome h3 { margin: 0 0 8px; font-size: calc(20px * var(--s)); }
+.outcome p { margin: 0 0 10px; line-height: 1.5; }
+.outcome.also { padding-top: 14px; border-top: 1px solid var(--line); }
+.outcome.also h3 { font-size: calc(18px * var(--s)); }
+.also-h { margin: 22px 0 0; font-size: calc(14px * var(--s)); text-transform: uppercase; letter-spacing: .04em; color: var(--ink2); }
