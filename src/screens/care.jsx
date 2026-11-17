@@ -43,15 +43,15 @@ export function Care({ ctx, focus }) {
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Dry mouth advice</h1>
-        <p className="lede">What helps a dry or acidic mouth, and protects your teeth.</p></header>
+      <header className="hero"><h1 className="display">Mouth care advice</h1>
+        <p className="lede">What helps a dry or acidic mouth, and protects your teeth from decay.</p></header>
       {mine.length > 0 && (<>
         <h2 className="list-h first">Most important for you</h2>
         {mine.map((t) => <Topic key={t.id} t={t} mineFlag />)}
       </>)}
       <h2 className="list-h">{mine.length ? "Everything else" : "Looking after your mouth"}</h2>
       {rest.map((t) => <Topic key={t.id} t={t} />)}
-      <p className="foot-note">Based on your risk check, dry mouth scores and pH results. General information — your dentist can tailor it to you.</p>
+      <p className="foot-note">Based on your risk checks, dry mouth scores and pH results. General information — your dentist can tailor it to you.</p>
     </div>
   );
 }

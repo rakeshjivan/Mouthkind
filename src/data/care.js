@@ -4,7 +4,8 @@
 //   ctx.f    — set of risk factor ids ("habits.smoke", "medTypes.bladder"…)
 //   ctx.sip  — latest SIP-SCORE (5–15) or null
 //   ctx.ph   — phPattern() level: none · ok · watch · flag
-//   ctx.risk — risk band id or null
+//   ctx.risk — dry mouth risk band id or null
+//   ctx.decay — tooth decay risk band id or null
 
 const has = (ctx, ...ids) => ids.some((i) => ctx.f.has(i));
 
@@ -24,7 +25,7 @@ export const CARE_TOPICS = [
   {
     id: "diet", icon: "leaf", title: "Eat and drink for your teeth",
     short: "How often you have sugar and acid matters more than how much.",
-    forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8,
+    forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8 || ["moderate", "high", "veryhigh"].includes(c.decay),
     steps: [
       "Keep sugary and acidic foods and drinks to mealtimes. Every snack or sip starts a new acid attack.",
       "Go easy on soft drinks, juice, sports drinks, wine, citrus and vinegar — they're acidic as well as sugary.",
@@ -50,7 +51,7 @@ export const CARE_TOPICS = [
   {
     id: "clean", icon: "check", title: "Clean gently, twice a day",
     short: "A soft brush and fluoride toothpaste, every morning and night.",
-    forYou: (c) => c.risk === "high" || c.risk === "veryhigh" || c.ph === "flag",
+    forYou: (c) => c.risk === "high" || c.risk === "veryhigh" || c.ph === "flag" || c.decay === "high" || c.decay === "veryhigh",
     steps: [
       "Use a soft or extra-soft toothbrush, or an electric brush on a gentle setting.",
       "Brush for two minutes, morning and night, with a fluoride toothpaste.",
@@ -64,7 +65,7 @@ export const CARE_TOPICS = [
   {
     id: "protect", icon: "shield", title: "Protect your teeth",
     short: "Fluoride plus calcium and phosphate — what saliva would normally provide.",
-    forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8 || c.risk === "high" || c.risk === "veryhigh",
+    forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8 || c.risk === "high" || c.risk === "veryhigh" || ["moderate", "high", "veryhigh"].includes(c.decay),
     steps: [
       "Ask your dentist whether you need a high-fluoride toothpaste (5000 ppm, on prescription) instead of your usual one.",
       "After brushing at night, smear a pea-sized amount of GC Tooth Mousse Plus over your teeth. Don't rinse, eat or drink for 30 minutes.",
@@ -101,7 +102,7 @@ export const CARE_TOPICS = [
   {
     id: "dentist", icon: "user", title: "See your dentist regularly",
     short: "With a dry or acidic mouth, decay can start quickly.",
-    forYou: (c) => c.ph === "flag" || c.risk === "veryhigh" || (c.sip ?? 0) >= 11,
+    forYou: (c) => c.ph === "flag" || c.risk === "veryhigh" || (c.sip ?? 0) >= 11 || c.decay === "high" || c.decay === "veryhigh",
     steps: [
       "Tell your dentist you have a dry mouth or acidic saliva, and show them your results in this app.",
       "Ask how often you should have check-ups — often every 3 to 6 months when risk is high.",
@@ -112,6 +113,6 @@ export const CARE_TOPICS = [
 ];
 
 /** Build the context `forYou` needs from saved results. */
-export function careContext({ factors = [], sip = null, ph = "none", risk = null }) {
-  return { f: new Set(factors.map((x) => `${x.q}.${x.v}`)), sip, ph, risk };
+export function careContext({ factors = [], sip = null, ph = "none", risk = null, decay = null }) {
+  return { f: new Set(factors.map((x) => `${x.q}.${x.v}`)), sip, ph, risk, decay };
 }

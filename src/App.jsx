@@ -7,6 +7,8 @@ import { careContext } from "./data/care.js";
 import { phPattern } from "./data/ph.js";
 import { scoreRisk } from "./data/risk.js";
 import { RiskFlow, RiskResult } from "./screens/risk.jsx";
+import { DecayFlow, DecayResult } from "./screens/decay.jsx";
+import { decayContext, scoreDecay } from "./data/decay.js";
 import { FrequencyPicker, PhFlow, Reminder, SipFlow } from "./screens/extras.jsx";
 import { Results, Summary } from "./screens/results.jsx";
 import { Me } from "./screens/me.jsx";
@@ -62,7 +64,13 @@ export default function App() {
   const go = (t, f = null) => { setSheet(null); setTab(t); setFocus(f); window.scrollTo(0, 0); };
   const risk = latestOf(entries, "risk");
   const riskR = risk && scoreRisk(risk.answers);
-  const careCtx = careContext({ factors: riskR?.factors, sip: sipReadings(entries).at(-1)?.sip ?? null, ph: phPattern(phReadings(entries)).level, risk: riskR?.band.id || null });
+  const latestSip = sipReadings(entries).at(-1)?.sip ?? null;
+  const phLevel = phPattern(phReadings(entries)).level;
+  // The decay check takes dry mouth and pH from the other checks instead of asking again.
+  const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: risk?.answers?.age || null });
+  const decay = latestOf(entries, "decay");
+  const decayR = decay && scoreDecay(decay.answers, decay.ctx);
+  const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null });
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
 
   return (
@@ -71,7 +79,7 @@ export default function App() {
         {tab === "home" && <Home profile={profile} entries={entries} prefs={prefs} careCtx={careCtx} open={open} go={go} />}
         {tab === "shop" && <Shop />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} />}
-        {tab === "tracker" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} />}
+        {tab === "tracker" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
 
@@ -85,6 +93,8 @@ export default function App() {
 
       {sheet === "risk" && <RiskFlow last={risk} onClose={close} onSave={addEntry} onCare={() => go("advice")} />}
       {sheet === "riskresult" && risk && <RiskResult entry={risk} onClose={close} onCare={() => go("advice")} onRedo={() => setSheet("risk")} />}
+      {sheet === "decay" && <DecayFlow last={decay} ctx={decayCtx} onClose={close} onSave={addEntry} onShop={() => go("shop")} />}
+      {sheet === "decayresult" && decay && <DecayResult entry={decay} onClose={close} onRedo={() => setSheet("decay")} onShop={() => go("shop")} />}
       {sheet === "freq" && (
         <FrequencyPicker value={prefs.sipEvery} first={!!afterFreq} onClose={() => { setAfterFreq(null); close(); }}
           onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq); setAfterFreq(null); }} />

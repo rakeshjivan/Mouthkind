@@ -4,29 +4,34 @@ import { Breakdown, Pick, RiskMeter, TickRows } from "../components/kit.jsx";
 import { RISK_BANDS, RISK_QUESTIONS, RISK_VERSION, riskBreakdown, scoreRisk } from "../data/risk.js";
 import { fmtDate } from "../lib/store.js";
 
-/** The risk questionnaire: one question per screen. Starts from the last answers when updating. */
-export function RiskFlow({ last, onClose, onSave, onCare }) {
+const DRY_MODEL = {
+  title: "Dry mouth risk check",
+  questions: () => RISK_QUESTIONS,
+  entry: (a, id) => { const r = scoreRisk(a); return { id: id || `r_${Date.now()}`, ts: Date.now(), kind: "risk", v: RISK_VERSION, answers: a, score: r.score, band: r.band.id }; },
+  Result: (p) => <RiskResult {...p} />,
+};
+
+/** A risk questionnaire, one question per screen. Starts from the last answers when updating.
+ *  `model` supplies the questions (which can depend on earlier answers), the saved entry and the result screen. */
+export function RiskFlow({ last, onClose, onSave, onCare, model = DRY_MODEL }) {
   const [ans, setAns] = useState(() => ({ ...(last?.answers || {}) }));
   const [i, setI] = useState(0);
   const [saved, setSaved] = useState(null);
   const [editId, setEditId] = useState(null); // changing answers after seeing the result replaces that result
-  const q = RISK_QUESTIONS[i];
-  const lastQ = i === RISK_QUESTIONS.length - 1;
+  const qs = model.questions(ans);
+  const q = qs[Math.min(i, qs.length - 1)];
+  const lastQ = i >= qs.length - 1;
 
-  const finish = (a) => {
-    const r = scoreRisk(a);
-    const e = { id: editId || `r_${Date.now()}`, ts: Date.now(), kind: "risk", v: RISK_VERSION, answers: a, score: r.score, band: r.band.id };
-    onSave(e); setSaved(e);
-  };
-  const next = (a = ans) => (lastQ ? finish(a) : setI(i + 1));
+  const finish = (a) => { const e = model.entry(a, editId); onSave(e); setSaved(e); };
+  const next = (a = ans) => (i >= model.questions(a).length - 1 ? finish(a) : setI(i + 1));
 
-  if (saved) return <RiskResult entry={saved} onClose={onClose} onCare={onCare}
-    onRedo={() => { setEditId(saved.id); setSaved(null); setI(0); }} />;
+  if (saved) return model.Result({ entry: saved, onClose, onCare,
+    onRedo: () => { setEditId(saved.id); setSaved(null); setI(0); } });
 
   const picked = q.type === "many" ? ans[q.id] || [] : ans[q.id];
   return (
-    <Sheet title="Dry mouth risk check" onClose={onClose} onBack={i ? () => setI(i - 1) : null}
-      progress={{ of: RISK_QUESTIONS.length, at: i, label: `${i + 1} of ${RISK_QUESTIONS.length}` }}
+    <Sheet title={model.title} onClose={onClose} onBack={i ? () => setI(i - 1) : null}
+      progress={{ of: qs.length, at: i, label: `${i + 1} of ${qs.length}` }}
       footer={(i > 0 || q.type === "many" || picked != null) ? (<>
         {i > 0 && <button className="btn ghost" onClick={() => setI(i - 1)}><Icon name="back" size={18} /> Back</button>}
         {q.type === "many" ? (

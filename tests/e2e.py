@@ -61,6 +61,27 @@ async def main():
         await shot("05-risk-result-end")
         await btn("Done").click(); await pg.wait_for_timeout(300)
 
+        # Tooth decay risk: dry mouth and age come from the risk check, so those questions are skipped
+        await pg.click(".tile.decay"); await pg.wait_for_timeout(450)
+        await shot("05b-decay-q1")
+        exact = lambda t: dlg.get_by_role("button", name=t, exact=True)
+        await exact("Yes").click(); await pg.wait_for_timeout(350)
+        await pick("Yes, once").click(); await pg.wait_for_timeout(350)
+        await pick("3 or more times a day").click(); await pg.wait_for_timeout(350)
+        await exact("Once a day").click(); await pg.wait_for_timeout(350)
+        await pick("Sometimes").click(); await pg.wait_for_timeout(350)
+        await pick("My gums have shrunk back").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
+        await btn("None of these").click(); await pg.wait_for_timeout(250)
+        await pick("1 to 2 years ago").click(); await pg.wait_for_timeout(350)
+        assert await dlg.get_by_text("Does your mouth often feel dry?").count() == 0
+        await pick("GC Tooth Mousse or Tooth Mousse Plus").click()
+        await btn("See my result").click(); await pg.wait_for_timeout(600)
+        await shot("05c-decay-result")
+        assert await dlg.get_by_text("Switch to a high-fluoride toothpaste").count() == 1
+        await pg.evaluate("document.querySelector('.sheet-body')?.scrollTo(0, 99999)"); await pg.wait_for_timeout(200)
+        await shot("05d-decay-plan")
+        await btn("Done").click(); await pg.wait_for_timeout(300)
+
         # First dry mouth check: choose how often, then the five questions
         await pg.click(".tile.sip"); await pg.wait_for_timeout(400)
         await shot("06-frequency")

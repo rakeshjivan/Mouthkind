@@ -3,6 +3,7 @@ import { DotSeries, PhTimeline } from "../components/kit.jsx";
 import { phColor, sipBand } from "../data/clinical.js";
 import { PH_ZONES, phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
+import { scoreDecay } from "../data/decay.js";
 import { CARE_TOPICS } from "../data/care.js";
 import { nextCheck } from "../data/schedule.js";
 import { fmtShort } from "../lib/store.js";
@@ -31,6 +32,8 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick })
 export function Home({ profile, entries, prefs, careCtx, open, go }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
+  const decay = latestOf(entries, "decay");
+  const d = decay && scoreDecay(decay.answers, decay.ctx);
   const sips = sipReadings(entries), sip = sips.at(-1);
   const phs = phReadings(entries), ph = phs.at(-1);
   const pat = phPattern(phs);
@@ -57,6 +60,11 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
           value={r ? r.band.label : null} valueTone={r?.band.tone} sub={r ? `${r.score} points` : "Medicines, health and habits"}
           status={r ? "See details" : "Start here · 2 min"} due={!r}
           onClick={() => open(r ? "riskresult" : "risk")} />
+        <Box kind="decay" title="My tooth decay risk" icon={<Icon name="tooth" size={22} />}
+          value={d ? (d.noTeeth ? "No natural teeth" : d.band.label) : null} valueTone={d && !d.noTeeth ? d.band.tone : null}
+          sub={d ? (d.noTeeth ? "Denture care" : `${d.score} points`) : "Food, cleaning and your teeth"}
+          status={d ? "See my plan" : "2 min"} due={!d}
+          onClick={() => open(d ? "decayresult" : "decay")} />
         <Box kind="sip" title="Dry mouth check" icon={<Icon name="drop" size={22} />}
           value={sip ? `${sip.sip} of 15` : null} sub={sip ? sipBand(sip.sip).label : "SIP score · 5 questions"}
           status={sipNext ? when(sipNext) : "Not done yet"} due={!sip || sipNext?.due}
@@ -65,7 +73,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
           value={ph ? `pH ${ph.ph.toFixed(1)}` : null} valueTone={ph ? phZone(ph.ph).tone : null} sub={ph ? phZone(ph.ph).label : "With a test strip"}
           status={phNext ? when(phNext) : "Not done yet"} due={!ph || phNext?.due}
           onClick={() => open("ph")} />
-        <Box kind="advice" title="Dry mouth advice" icon={<Icon name="leaf" size={22} />}
+        <Box kind="advice wide" title="Mouth care advice" icon={<Icon name="leaf" size={22} />}
           value={null} sub={care.length ? `Start with: ${care[0].title.toLowerCase()}` : "Water, diet, teeth and more"}
           status="Open" onClick={() => go("advice")} />
       </div>
