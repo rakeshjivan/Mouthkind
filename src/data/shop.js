@@ -16,3 +16,9 @@ export const SHOP_LINKS = {
 export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "oranurse"];
 // Who sells each product, for the button label.
 export const SHOP_SELLER = { oranurse: "OraNurse" };
+
+// Product photos, in public/products/. Add a file and its name here; until
+// then the app shows a plain placeholder tile.
+export const SHOP_IMAGES = {
+  // "gc-dmg": "products/gc-dmg.webp",
+};

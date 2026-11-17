@@ -892,3 +892,15 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .shop-item p { margin: 0 0 10px; }
 .shop-caution { color: var(--ink3); font-size: calc(14px * var(--s)); }
 .shop-item .btn { display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%; text-decoration: none; margin-top: 4px; }
+
+/* Product images */
+.pimg { flex: none; border-radius: 16px; object-fit: contain; background: #fff; }
+.pimg.md { width: 92px; height: 92px; } .pimg.sm { width: 56px; height: 56px; border-radius: 12px; }
+.ph-tile { display: grid; place-items: center; text-align: center; padding: 8px; font-family: var(--display); font-weight: 650; line-height: 1.1; }
+.ph-tile.md { font-size: 13px; } .ph-tile.sm { font-size: 9.5px; padding: 4px; }
+.ph-tile.gc { background: linear-gradient(160deg, var(--dry-bg), var(--tint)); color: var(--accent); }
+.ph-tile.other { background: var(--soft); color: var(--ink2); }
+.shop-top { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+.shop-top h2 { margin: 0; }
+.shop-top .shop-form { margin: 4px 0 0; }
+.prod-top { display: flex; gap: 12px; align-items: center; }

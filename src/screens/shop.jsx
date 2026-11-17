@@ -2,6 +2,7 @@ import { Icon } from "../components/ui.jsx";
 import { PRODUCTS } from "../data/products.js";
 import { SHOP_LINKS, SHOP_PRODUCTS, SHOP_SELLER, SHOP_URL } from "../data/shop.js";
 import { externalClick } from "../lib/external.js";
+import { ProductImage } from "../components/productImage.jsx";
 
 /** Products to buy. Opens the online shop when a link is set. */
 export function Shop() {
@@ -17,8 +18,10 @@ export function Shop() {
       )}
       {items.map((p) => (
         <section key={p.id} className="shop-item">
-          <h2>{p.name}</h2>
-          <p className="shop-form">{p.form}</p>
+          <div className="shop-top">
+            <ProductImage product={p} />
+            <div><h2>{p.name}</h2><p className="shop-form">{p.form}</p></div>
+          </div>
           <p>{p.why}</p>
           <p className="prod-use"><b>How to use:</b> {p.use}</p>
           {p.cautions?.length > 0 && <p className="shop-caution">{p.cautions.join(" ")}</p>}

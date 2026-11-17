@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Icon, Sources } from "../components/ui.jsx";
 import { CARE_TOPICS } from "../data/care.js";
 import { PRODUCTS } from "../data/products.js";
+import { ProductImage } from "../components/productImage.jsx";
 
 /** Support strategies. Topics that match the person's results come first. */
 export function Care({ ctx, focus }) {
@@ -26,7 +27,7 @@ export function Care({ ctx, focus }) {
               <div className="prod-cards">
                 {t.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean).map((p) => (
                   <div key={p.id} className="prod-card">
-                    <strong>{p.name}</strong>
+                    <div className="prod-top"><ProductImage product={p} size="sm" /><strong>{p.name}</strong></div>
                     <span>{p.why}</span>
                     <span className="prod-use"><b>How to use:</b> {p.use}</span>
                   </div>
