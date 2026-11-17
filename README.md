@@ -1,8 +1,11 @@
 # Mouthkind
 
-*Mouth care through cancer treatment, with the GC SIP-SCORE.*
+*Dry mouth, checked and tracked.*
 
-A patient app for people having cancer treatment. It tracks mouth symptoms with a short daily check-in and the fortnightly GC SIP-SCORE, flags problems that need a call to the treatment team, and gives evidence-based self-care advice and product guidance for Australia and New Zealand.
+A dry mouth app for anyone. Two parts:
+
+1. **Dry Mouth Risk Score** — nine questions on age, medicines (number and type), health conditions, cancer treatments, sleep and breathing, and habits. A transparent points checklist (`src/data/risk.js`) gives a 0–100 score, a band, the factors driving it and what to do. Not a validated instrument: every weight and its source is in that one file, ready to tune and, later, to calibrate against flow rates.
+2. **Tracker** — the GC SIP-SCORE at a frequency the person chooses (daily, weekly or fortnightly; the recall period follows the choice), saliva pH strip results, charts, a calendar reminder file, and a one-page summary for the dentist.
 
 One codebase serves three ways:
 

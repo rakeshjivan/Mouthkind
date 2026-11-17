@@ -16,7 +16,7 @@ const driver = {
   },
 };
 
-export const KEYS = ["profile", "entries", "prefs", "care"];
+export const KEYS = ["profile", "entries", "prefs"];
 export const load = (k, fallback) => driver.get(k) ?? fallback;
 export const save = (k, v) => driver.set(k, v);
 export const wipe = () => KEYS.forEach((k) => driver.del(k));
@@ -27,7 +27,7 @@ export const DEFAULT_PROFILE = {
   carer: false, phStrips: false, chemoDates: [], asked: [], ownQuestions: [],
   onboarded: false,
 };
-export const DEFAULT_PREFS = { theme: "auto", text: "m", askTemp: true };
+export const DEFAULT_PREFS = { theme: "auto", text: "m", sipEvery: null };
 
 // ─── Encrypted backup ──────────────────────────────────────────────────────
 // PBKDF2-SHA256 (250k) → AES-GCM-256. No recovery without the passphrase.

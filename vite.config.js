@@ -18,7 +18,7 @@ export default defineConfig({
       manifest: {
         name: "Mouthkind",
         short_name: "Mouthkind",
-        description: "Track mouth symptoms during cancer treatment, get evidence-based advice, and know when to call your team.",
+        description: "Check your risk of dry mouth from your medicines, health and habits, and track how dry your mouth is with the GC SIP-SCORE and saliva pH.",
         theme_color: "#faf7f2",
         background_color: "#faf7f2",
         display: "standalone",

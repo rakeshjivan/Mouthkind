@@ -175,4 +175,13 @@ export const REFS = {
     where: "Patient booklet hosted by the Royal College of Surgeons of England",
     url: "https://www.rcseng.ac.uk/-/media/Oral-health-care-for-patients-having-cancer-treatment.pdf",
   },
+  wolff2017: { short: "Wolff 2017", title: "A guide to medications inducing salivary gland dysfunction, xerostomia, and subjective sialorrhea: a systematic review sponsored by the World Workshop on Oral Medicine VI", where: "Drugs R D 2017;17:1–28", url: "https://doi.org/10.1007/s40268-016-0153-9" },
+  villa2016: { short: "Villa 2016", title: "World Workshop on Oral Medicine VI: a systematic review of medication-induced salivary gland dysfunction", where: "Oral Dis 2016;22:365–82", url: "https://doi.org/10.1111/odi.12402" },
+  villa2015: { short: "Villa 2015", title: "Diagnosis and management of xerostomia and hyposalivation", where: "Ther Clin Risk Manag 2015;11:45–51", url: "https://doi.org/10.2147/TCRM.S76282" },
+  agostini2018: { short: "Agostini 2018", title: "How common is dry mouth? Systematic review and meta-regression analysis of prevalence estimates", where: "Braz Dent J 2018;29:606–18", url: "https://doi.org/10.1590/0103-6440201802302" },
+  huang2025: { short: "Huang 2025", title: "Prevalence of xerostomia in patients with type 2 diabetes mellitus: a systematic review and meta-analysis", where: "BMC Oral Health 2025;25:662", url: "https://doi.org/10.1186/s12903-025-05992-6" },
+  raoof2023: { short: "Raoof 2023", title: "Self-reported oral moistening disorders in obstructive sleep apnoea: a scoping review", where: "J Oral Rehabil 2024;51:226–39", url: "https://doi.org/10.1111/joor.13532" },
+  sunavala2022: { short: "Sunavala-Dossabhoy 2022", title: "Effect of recombinant human TSH on long-term salivary gland dysfunction in thyroid cancer patients treated with radioactive iodine: a systematic review", where: "Oral Oncol 2022;136:106280", url: "https://doi.org/10.1016/j.oraloncology.2022.106280" },
+  usmani2019: { short: "Usmani 2019", title: "Relative risk of adverse events and treatment discontinuations between older and non-older adults treated with antimuscarinics for overactive bladder: a systematic review and meta-analysis", where: "Drugs Aging 2019;36:639–45", url: "https://doi.org/10.1007/s40266-019-00674-9" },
+  shiboski2017: { short: "Shiboski 2017", title: "2016 ACR/EULAR classification criteria for primary Sjögren's syndrome", where: "Arthritis Rheumatol 2017;69:35–45", url: "https://doi.org/10.1002/art.39859" },
 };
