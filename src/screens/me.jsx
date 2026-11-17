@@ -20,7 +20,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
       </section>
 
       <section className="panel">
-        <div className="set-row"><span><strong>Dry mouth check</strong><em>{prefs.sipEvery ? freqFor(prefs.sipEvery).label : "Not set yet"}</em></span>
+        <div className="set-row"><span><strong>How often I check</strong><em>{prefs.sipEvery ? freqFor(prefs.sipEvery).label : "Not set yet"}</em></span>
           <button className="btn ghost" onClick={() => open("freq")}>Change</button></div>
         <div className="set-row"><span><strong>Reminder</strong><em>Add a repeating reminder to your calendar</em></span>
           <button className="btn ghost" onClick={() => open(prefs.sipEvery ? "remind" : "freq")}><Icon name="bell" size={18} /></button></div>

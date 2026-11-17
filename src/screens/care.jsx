@@ -42,7 +42,7 @@ export function Care({ ctx, focus }) {
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Care</h1>
+      <header className="hero"><h1 className="display">Dry mouth advice</h1>
         <p className="lede">What helps a dry or acidic mouth, and protects your teeth.</p></header>
       {mine.length > 0 && (<>
         <h2 className="list-h first">Most important for you</h2>

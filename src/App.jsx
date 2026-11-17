@@ -14,8 +14,8 @@ import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js
 
 const TABS = [
   { id: "home", label: "Home", icon: "home" },
-  { id: "results", label: "Results", icon: "chart" },
-  { id: "care", label: "Care", icon: "leaf" },
+  { id: "tracker", label: "Tracker", icon: "chart" },
+  { id: "advice", label: "Advice", icon: "leaf" },
   { id: "me", label: "Me", icon: "user" },
 ];
 
@@ -25,7 +25,7 @@ export default function App() {
   const [prefs, setPrefsState] = useState(() => ({ ...DEFAULT_PREFS, ...load("prefs", {}) }));
   const [tab, setTab] = useState("home");
   const [sheet, setSheet] = useState(null);
-  const [afterFreq, setAfterFreq] = useState(false);
+  const [afterFreq, setAfterFreq] = useState(null);
   const [focus, setFocus] = useState(null);
 
   const setProfile = useCallback((p) => { setProfileState(p); save("profile", p); }, []);
@@ -53,7 +53,7 @@ export default function App() {
 
   // The first dry mouth check asks how often first, then goes straight into the questions.
   const open = useCallback((s) => {
-    if (s === "sip" && !prefs.sipEvery) { setAfterFreq(true); setSheet("freq"); return; }
+    if ((s === "sip" || s === "ph") && !prefs.sipEvery) { setAfterFreq(s); setSheet("freq"); return; }
     setSheet(s);
   }, [prefs.sipEvery]);
   const close = () => setSheet(null);
@@ -67,8 +67,8 @@ export default function App() {
     <div className="app">
       <main className="main" id="main">
         {tab === "home" && <Home profile={profile} entries={entries} prefs={prefs} careCtx={careCtx} open={open} go={go} />}
-        {tab === "care" && <Care key={focus || "c"} ctx={careCtx} focus={focus} />}
-        {tab === "results" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} />}
+        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} />}
+        {tab === "tracker" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
 
@@ -80,15 +80,15 @@ export default function App() {
         ))}
       </nav>
 
-      {sheet === "risk" && <RiskFlow last={risk} onClose={close} onSave={addEntry} onCare={() => go("care")} />}
-      {sheet === "riskresult" && risk && <RiskResult entry={risk} onClose={close} onCare={() => go("care")} onRedo={() => setSheet("risk")} />}
+      {sheet === "risk" && <RiskFlow last={risk} onClose={close} onSave={addEntry} onCare={() => go("advice")} />}
+      {sheet === "riskresult" && risk && <RiskResult entry={risk} onClose={close} onCare={() => go("advice")} onRedo={() => setSheet("risk")} />}
       {sheet === "freq" && (
-        <FrequencyPicker value={prefs.sipEvery} first={afterFreq} onClose={() => { setAfterFreq(false); close(); }}
-          onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq ? "sip" : null); setAfterFreq(false); }} />
+        <FrequencyPicker value={prefs.sipEvery} first={!!afterFreq} onClose={() => { setAfterFreq(null); close(); }}
+          onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq); setAfterFreq(null); }} />
       )}
       {sheet === "sip" && prefs.sipEvery && <SipFlow every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} />}
       {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
-      {sheet === "ph" && <PhFlow readings={phReadings(entries)} onClose={close} onSave={addEntry} onCare={() => go("care", "protect")} />}
+      {sheet === "ph" && <PhFlow readings={phReadings(entries)} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
       {sheet === "report" && <Summary entries={entries} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
     </div>

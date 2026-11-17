@@ -36,7 +36,7 @@ async def main():
         await shot("01-home-empty", True)
 
         # Risk check
-        await btn("Check my risk").click(); await pg.wait_for_timeout(450)
+        await pg.click(".tile.risk"); await pg.wait_for_timeout(450)
         await shot("02-risk-age")
         await pick("65 to 79").click(); await pg.wait_for_timeout(350)
         await pick("Female").click(); await pg.wait_for_timeout(350)
@@ -56,10 +56,10 @@ async def main():
         await btn("Done").click(); await pg.wait_for_timeout(300)
 
         # First dry mouth check: choose how often, then the five questions
-        await pg.click(".quick-tile.sip"); await pg.wait_for_timeout(400)
+        await pg.click(".tile.sip"); await pg.wait_for_timeout(400)
         await shot("06-frequency")
         await pick("Once a week").click()
-        await btn("Start the check").click(); await pg.wait_for_timeout(400)
+        await btn("Continue").click(); await pg.wait_for_timeout(400)
         await btn("Start").click(); await pg.wait_for_timeout(300)
         await shot("07-sip-q1")
         for v in ["Often", "Sometimes", "Often", "Sometimes", "Often"]:
@@ -68,7 +68,7 @@ async def main():
         await btn("Done").click(); await pg.wait_for_timeout(300)
 
         # pH
-        await pg.click(".quick-tile.ph"); await pg.wait_for_timeout(400)
+        await pg.click(".tile.ph"); await pg.wait_for_timeout(400)
         await dlg.get_by_role("button", name="pH 6.2").click()
         await shot("09-ph")
         await btn("Save result").click(); await pg.wait_for_timeout(300)
@@ -76,7 +76,7 @@ async def main():
         await btn("Done").click(); await pg.wait_for_timeout(300)
         await shot("10-home", True)
 
-        await pg.click("text=Remind me"); await pg.wait_for_timeout(300)
+        await pg.click(".tk-foot >> text=Remind me"); await pg.wait_for_timeout(300)
         await shot("11-remind")
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(200)
 
@@ -85,13 +85,13 @@ async def main():
             localStorage.setItem('mc:entries', JSON.stringify([...h, ...cur])); }""", history())
         await pg.reload(); await pg.wait_for_timeout(500)
         await shot("12-home-history", True)
-        await pg.click("nav >> text=Results"); await pg.wait_for_timeout(300)
+        await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
         await shot("13-results", True)
         await btn("Make a summary").click(); await pg.wait_for_timeout(300)
         await shot("14-summary", True)
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(200)
 
-        await pg.click("nav >> text=Care"); await pg.wait_for_timeout(300)
+        await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(300)
         await shot("14b-care", True)
         await pg.emulate_media(color_scheme="dark"); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(300)

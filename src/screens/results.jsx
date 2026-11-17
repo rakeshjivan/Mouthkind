@@ -18,7 +18,7 @@ export function Results({ entries, open, onDelete, onShowRisk }) {
 
   if (!all.length) return (
     <div className="screen">
-      <header className="hero"><h1 className="display">My results</h1></header>
+      <header className="hero"><h1 className="display">My mouth tracker</h1></header>
       <section className="empty-card"><p>Your risk checks, dry mouth scores and pH results will appear here, with charts once you have a few.</p>
         <button className="btn primary big" onClick={() => open("risk")}>Check my risk</button></section>
     </div>
@@ -26,7 +26,7 @@ export function Results({ entries, open, onDelete, onShowRisk }) {
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">My results</h1>
+      <header className="hero"><h1 className="display">My mouth tracker</h1>
         <p className="lede">Everything you've recorded, to look back on or show your dentist.</p></header>
 
       <section className="panel">

@@ -11,9 +11,9 @@ export function FrequencyPicker({ value, onPick, onClose, first }) {
   const [v, setV] = useState(value ?? 14);
   return (
     <Sheet title="How often to check" onClose={onClose}
-      footer={<button className="btn primary big" onClick={() => onPick(v)}>{first ? "Start the check" : "Save"}</button>}>
-      <h2 className="q">How often would you like to check your dry mouth?</h2>
-      <p className="lede tight">Five quick questions each time. You can change this whenever you like.</p>
+      footer={<button className="btn primary big" onClick={() => onPick(v)}>{first ? "Continue" : "Save"}</button>}>
+      <h2 className="q">How often would you like to check your mouth?</h2>
+      <p className="lede tight">Each time: a pH test and the five dry mouth questions. You can change this whenever you like.</p>
       <Pick options={FREQUENCIES.map((f) => ({ v: f.days, label: f.label, hint: f.recommended ? "Recommended — most people's dryness changes slowly" : f.days === 1 ? "Useful when things are changing quickly, like during treatment" : "Useful when you're trying a new product or medicine" }))}
         value={v} onPick={setV} />
     </Sheet>
