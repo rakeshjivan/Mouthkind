@@ -59,6 +59,7 @@ export const CARE_TOPICS = [
       "Choose a mild, low-foaming toothpaste (no SLS) if your mouth feels sore or sensitive.",
       "If you wear dentures, take them out at night and clean them every day.",
     ],
+    products: ["oranurse"],
   },
   {
     id: "protect", icon: "shield", title: "Protect your teeth",
@@ -71,7 +72,7 @@ export const CARE_TOPICS = [
       "Not if you're allergic to milk protein (casein). Tooth Mousse Plus isn't for children 6 or under.",
       "Ask your dentist about fluoride varnish at your check-ups.",
     ],
-    products: ["gc-tmp", "gc-tm"], refs: ["sim2019", "agarwal2022"],
+    products: ["gc-tmp", "gc-tm", "neutrafluor"], refs: ["sim2019", "agarwal2022"],
   },
   {
     id: "moisten", icon: "drop", title: "Moisten your mouth",

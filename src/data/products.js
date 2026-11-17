@@ -36,6 +36,14 @@ export const PRODUCTS = [
     refs: ["sim2019"],
   },
   {
+    id: "neutrafluor", name: "Colgate NeutraFluor 5000 Sensitive", job: "protect",
+    form: "High-fluoride toothpaste (5,000 ppm) · Pharmacist Only", regions: { AU: "yes" },
+    why: "1.1% sodium fluoride (5,000 ppm, about three times a normal toothpaste) for stronger protection against decay when saliva is low or acidic, plus 5% potassium nitrate for sensitive teeth.",
+    use: "Use as your dentist or pharmacist directs — usually instead of your normal toothpaste. Spit, don't rinse.",
+    cautions: ["Pharmacist Only medicine: the pharmacist will check it suits you.", "Don't swallow. Keep out of reach of children."],
+    refs: ["agarwal2022"],
+  },
+  {
     id: "hf-paste", name: "High-fluoride toothpaste (5,000 ppm)", job: "protect",
     form: "Ask your pharmacist or dentist", regions: { AU: "yes", NZ: "yes" },
     why: "The strongest everyday protection against decay when saliva is low. In Australia it's a Pharmacist Only medicine.",
@@ -76,6 +84,14 @@ export const PRODUCTS = [
     use: "Brush gently twice a day. Replace every 3 months, or after a mouth infection.",
     cautions: [],
     refs: ["hong2019", "ccaMouth"],
+  },
+  {
+    id: "oranurse", name: "OraNurse Unflavoured Toothpaste", job: "clean",
+    form: "Unflavoured, SLS-free fluoride toothpaste", regions: { AU: "yes" },
+    why: "No flavour and no SLS foaming agent, with everyday fluoride (1,000 or 1,450 ppm). Gentle on a sore or sensitive mouth — made for people who find mint too strong, including after head and neck radiotherapy and with Sjögren's.",
+    use: "Brush twice a day with a soft toothbrush. Spit, don't rinse.",
+    cautions: [],
+    refs: [],
   },
   {
     id: "paste-mild", name: "Mild, SLS-free fluoride toothpaste", job: "clean",
