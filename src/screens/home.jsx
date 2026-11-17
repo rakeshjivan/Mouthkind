@@ -17,11 +17,13 @@ const when = (n) => (n.due ? "Due today" : n.days === 1 ? "Next: tomorrow" : `Ne
 function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick }) {
   return (
     <button className={`tile ${kind}${due ? " due" : ""}`} onClick={onClick}>
+      <span className="tile-in">
       <span className="tile-icon">{icon}</span>
       <strong className="tile-title">{title}</strong>
       {value && <span className={`tile-value${valueTone ? ` t-${valueTone}` : ""}`}>{value}</span>}
       {sub && <span className="tile-sub">{sub}</span>}
       {status && <span className="tile-status">{due && <i />}{status}</span>}
+      </span>
     </button>
   );
 }
