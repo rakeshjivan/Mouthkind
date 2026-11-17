@@ -44,6 +44,12 @@ async def main():
         await pick("Bladder tablets for urgency or leaking").click()
         await pick("Blood pressure or fluid tablets").click()
         await shot("03-risk-meds")
+        # Go back, see the earlier answer kept, and move forward again without re-answering
+        await pg.locator(".sheet-foot button", has_text="Back").click(); await pg.wait_for_timeout(250)
+        await shot("03b-risk-back")
+        assert await pg.locator(".pick-row.on", has_text="5 to 9").count() == 1
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        assert await pg.locator(".pick-row.on", has_text="Bladder tablets").count() == 1
         await btn("Next").click(); await pg.wait_for_timeout(250)
         await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)

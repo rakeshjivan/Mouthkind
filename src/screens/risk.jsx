@@ -9,27 +9,32 @@ export function RiskFlow({ last, onClose, onSave, onCare }) {
   const [ans, setAns] = useState(() => ({ ...(last?.answers || {}) }));
   const [i, setI] = useState(0);
   const [saved, setSaved] = useState(null);
+  const [editId, setEditId] = useState(null); // changing answers after seeing the result replaces that result
   const q = RISK_QUESTIONS[i];
   const lastQ = i === RISK_QUESTIONS.length - 1;
 
   const finish = (a) => {
     const r = scoreRisk(a);
-    const e = { id: `r_${Date.now()}`, ts: Date.now(), kind: "risk", v: RISK_VERSION, answers: a, score: r.score, band: r.band.id };
+    const e = { id: editId || `r_${Date.now()}`, ts: Date.now(), kind: "risk", v: RISK_VERSION, answers: a, score: r.score, band: r.band.id };
     onSave(e); setSaved(e);
   };
   const next = (a = ans) => (lastQ ? finish(a) : setI(i + 1));
 
-  if (saved) return <RiskResult entry={saved} onClose={onClose} onCare={onCare} />;
+  if (saved) return <RiskResult entry={saved} onClose={onClose} onCare={onCare}
+    onRedo={() => { setEditId(saved.id); setSaved(null); setI(0); }} />;
 
   const picked = q.type === "many" ? ans[q.id] || [] : ans[q.id];
   return (
     <Sheet title="Dry mouth risk check" onClose={onClose} onBack={i ? () => setI(i - 1) : null}
       progress={{ of: RISK_QUESTIONS.length, at: i, label: `${i + 1} of ${RISK_QUESTIONS.length}` }}
-      footer={q.type === "many" ? (
-        <button className="btn primary big" onClick={() => next()}>{picked.length ? (lastQ ? "See my result" : "Next") : q.none}</button>
-      ) : picked != null && last ? (
-        <button className="btn primary big" onClick={() => next()}>{lastQ ? "See my result" : "Next"}</button>
-      ) : null}>
+      footer={(i > 0 || q.type === "many" || picked != null) ? (<>
+        {i > 0 && <button className="btn ghost" onClick={() => setI(i - 1)}><Icon name="back" size={18} /> Back</button>}
+        {q.type === "many" ? (
+          <button className="btn primary big" onClick={() => next()}>{picked.length ? (lastQ ? "See my result" : "Next") : q.none}</button>
+        ) : picked != null ? (
+          <button className="btn primary big" onClick={() => next()}>{lastQ ? "See my result" : "Next"}</button>
+        ) : null}
+      </>) : null}>
       <p className="eyebrow-q">{q.section}</p>
       <h2 className="q">{q.text}</h2>
       {q.hint && <p className="lede tight">{q.hint}</p>}
@@ -53,7 +58,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo }) {
   return (
     <Sheet title="Your dry mouth risk" onClose={onClose}
       footer={<>
-        {onRedo && <button className="btn ghost" onClick={onRedo}>Update answers</button>}
+        {onRedo && <button className="btn ghost" onClick={onRedo}>Change my answers</button>}
         <button className="btn primary big" onClick={onClose}>Done</button>
       </>}>
       <div className={`risk-top ${r.band.tone}`}>
