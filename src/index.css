@@ -904,3 +904,10 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .shop-top h2 { margin: 0; }
 .shop-top .shop-form { margin: 4px 0 0; }
 .prod-top { display: flex; gap: 12px; align-items: center; }
+
+/* Flavour choice in Shop */
+.flavours { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.flav { min-height: 44px; padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-size: calc(15px * var(--s)); cursor: pointer; }
+.flav.on { border-color: var(--accent); background: var(--tint); color: var(--accent); font-weight: 600; }
+.flav:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.shop-item p.shop-seller { margin: 8px 0 0; text-align: center; color: var(--ink3); font-size: calc(13.5px * var(--s)); }

@@ -5,11 +5,30 @@
 export const SHOP_URL = "https://www.chemistwarehouse.com.au/search?query=tooth%20mousse&contexts=default";
 
 export const SHOP_LINKS = {
-  "gc-tmp": "https://www.chemistwarehouse.com.au/search?query=tooth%20mousse&contexts=default",
-  "gc-tm": "https://www.chemistwarehouse.com.au/search?query=tooth%20mousse&contexts=default",
-  "gc-dmg": "https://www.chemistwarehouse.com.au/search?query=gc%20dry%20mouth%20gel&contexts=default",
   "oranurse": "https://oranurseaustralia.com.au/product/unflavoured-toothpaste/",
   "neutrafluor": "https://www.chemistwarehouse.com.au/buy/69127/colgate-toothpaste-neutrafluor-5000-sensitive-115g-fluoride-potassium-s3",
+};
+
+// Products that come in flavours: each flavour has its own photo and page.
+// The first flavour is shown by default.
+const CW = "https://www.chemistwarehouse.com.au/buy/";
+export const SHOP_FLAVOURS = {
+  "gc-tm": [
+    { id: "mint", name: "Mint", url: CW + "98655/gc-tooth-mousse-mint-40g", img: "products/gc-tm-mint.webp" },
+    { id: "strawberry", name: "Strawberry", url: CW + "98657/gc-tooth-mousse-strawberry-40g", img: "products/gc-tm-strawberry.webp" },
+    { id: "melon", name: "Melon", url: CW + "154959/gc-tooth-mousse-melon-40g", img: "products/gc-tm-melon.webp" },
+    { id: "tutti", name: "Tutti-Frutti", url: CW + "154960/gc-tooth-mousse-tutti-frutti-40g", img: "products/gc-tm-tutti.webp" },
+    { id: "milkshake", name: "Milkshake", url: CW + "150795/gc-tooth-mousse-milkshake-40g", img: "products/gc-tm-milkshake.webp" },
+  ],
+  "gc-tmp": [
+    { id: "mint", name: "Mint", url: CW + "108768/gc-tooth-mousse-plus-mint-40g", img: "products/gc-tmp-mint.webp" },
+    { id: "strawberry", name: "Strawberry", url: CW + "108769/gc-tooth-mousse-plus-strawberry-40g", img: "products/gc-tmp-strawberry.webp" },
+    { id: "vanilla", name: "Vanilla", url: CW + "108770/gc-tooth-mousse-plus-vanilla-40g", img: "products/gc-tmp-vanilla.webp" },
+  ],
+  "gc-dmg": [
+    { id: "raspberry", name: "Raspberry", url: CW + "120343/gc-dry-mouth-gel-raspberry-40g", img: "products/gc-dmg-raspberry.webp" },
+    { id: "mint", name: "Mint", url: CW + "144837/gc-dry-mouth-gel-mint-40g", img: "products/gc-dmg-mint.webp" },
+  ],
 };
 
 // The products shown on the Shop screen, in this order (ids from products.js).
@@ -20,9 +39,13 @@ export const SHOP_SELLER = { oranurse: "OraNurse" };
 // Product photos, in public/products/. Add a file and its name here; until
 // then the app shows a plain placeholder tile.
 export const SHOP_IMAGES = {
-  "gc-dmg": "products/gc-dmg.webp",
-  "gc-tmp": "products/gc-tmp.webp",
-  "gc-tm": "products/gc-tm.webp",
   "neutrafluor": "products/neutrafluor.webp",
   "oranurse": "products/oranurse.webp",
 };
+
+/** The buy link and photo for a product, in a chosen flavour (default: first). */
+export function shopItem(id, flavourId) {
+  const fl = SHOP_FLAVOURS[id];
+  if (fl) { const f = fl.find((x) => x.id === flavourId) || fl[0]; return { url: f.url, img: f.img, flavour: f }; }
+  return { url: SHOP_LINKS[id] || null, img: SHOP_IMAGES[id] || null, flavour: null };
+}
