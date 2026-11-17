@@ -20,5 +20,9 @@ export const SHOP_SELLER = { oranurse: "OraNurse" };
 // Product photos, in public/products/. Add a file and its name here; until
 // then the app shows a plain placeholder tile.
 export const SHOP_IMAGES = {
-  // "gc-dmg": "products/gc-dmg.webp",
+  "gc-dmg": "products/gc-dmg.webp",
+  "gc-tmp": "products/gc-tmp.webp",
+  "gc-tm": "products/gc-tm.webp",
+  "neutrafluor": "products/neutrafluor.webp",
+  "oranurse": "products/oranurse.webp",
 };

@@ -895,7 +895,7 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 
 /* Product images */
 .pimg { flex: none; border-radius: 16px; object-fit: contain; background: #fff; }
-.pimg.md { width: 92px; height: 92px; } .pimg.sm { width: 56px; height: 56px; border-radius: 12px; }
+.pimg.md { width: 108px; height: 108px; } .pimg.sm { width: 56px; height: 56px; border-radius: 12px; }
 .ph-tile { display: grid; place-items: center; text-align: center; padding: 8px; font-family: var(--display); font-weight: 650; line-height: 1.1; }
 .ph-tile.md { font-size: 13px; } .ph-tile.sm { font-size: 9.5px; padding: 4px; }
 .ph-tile.gc { background: linear-gradient(160deg, var(--dry-bg), var(--tint)); color: var(--accent); }
