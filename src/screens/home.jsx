@@ -1,7 +1,6 @@
 import { Icon } from "../components/ui.jsx";
-import { DotSeries, PhTimeline } from "../components/kit.jsx";
 import { phColor, sipBand } from "../data/clinical.js";
-import { PH_ZONES, phPattern, phZone } from "../data/ph.js";
+import { phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
 import { scoreDecay } from "../data/decay.js";
 import { CARE_TOPICS } from "../data/care.js";
@@ -14,8 +13,20 @@ export const sipReadings = (entries) => entries.filter((e) => e.sip != null && e
 
 const when = (n) => (n.due ? "Due today" : n.days === 1 ? "Next: tomorrow" : `Next: ${new Date(n.at).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" })}`);
 
-/** One of the four boxes. The whole box is the button. */
-function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick }) {
+/** A tiny line of recent dry mouth scores (5–15) for the tracker box. */
+function Spark({ values }) {
+  const w = 120, h = 30, n = values.length;
+  const pts = values.map((v, i) => [n === 1 ? w / 2 : (i / (n - 1)) * (w - 6) + 3, h - 3 - ((v - 5) / 10) * (h - 6)]);
+  return (
+    <svg className="tile-spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
+      <polyline points={pts.map((p) => p.join(",")).join(" ")} fill="none" stroke="var(--dry)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={pts.at(-1)[0]} cy={pts.at(-1)[1]} r="3" fill="var(--dry)" />
+    </svg>
+  );
+}
+
+/** One of the boxes. The whole box is the button. */
+function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, extra }) {
   return (
     <button className={`tile ${kind}${due ? " due" : ""}`} onClick={onClick}>
       <span className="tile-in">
@@ -23,6 +34,7 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick })
       <strong className="tile-title">{title}</strong>
       {value && <span className={`tile-value${valueTone ? ` t-${valueTone}` : ""}`}>{value}</span>}
       {sub && <span className="tile-sub">{sub}</span>}
+      {extra}
       {status && <span className="tile-status">{due && <i />}{status}</span>}
       </span>
     </button>
@@ -46,6 +58,13 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
   const hour = new Date().getHours();
   const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const empty = !sips.length && !phs.length;
+  const results = entries.filter((e) => e.sip != null || e.ph != null || e.kind === "risk" || e.kind === "decay");
+  const count = results.length;
+  const lastTs = Math.max(0, ...results.map((e) => e.ts));
+  // Dry mouth trend over the last four checks (SIP: higher is drier).
+  const recent = sips.slice(-4).map((x) => x.sip);
+  const change = recent.length > 1 ? recent.at(-1) - recent[0] : 0;
+  const trend = recent.length < 2 ? null : change >= 2 ? { label: "Getting drier", tone: "orange" } : change <= -2 ? { label: "Improving", tone: "good" } : { label: "Steady", tone: null };
 
   return (
     <div className="screen home4">
@@ -73,36 +92,24 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
           value={ph ? `pH ${ph.ph.toFixed(1)}` : null} valueTone={ph ? phZone(ph.ph).tone : null} sub={ph ? phZone(ph.ph).label : "With a test strip"}
           status={phNext ? when(phNext) : "Not done yet"} due={!ph || phNext?.due}
           onClick={() => open("ph")} />
-        <Box kind="advice wide" title="Mouth care advice" icon={<Icon name="leaf" size={22} />}
+        <Box kind="advice" title="Mouth care advice" icon={<Icon name="leaf" size={22} />}
           value={null} sub={care.length ? `Start with: ${care[0].title.toLowerCase()}` : "Water, diet, teeth and more"}
           status="Open" onClick={() => go("advice")} />
+        <Box kind="tracker" title="My mouth tracker" icon={<Icon name="chart" size={22} />}
+          value={trend ? trend.label : null} valueTone={trend?.tone}
+          sub={empty ? "Your results over time" : `${count} result${count === 1 ? "" : "s"} · last ${fmtShort(lastTs)}`}
+          extra={sips.length > 1 ? <Spark values={sips.slice(-8).map((x) => x.sip)} /> : null}
+          status={empty ? "Builds as you check" : "See charts"} onClick={() => go("tracker")} />
       </div>
 
-      <section className="tracker">
-        <div className="tracker-h"><h2>My mouth tracker</h2>{!empty && <button className="link-btn" onClick={() => go("tracker")}>See all</button>}</div>
-        {pat.level === "flag" && (
-          <div className="alert-x red">
-            <strong>Your saliva has been acidic in {pat.acid} of your last {pat.n} tests.</strong>
-            <p>Acidic saliva puts your teeth at risk of decay, even if your mouth doesn't feel dry. See your dentist and show them your results.</p>
-            <button className="btn primary" onClick={() => go("advice", "protect")}>What helps</button>
-          </div>
-        )}
-        {empty ? (
-          <p className="tracker-empty">Your dry mouth scores and pH results will build up here, so you can see whether things are getting better or worse.</p>
-        ) : (<>
-          <div className="tk-row">
-            <p className="tk-label"><span className="tk-dot dry" />Dry mouth score</p>
-            {sip ? <p className="tk-now"><b>{sip.sip}</b> of 15 <span style={{ color: sipBand(sip.sip).color }}>· {sipBand(sip.sip).label.toLowerCase()}</span></p> : <p className="tk-now muted">No checks yet</p>}
-          </div>
-          {sips.length > 1 && <DotSeries points={sips.slice(-8).map((s) => ({ v: s.sip, label: fmtShort(s.ts) }))} min={5} max={15} tone="dry" />}
-          <div className="tk-row">
-            <p className="tk-label"><span className="tk-dot ph" style={{ background: ph ? phColor(ph.ph) : undefined }} />Saliva pH</p>
-            {ph ? <p className="tk-now"><b>{ph.ph.toFixed(1)}</b> <span className={`tk-zone ${phZone(ph.ph).tone}`}>· {phZone(ph.ph).label.toLowerCase()}</span></p> : <p className="tk-now muted">No results yet</p>}
-          </div>
-          {phs.length > 0 && <PhTimeline readings={phs} zones={PH_ZONES} color={phColor} fmt={fmtShort} />}
-        </>)}
-        {every && <p className="tk-foot">Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"} · <button className="link-btn" onClick={() => open("freq")}>Change</button> · <button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></p>}
-      </section>
+      {pat.level === "flag" && (
+        <div className="alert-x red home-alert">
+          <strong>Your saliva has been acidic in {pat.acid} of your last {pat.n} tests.</strong>
+          <p>Acidic saliva puts your teeth at risk of decay, even if your mouth doesn't feel dry. See your dentist and show them your results.</p>
+          <button className="btn primary" onClick={() => go("advice", "protect")}>What helps</button>
+        </div>
+      )}
+      {every && <p className="tk-foot home-foot">Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"} · <button className="link-btn" onClick={() => open("freq")}>Change</button> · <button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></p>}
 
       <p className="foot-note">Mouthkind is made by Dr Rakesh Jivan. It gives general information, not a diagnosis.</p>
     </div>

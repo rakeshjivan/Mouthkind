@@ -967,3 +967,18 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .boxes .tile.wide { min-height: 0; }
 @media (hover: hover) and (pointer: fine) and (min-width: 1000px) { .boxes .tile.wide { min-height: 168px; } }
 .tile.decay.due { box-shadow: var(--shadow), inset 0 0 0 2px var(--c); }
+
+/* Six boxes: 2 per row on phones, 3 per row on wider screens. */
+.tile.tracker { --c: var(--blue); --bg: var(--bluebg); }
+.tile.advice .tile-in, .tile.tracker .tile-in { min-height: calc(168px - 32px); }
+.tile-spark { display: block; width: 100%; height: 30px; margin-top: 6px; }
+.home-alert { margin: 4px 0 14px; }
+.home-foot { border-top: 0; margin: 0 2px 8px; padding-top: 0; }
+@media (min-width: 720px) {
+  .screen.home4 { max-width: 820px; }
+  .home4 .boxes { grid-template-columns: repeat(3, 1fr); }
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 1000px) {
+  .home4 .boxes { grid-template-columns: repeat(3, 1fr); }
+  .screen.home4 { max-width: 880px; }
+}
