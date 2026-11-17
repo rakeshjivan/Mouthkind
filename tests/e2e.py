@@ -11,7 +11,7 @@ def history():
     """Six weeks of weekly checks: dryness creeping up, pH drifting down."""
     now = int(time.time() * 1000)
     out = []
-    for i, (s, ph) in enumerate(zip([7, 8, 8, 9, 10, 10], [7.0, 6.8, 6.6, 6.6, 6.4, 6.2])):
+    for i, (s, ph) in enumerate(zip([7, 8, 8, 9, 10, 10], [7.0, 6.8, 6.6, 6.4, 6.6, 6.2])):
         ts = now - (6 - i) * 7 * DAY
         out.append({"id": f"s{i}", "ts": ts, "kind": "sip", "sip": s, "items": [2, 1, 2, 1, 1], "recall": 7})
         out.append({"id": f"p{i}", "ts": ts + 3600000, "kind": "ph", "ph": ph})
@@ -56,7 +56,7 @@ async def main():
         await btn("Done").click(); await pg.wait_for_timeout(300)
 
         # First dry mouth check: choose how often, then the five questions
-        await btn("Do my first check").click(); await pg.wait_for_timeout(400)
+        await pg.click(".quick-tile.sip"); await pg.wait_for_timeout(400)
         await shot("06-frequency")
         await pick("Once a week").click()
         await btn("Start the check").click(); await pg.wait_for_timeout(400)
@@ -68,10 +68,11 @@ async def main():
         await btn("Done").click(); await pg.wait_for_timeout(300)
 
         # pH
-        await btn("Add a pH result").click(); await pg.wait_for_timeout(400)
-        await dlg.locator("button", has_text="6.2").first.click()
+        await pg.click(".quick-tile.ph"); await pg.wait_for_timeout(400)
+        await dlg.get_by_role("button", name="pH 6.2").click()
         await shot("09-ph")
         await btn("Save result").click(); await pg.wait_for_timeout(300)
+        await shot("09b-ph-saved")
         await btn("Done").click(); await pg.wait_for_timeout(300)
         await shot("10-home", True)
 
@@ -84,12 +85,14 @@ async def main():
             localStorage.setItem('mc:entries', JSON.stringify([...h, ...cur])); }""", history())
         await pg.reload(); await pg.wait_for_timeout(500)
         await shot("12-home-history", True)
-        await pg.click("nav >> text=My results"); await pg.wait_for_timeout(300)
+        await pg.click("nav >> text=Results"); await pg.wait_for_timeout(300)
         await shot("13-results", True)
         await btn("Make a summary").click(); await pg.wait_for_timeout(300)
         await shot("14-summary", True)
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(200)
 
+        await pg.click("nav >> text=Care"); await pg.wait_for_timeout(300)
+        await shot("14b-care", True)
         await pg.emulate_media(color_scheme="dark"); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(300)
         await shot("15-home-dark", True)

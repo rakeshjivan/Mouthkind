@@ -184,4 +184,5 @@ export const REFS = {
   sunavala2022: { short: "Sunavala-Dossabhoy 2022", title: "Effect of recombinant human TSH on long-term salivary gland dysfunction in thyroid cancer patients treated with radioactive iodine: a systematic review", where: "Oral Oncol 2022;136:106280", url: "https://doi.org/10.1016/j.oraloncology.2022.106280" },
   usmani2019: { short: "Usmani 2019", title: "Relative risk of adverse events and treatment discontinuations between older and non-older adults treated with antimuscarinics for overactive bladder: a systematic review and meta-analysis", where: "Drugs Aging 2019;36:639–45", url: "https://doi.org/10.1007/s40266-019-00674-9" },
   shiboski2017: { short: "Shiboski 2017", title: "2016 ACR/EULAR classification criteria for primary Sjögren's syndrome", where: "Arthritis Rheumatol 2017;69:35–45", url: "https://doi.org/10.1002/art.39859" },
+  gcSalivaCheck: { short: "GC Saliva-Check BUFFER", title: "Saliva-Check BUFFER: resting saliva pH and testing instructions", where: "GC product brochure", url: "https://henryschein.com.au/Documents/brochure%20saliva%20check%20buffer.pdf" },
 };

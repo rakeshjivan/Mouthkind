@@ -76,7 +76,7 @@ export const PH_VALUES = Array.from({ length: 15 }, (_, i) => Math.round((5 + i 
 const PH_COLORS = ["#E02B20", "#E53A1E", "#EA4A1C", "#EE5C19", "#F16E16", "#F38214", "#F59A14",
   "#F5B417", "#F2D01D", "#D4D02A", "#B7CD36", "#A0C73F", "#8DC04A", "#6FB07B", "#5FA98B"];
 export const phColor = (v) => PH_COLORS[PH_VALUES.indexOf(v)] || "#8A9A96";
-export const phBand = (v) => (v == null ? null : v < 6.8 ? "Acidic" : v <= 7.4 ? "Healthy range" : "Alkaline");
+export const phBand = (v) => (v == null ? null : v <= 5.8 ? "Highly acidic" : v <= 6.6 ? "Moderately acidic" : "Healthy");
 // Exposed root surfaces start to dissolve well above enamel's ~5.5.
 export const PH_ROOT_CRITICAL = 6.4;
 

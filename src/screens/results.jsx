@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
-import { DotSeries } from "../components/kit.jsx";
-import { PH_ROOT_CRITICAL, SIP_QUESTIONS, SIP_OPTIONS, phBand, sipBand } from "../data/clinical.js";
+import { DotSeries, PhTimeline } from "../components/kit.jsx";
+import { SIP_QUESTIONS, SIP_OPTIONS, phBand, phColor, sipBand } from "../data/clinical.js";
+import { PH_ZONES, isAcidic, phPattern } from "../data/ph.js";
 import { RISK_BANDS, scoreRisk } from "../data/risk.js";
 import { freqFor } from "../data/schedule.js";
 import { fmtDate, fmtShort, fmtTime } from "../lib/store.js";
@@ -40,10 +41,8 @@ export function Results({ entries, open, onDelete, onShowRisk }) {
       <section className="panel">
         <div className="panel-h"><h2>Saliva pH</h2><button className="link-btn" onClick={() => open("ph")}>Add a result</button></div>
         {phs.length ? (<>
-          {phs.length > 1
-            ? <DotSeries points={phs.slice(-20).map((p) => ({ v: p.ph, label: fmtShort(p.ts) }))} min={5} max={7.8} line={PH_ROOT_CRITICAL} lineLabel={`Roots at risk below ${PH_ROOT_CRITICAL}`} tone="accent" fmt={(v) => v.toFixed(1)} />
-            : <p className="big-read"><strong>{phs[0].ph.toFixed(1)}</strong> · {phBand(phs[0].ph).toLowerCase()}</p>}
-          <p className="panel-foot">{phs.filter((p) => p.ph < PH_ROOT_CRITICAL).length} of {phs.length} results below {PH_ROOT_CRITICAL}.</p>
+          <PhTimeline readings={phs} zones={PH_ZONES} color={phColor} fmt={fmtShort} max={14} />
+          <p className="panel-foot">{phs.filter((p) => isAcidic(p.ph)).length} of {phs.length} results acidic (6.6 or lower).{phPattern(phs).level === "flag" ? " Your recent results are consistently acidic — show your dentist." : ""}</p>
         </>) : <p className="soft-note">No results yet.</p>}
       </section>
 
@@ -126,10 +125,10 @@ export function Summary({ entries, profile, onClose }) {
         <section>
           <h2>Resting saliva pH (test strip)</h2>
           {phs.length ? (
-            <table><thead><tr><th>Date</th><th>pH</th></tr></thead>
-              <tbody>{phs.map((p) => <tr key={p.id}><td>{fmtDate(p.ts)}</td><td>{p.ph.toFixed(1)}</td></tr>)}</tbody></table>
+            <table><thead><tr><th>Date</th><th>pH</th><th>Zone</th></tr></thead>
+              <tbody>{phs.map((p) => <tr key={p.id}><td>{fmtDate(p.ts)}</td><td>{p.ph.toFixed(1)}</td><td>{phBand(p.ph)}</td></tr>)}</tbody></table>
           ) : <p>None recorded.</p>}
-          <p className="rep-foot">Root-surface critical pH taken as {PH_ROOT_CRITICAL}.</p>
+          <p className="rep-foot">Zones as GC Saliva-Check BUFFER: 5.0–5.8 highly acidic, 6.0–6.6 moderately acidic, 6.8–7.8 healthy.{phPattern([...phs].reverse()).level === "flag" ? " Recent results consistently acidic." : ""}</p>
         </section>
       </article>
     </Sheet>

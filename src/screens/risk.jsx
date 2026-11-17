@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
-import { Pick, RiskDial, TickRows } from "../components/kit.jsx";
-import { RISK_QUESTIONS, RISK_VERSION, riskAdvice, scoreRisk } from "../data/risk.js";
-import { PRODUCTS } from "../data/products.js";
+import { Breakdown, Pick, RiskMeter, TickRows } from "../components/kit.jsx";
+import { RISK_BANDS, RISK_QUESTIONS, RISK_VERSION, riskBreakdown, scoreRisk } from "../data/risk.js";
 import { fmtDate } from "../lib/store.js";
 
 /** The risk questionnaire: one question per screen. Starts from the last answers when updating. */
-export function RiskFlow({ last, onClose, onSave, onTrack }) {
+export function RiskFlow({ last, onClose, onSave, onCare }) {
   const [ans, setAns] = useState(() => ({ ...(last?.answers || {}) }));
   const [i, setI] = useState(0);
   const [saved, setSaved] = useState(null);
@@ -20,7 +19,7 @@ export function RiskFlow({ last, onClose, onSave, onTrack }) {
   };
   const next = (a = ans) => (lastQ ? finish(a) : setI(i + 1));
 
-  if (saved) return <RiskResult entry={saved} onClose={onClose} onTrack={onTrack} />;
+  if (saved) return <RiskResult entry={saved} onClose={onClose} onCare={onCare} />;
 
   const picked = q.type === "many" ? ans[q.id] || [] : ans[q.id];
   return (
@@ -44,49 +43,64 @@ export function RiskFlow({ last, onClose, onSave, onTrack }) {
   );
 }
 
-/** What the score means, what drives it, and what to do. */
-export function RiskResult({ entry, onClose, onTrack, onRedo }) {
+/** What the score means: where it sits, what makes it up, what can be acted on. */
+export function RiskResult({ entry, onClose, onCare, onRedo }) {
   const r = scoreRisk(entry.answers);
-  const advice = riskAdvice(r, entry.answers);
-  const top = r.factors[0]?.pts || 1;
-  const refs = [...new Set([...r.factors.flatMap((f) => f.refs), ...advice.flatMap((a) => a.refs || [])])];
+  const groups = riskBreakdown(r);
+  const act = groups.filter((g) => g.act);
+  const aware = groups.filter((g) => !g.act);
+  const refs = [...new Set(r.factors.flatMap((f) => f.refs))];
   return (
     <Sheet title="Your dry mouth risk" onClose={onClose}
       footer={<>
         {onRedo && <button className="btn ghost" onClick={onRedo}>Update answers</button>}
         <button className="btn primary big" onClick={onClose}>Done</button>
       </>}>
-      <div className={`risk-head ${r.band.tone}`}>
-        <RiskDial score={r.score} tone={r.band.tone} />
+      <div className={`risk-top ${r.band.tone}`}>
+        <p className="risk-score"><strong>{r.score}</strong><span>points</span></p>
         <p className="risk-band">{r.band.label} risk</p>
         <p className="risk-sub">{r.band.sub}</p>
-        <p className="risk-date">{fmtDate(entry.ts)}</p>
       </div>
+      <RiskMeter score={r.score} bands={RISK_BANDS} />
+      <p className="risk-date">Checked {fmtDate(entry.ts)}</p>
 
-      {r.factors.length > 0 ? (
+      {groups.length > 0 ? (<>
         <section className="rblock">
-          <h3>What's raising your risk</h3>
-          {r.factors.map((f) => (
-            <div key={f.q + f.v} className="factor">
-              <div className="factor-top"><strong>{f.label}</strong><span className="factor-pts">+{f.pts}</span></div>
-              <span className="factor-bar"><i style={{ width: `${(f.pts / top) * 100}%` }} /></span>
-              <p>{f.why}</p>
-            </div>
-          ))}
+          <h3>What makes up your score</h3>
+          <Breakdown groups={groups} />
         </section>
-      ) : <p className="lede">You didn't report any of the common risk factors for dry mouth.</p>}
 
-      {advice.length > 0 && (
-        <section className="rblock">
-          <h3>What you can do</h3>
-          {advice.map((a) => (
-            <div key={a.id} className="advice">
-              <strong>{a.title}</strong>
-              <p>{a.body}</p>
-              {a.products && <p className="advice-prod">{a.products.map((id) => PRODUCTS.find((p) => p.id === id)?.name).join(", ")}</p>}
-              {a.id === "track" && onTrack && <button className="btn primary" onClick={onTrack}><Icon name="drop" size={18} /> Check my dry mouth now</button>}
-            </div>
-          ))}
+        {act.length > 0 && (
+          <section className="rblock">
+            <h3>Things you can act on</h3>
+            {act.map((g) => (
+              <div key={g.id} className={`fgroup g-${g.id}`}>
+                <p className="fg-head"><i />{g.label}<b>+{g.pts}</b></p>
+                {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
+                <p className="fg-act"><Icon name="check" size={16} stroke={2.6} /> {g.actNote}</p>
+              </div>
+            ))}
+          </section>
+        )}
+        {aware.length > 0 && (
+          <section className="rblock">
+            <h3>Things to be aware of</h3>
+            {aware.map((g) => (
+              <div key={g.id} className={`fgroup g-${g.id}`}>
+                <p className="fg-head"><i />{g.label}<b>+{g.pts}</b></p>
+                {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
+              </div>
+            ))}
+          </section>
+        )}
+      </>) : <p className="lede">You didn't report any of the common risk factors for dry mouth. Keep looking after your teeth with fluoride toothpaste twice a day.</p>}
+
+      {r.band.lo >= 10 && (
+        <section className="next-steps">
+          <h3>What to do next</h3>
+          <p>Even without symptoms, a higher risk means your teeth need extra protection. Your Care tab now shows the steps that matter most for you.</p>
+          {onCare && <button className="btn primary big" onClick={onCare}><Icon name="leaf" /> See what helps</button>}
+          <p className="soft-note">Testing your saliva pH and doing the dry mouth check regularly shows whether anything is changing.</p>
         </section>
       )}
 

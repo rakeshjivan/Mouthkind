@@ -179,3 +179,21 @@ export function riskAdvice(result, answers = {}) {
     out.push({ id: "dentist", title: "Tell your dentist", body: "Show them this result. With a high risk of dry mouth, more frequent check-ups and extra fluoride are usually worthwhile." });
   return out;
 }
+
+// ── Grouping for the visual breakdown ───────────────────────────────────────
+// `act`: something the person can do something about (habits, set-up, a
+// medicine review) — shown apart from things to be aware of.
+export const RISK_GROUPS = [
+  { id: "meds", label: "Medicines", qs: ["meds", "medTypes"], act: true, actNote: "Ask your pharmacist or GP for a medicine review." },
+  { id: "treat", label: "Cancer treatment", qs: ["cancer"], act: false },
+  { id: "health", label: "Health conditions", qs: ["conditions"], act: false },
+  { id: "sleep", label: "Sleep and breathing", qs: ["breathing"], act: true, actNote: "Your GP or sleep clinic can often help." },
+  { id: "habits", label: "Daily habits", qs: ["habits", "water"], act: true, actNote: "Small changes here make a real difference." },
+  { id: "about", label: "Age and sex", qs: ["age", "sex"], act: false },
+];
+export function riskBreakdown(result) {
+  return RISK_GROUPS.map((g) => {
+    const fs = result.factors.filter((f) => g.qs.includes(f.q));
+    return { ...g, factors: fs, pts: fs.reduce((s, f) => s + f.pts, 0) };
+  }).filter((g) => g.pts > 0);
+}

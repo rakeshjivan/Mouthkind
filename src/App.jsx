@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "./components/ui.jsx";
-import { Home, latestOf } from "./screens/home.jsx";
+import { Home, latestOf, phReadings, sipReadings } from "./screens/home.jsx";
+import { Care } from "./screens/care.jsx";
+import { careContext } from "./data/care.js";
+import { phPattern } from "./data/ph.js";
+import { scoreRisk } from "./data/risk.js";
 import { RiskFlow, RiskResult } from "./screens/risk.jsx";
 import { FrequencyPicker, PhFlow, Reminder, SipFlow } from "./screens/extras.jsx";
 import { Results, Summary } from "./screens/results.jsx";
@@ -10,7 +14,8 @@ import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js
 
 const TABS = [
   { id: "home", label: "Home", icon: "home" },
-  { id: "results", label: "My results", icon: "chart" },
+  { id: "results", label: "Results", icon: "chart" },
+  { id: "care", label: "Care", icon: "leaf" },
   { id: "me", label: "Me", icon: "user" },
 ];
 
@@ -21,6 +26,7 @@ export default function App() {
   const [tab, setTab] = useState("home");
   const [sheet, setSheet] = useState(null);
   const [afterFreq, setAfterFreq] = useState(false);
+  const [focus, setFocus] = useState(null);
 
   const setProfile = useCallback((p) => { setProfileState(p); save("profile", p); }, []);
   const setPrefs = useCallback((p) => { setPrefsState(p); save("prefs", p); }, []);
@@ -51,14 +57,17 @@ export default function App() {
     setSheet(s);
   }, [prefs.sipEvery]);
   const close = () => setSheet(null);
-  const go = (t) => { setTab(t); window.scrollTo(0, 0); };
+  const go = (t, f = null) => { setSheet(null); setTab(t); setFocus(f); window.scrollTo(0, 0); };
   const risk = latestOf(entries, "risk");
+  const riskR = risk && scoreRisk(risk.answers);
+  const careCtx = careContext({ factors: riskR?.factors, sip: sipReadings(entries).at(-1)?.sip ?? null, ph: phPattern(phReadings(entries)).level, risk: riskR?.band.id || null });
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
 
   return (
     <div className="app">
       <main className="main" id="main">
-        {tab === "home" && <Home entries={entries} prefs={prefs} open={open} />}
+        {tab === "home" && <Home profile={profile} entries={entries} prefs={prefs} careCtx={careCtx} open={open} go={go} />}
+        {tab === "care" && <Care key={focus || "c"} ctx={careCtx} focus={focus} />}
         {tab === "results" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
@@ -71,15 +80,15 @@ export default function App() {
         ))}
       </nav>
 
-      {sheet === "risk" && <RiskFlow last={risk} onClose={close} onSave={addEntry} onTrack={() => open("sip")} />}
-      {sheet === "riskresult" && risk && <RiskResult entry={risk} onClose={close} onTrack={() => open("sip")} onRedo={() => setSheet("risk")} />}
+      {sheet === "risk" && <RiskFlow last={risk} onClose={close} onSave={addEntry} onCare={() => go("care")} />}
+      {sheet === "riskresult" && risk && <RiskResult entry={risk} onClose={close} onCare={() => go("care")} onRedo={() => setSheet("risk")} />}
       {sheet === "freq" && (
         <FrequencyPicker value={prefs.sipEvery} first={afterFreq} onClose={() => { setAfterFreq(false); close(); }}
           onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq ? "sip" : null); setAfterFreq(false); }} />
       )}
       {sheet === "sip" && prefs.sipEvery && <SipFlow every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} />}
       {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
-      {sheet === "ph" && <PhFlow onClose={close} onSave={addEntry} />}
+      {sheet === "ph" && <PhFlow readings={phReadings(entries)} onClose={close} onSave={addEntry} onCare={() => go("care", "protect")} />}
       {sheet === "report" && <Summary entries={entries} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
     </div>

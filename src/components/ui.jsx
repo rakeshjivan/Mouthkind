@@ -94,7 +94,7 @@ export function Scale({ value, onPick, low, high, label }) {
 export function PhInput({ value, onPick, readOnly }) {
   const idx = value == null ? -1 : PH_VALUES.indexOf(value);
   const step = (d) => onPick(PH_VALUES[idx < 0 ? (d > 0 ? 0 : 14) : Math.min(14, Math.max(0, idx + d))]);
-  const groups = [["Acidic", PH_VALUES.slice(0, 9)], ["Healthy", PH_VALUES.slice(9, 13)], ["Alkaline", PH_VALUES.slice(13)]];
+  const groups = [["Highly acidic", PH_VALUES.slice(0, 5)], ["Moderately acidic", PH_VALUES.slice(5, 9)], ["Healthy", PH_VALUES.slice(9)]];
   return (
     <div>
       <div className="ph-card">

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Gauge, Icon, PhInput, Sheet, Sources } from "../components/ui.jsx";
 import { Pick } from "../components/kit.jsx";
-import { PH_ROOT_CRITICAL, SIP_OPTIONS, SIP_QUESTIONS, phBand, sipBand } from "../data/clinical.js";
+import { SIP_OPTIONS, SIP_QUESTIONS, phColor, sipBand } from "../data/clinical.js";
+import { PH_STEPS, PH_WINDOW, phPattern, phZone } from "../data/ph.js";
 import { FREQUENCIES, freqFor, reminderIcs } from "../data/schedule.js";
 import { downloadText } from "../lib/store.js";
 
@@ -96,27 +97,49 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave }) {
 }
 
 // ─── A saliva pH result ────────────────────────────────────────────────────
-export function PhFlow({ onClose, onSave }) {
+export function PhFlow({ readings: atOpen, onClose, onSave, onCare }) {
+  // Results from before this test; the prop updates once we save.
+  const [readings] = useState(atOpen);
   const [ph, setPh] = useState(null);
-  const [saved, setSaved] = useState(false);
-  return (
-    <Sheet title="Saliva pH" onClose={onClose}
-      footer={saved ? <button className="btn primary big" onClick={onClose}>Done</button>
-        : <button className="btn primary big" disabled={ph == null} onClick={() => { onSave({ id: `p_${Date.now()}`, ts: Date.now(), kind: "ph", ph }); setSaved(true); }}>Save result</button>}>
-      {!saved ? (<>
-        <h2 className="q">What colour did your strip turn?</h2>
-        <p className="lede tight">Test first thing in the morning, before eating, drinking or brushing. Tap the closest colour.</p>
-        <PhInput value={ph} onPick={setPh} />
-      </>) : (
-        <div className="intro">
-          <div className="intro-mark dry"><Icon name="check" size={28} stroke={2.6} /></div>
-          <h2 className="q">Saved: pH {ph.toFixed(1)} — {phBand(ph).toLowerCase()}</h2>
-          <p className="lede">{ph < PH_ROOT_CRITICAL
-            ? `Below ${PH_ROOT_CRITICAL}, exposed tooth roots start to lose mineral. One low result isn't a worry; if most of your results are low, ask your dentist about extra fluoride and GC Tooth Mousse Plus.`
-            : "That's a comfortable level for your teeth."}</p>
-          <Sources refs={["agarwal2022"]} />
+  const [saved, setSaved] = useState(null);
+  const [how, setHow] = useState(readings.length < 3);
+
+  if (saved) {
+    const z = phZone(saved.ph);
+    const pat = phPattern([...readings, saved]);
+    return (
+      <Sheet title="Saliva pH" onClose={onClose}
+        footer={pat.level === "flag" || pat.level === "watch"
+          ? <><button className="btn ghost" onClick={onClose}>Done</button><button className="btn primary" onClick={onCare}>What helps</button></>
+          : <button className="btn primary big" onClick={onClose}>Done</button>}>
+        <div className={`ph-saved ${z.tone}`}>
+          <span className="ph-big-swatch" style={{ background: phColor(saved.ph) }} />
+          <p className="ph-big">pH {saved.ph.toFixed(1)}</p>
+          <p className="ph-zone">{z.label}</p>
         </div>
-      )}
+        {pat.level === "flag" ? (
+          <div className="alert-x red">
+            <strong>Your saliva has been acidic in {pat.acid} of your last {pat.n} tests.</strong>
+            <p>Saliva that stays acidic lets acid-loving bacteria take over and strips minerals from your teeth — even if your mouth doesn't feel dry. Book a dentist visit and show them these results. Until then, follow the steps in Care: protect your teeth, and keep sugar and acid to mealtimes.</p>
+          </div>
+        ) : pat.level === "watch" ? (
+          <p className="lede">{z.id === "ok" ? "Healthy today." : "One acidic result isn't a worry on its own."} Keep testing{readings.length + 1 < PH_WINDOW ? "" : " — if most of your results are acidic, it's time to see your dentist"}.</p>
+        ) : <p className="lede">A healthy result. Keep testing to see your pattern over time.</p>}
+        <Sources refs={["gcSalivaCheck"]} />
+      </Sheet>
+    );
+  }
+
+  return (
+    <Sheet title="Test my saliva pH" onClose={onClose}
+      footer={<button className="btn primary big" disabled={ph == null}
+        onClick={() => { const e = { id: `p_${Date.now()}`, ts: Date.now(), kind: "ph", ph }; onSave(e); setSaved(e); }}>Save result</button>}>
+      <button className={`how-toggle${how ? " open" : ""}`} onClick={() => setHow(!how)} aria-expanded={how}>
+        <span>How to test</span><Icon name="chev" className={how ? "rot" : ""} />
+      </button>
+      {how && <ol className="how-steps">{PH_STEPS.map((t) => <li key={t}>{t}</li>)}</ol>}
+      <h2 className="q">Which colour did your strip turn?</h2>
+      <PhInput value={ph} onPick={setPh} />
     </Sheet>
   );
 }
