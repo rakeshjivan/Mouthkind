@@ -1,3 +1,4 @@
+import { externalClick } from "../lib/external.js";
 import { useEffect, useRef } from "react";
 import { PH_VALUES, phColor, phBand, SIP_BANDS, sipBand } from "../data/clinical.js";
 import { REFS } from "../data/references.js";
@@ -169,7 +170,7 @@ export function Sources({ refs }) {
         return (
           <span key={k}>
             {i > 0 && (i === refs.length - 1 ? " and " : ", ")}
-            <a href={r.url} target="_blank" rel="noreferrer" title={`${r.title} — ${r.where}`}>{r.short}</a>
+            <a href={r.url} target="_blank" rel="noreferrer" onClick={externalClick(r.url)} title={`${r.title} — ${r.where}`}>{r.short}</a>
           </span>
         );
       })}

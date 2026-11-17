@@ -882,3 +882,13 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .tk-foot .link-btn { display: inline-flex; align-items: center; gap: 4px; }
 @media (max-width: 360px) { .boxes { grid-template-columns: 1fr; } }
 .tile-value.t-good { color: var(--good); } .tile-value.t-amber { color: var(--amber); } .tile-value.t-orange { color: var(--orange); } .tile-value.t-red { color: var(--red); }
+
+/* Shop */
+.shop-go { display: flex; justify-content: center; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
+.shop-soon { background: var(--tint); border-radius: 16px; padding: 14px 16px; margin: 0 0 18px; }
+.shop-item { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.shop-item h2 { margin: 0; font-family: var(--display); font-size: calc(20px * var(--s)); }
+.shop-form { margin: 2px 0 10px; color: var(--dry); font-weight: 650; font-size: calc(14.5px * var(--s)); }
+.shop-item p { margin: 0 0 10px; }
+.shop-caution { color: var(--ink3); font-size: calc(14px * var(--s)); }
+.shop-item .btn { display: inline-flex; align-items: center; gap: 8px; justify-content: center; width: 100%; text-decoration: none; margin-top: 4px; }

@@ -99,6 +99,8 @@ async def main():
 
         await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(300)
         await shot("14b-care", True)
+        await pg.click("nav >> text=Shop"); await pg.wait_for_timeout(300)
+        await shot("14c-shop", True)
         await pg.emulate_media(color_scheme="dark"); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(300)
         await shot("15-home-dark", True)

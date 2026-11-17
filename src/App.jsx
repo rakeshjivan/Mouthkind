@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Icon } from "./components/ui.jsx";
 import { Home, latestOf, phReadings, sipReadings } from "./screens/home.jsx";
 import { Care } from "./screens/care.jsx";
+import { Shop } from "./screens/shop.jsx";
 import { careContext } from "./data/care.js";
 import { phPattern } from "./data/ph.js";
 import { scoreRisk } from "./data/risk.js";
@@ -16,6 +17,7 @@ const TABS = [
   { id: "home", label: "Home", icon: "home" },
   { id: "tracker", label: "Tracker", icon: "chart" },
   { id: "advice", label: "Advice", icon: "leaf" },
+  { id: "shop", label: "Shop", icon: "cart" },
   { id: "me", label: "Me", icon: "user" },
 ];
 
@@ -67,6 +69,7 @@ export default function App() {
     <div className="app">
       <main className="main" id="main">
         {tab === "home" && <Home profile={profile} entries={entries} prefs={prefs} careCtx={careCtx} open={open} go={go} />}
+        {tab === "shop" && <Shop />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} />}
         {tab === "tracker" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
