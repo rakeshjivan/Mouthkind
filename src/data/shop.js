@@ -26,8 +26,8 @@ export const SHOP_FLAVOURS = {
     { id: "vanilla", name: "Vanilla", url: CW + "108770/gc-tooth-mousse-plus-vanilla-40g", img: "products/gc-tmp-vanilla.webp" },
   ],
   "gc-dmg": [
-    { id: "raspberry", name: "Raspberry", url: CW + "120343/gc-dry-mouth-gel-raspberry-40g", img: "products/gc-dmg-raspberry.webp" },
-    { id: "mint", name: "Mint", url: CW + "144837/gc-dry-mouth-gel-mint-40g", img: "products/gc-dmg-mint.webp" },
+    { id: "raspberry", name: "Raspberry", url: CW + "120343/gc-dry-mouth-gel-raspberry-40g", img: "products/gc-dmg.webp" },
+    { id: "mint", name: "Mint", url: CW + "144837/gc-dry-mouth-gel-mint-40g", img: "products/gc-dmg.webp" },
   ],
 };
 
