@@ -99,7 +99,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
           value={trend ? trend.label : null} valueTone={trend?.tone}
           sub={empty ? "Your results over time" : `${count} result${count === 1 ? "" : "s"} · last ${fmtShort(lastTs)}`}
           extra={sips.length > 1 ? <Spark values={sips.slice(-8).map((x) => x.sip)} /> : null}
-          status={empty ? "Builds as you check" : "See charts"} onClick={() => go("tracker")} />
+          status={empty ? "No results yet" : "See charts"} onClick={() => go("tracker")} />
       </div>
 
       {pat.level === "flag" && (
