@@ -63,7 +63,6 @@ async def main():
         assert await pg.locator(".pick-row.on", has_text="Fluid tablets").count() == 1
         await btn("Next").click(); await pg.wait_for_timeout(250)
         await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
-        await exact("No").click(); await pg.wait_for_timeout(350)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("I use a CPAP machine").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)

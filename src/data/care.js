@@ -91,7 +91,7 @@ export const CARE_TOPICS = [
   {
     id: "acid", icon: "shield", title: "After vomiting or reflux",
     short: "Acid softens enamel — rinse first, brush later.",
-    forYou: (c) => has(c, "conditions.reflux", "conditions.eating", "pregnant.sick", "medTypes.glp1"),
+    forYou: (c) => has(c, "conditions.reflux", "conditions.eating", "conditions.pregnantSick", "medTypes.glp1"),
     steps: [
       "Rinse your mouth with plain water straight away.",
       "Wait about an hour before brushing — brushing softened enamel wears it away.",
@@ -104,7 +104,7 @@ export const CARE_TOPICS = [
   {
     id: "pregnancy", icon: "user", title: "Your mouth in pregnancy",
     short: "Gums change and snacking increases — a little extra care helps.",
-    forYou: (c) => has(c, "pregnant.yes", "pregnant.sick"),
+    forYou: (c) => has(c, "conditions.pregnant", "conditions.pregnantSick"),
     steps: [
       "Tell your dentist you're pregnant. Check-ups and most treatment are safe — many people find the second trimester most comfortable.",
       "Gums often swell and bleed more in pregnancy. Keep brushing gently twice a day with a soft brush and fluoride toothpaste, and clean between your teeth daily.",

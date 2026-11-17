@@ -113,16 +113,9 @@ export const RISK_QUESTIONS = [
       { v: "longcovid", label: "Long COVID", pts: 2, why: "Dry mouth and taste changes can linger after COVID-19.", refs: ["avais2025"] },
       { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, limited: true, why: "Stomach acid wears teeth, and repeated vomiting can leave the mouth dry." },
       { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, limited: true, why: "Vomiting, restricted fluids and some medicines can dry the mouth and wear the teeth." },
+      { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 2, limited: true, why: "Many people notice a drier mouth in pregnancy, and gums become more sensitive.", refs: ["nazir2026"] },
+      { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 3, acid: true, limited: true, why: "Vomiting brings stomach acid onto the teeth and leaves the mouth dry.", refs: ["nazir2026", "adaPregnancy"] },
       { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
-    ],
-  },
-  {
-    id: "pregnant", type: "one", section: "Health", text: "Are you pregnant?",
-    when: (a) => a.sex !== "m",
-    options: [
-      { v: "no", label: "No", pts: 0 },
-      { v: "yes", label: "Yes", as: "Pregnancy", pts: 2, limited: true, why: "Many women notice a drier mouth in pregnancy, and gums become more sensitive.", refs: ["nazir2026"] },
-      { v: "sick", label: "Yes, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 3, acid: true, limited: true, why: "Vomiting brings stomach acid onto the teeth and leaves the mouth dry.", refs: ["nazir2026", "adaPregnancy"] },
     ],
   },
   {
@@ -173,11 +166,20 @@ export const RISK_BANDS = [
   { id: "veryhigh", lo: 45, label: "Very high", sub: "A dry mouth is very likely. Protect your teeth now.", tone: "red" },
 ];
 
-/** Questions to show, given the answers so far (pregnancy only when not male). */
+/** Answers saved before pregnancy moved into the health list. */
+function migrate(a) {
+  if (!a.pregnant || a.pregnant === "no") return a;
+  const v = a.pregnant === "sick" ? "pregnantSick" : "pregnant";
+  const { pregnant, ...rest } = a;
+  return { ...rest, conditions: [...new Set([...(a.conditions || []), v])] };
+}
+
+/** Questions to show, given the answers so far. */
 export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.when || q.when(answers));
 
 /** Score a set of answers: { score 0–100, band, factors (largest first), major } */
 export function scoreRisk(answers = {}) {
+  answers = migrate(answers);
   const factors = [];
   for (const q of visibleRiskQuestions(answers)) {
     if (!q.options) continue; // the medicine look-up feeds the medicine groups
@@ -196,6 +198,7 @@ export function scoreRisk(answers = {}) {
 
 /** Practical next steps for this person's factors, most useful first. */
 export function riskAdvice(result, answers = {}) {
+  answers = migrate(answers);
   const has = (q, v) => (answers[q] || []).includes?.(v) || answers[q] === v;
   const medPts = result.factors.filter((f) => f.q === "meds" || f.q === "medTypes").reduce((s, f) => s + f.pts, 0);
   const out = [];
@@ -215,7 +218,7 @@ export function riskAdvice(result, answers = {}) {
     out.push({ id: "smoke", title: "Smoking and vaping", body: "Both dry the mouth. Quitting helps your saliva and your teeth — Quitline (13 78 48 in Australia, 0800 778 778 in New Zealand) is free." });
   if (has("water", "low") || has("habits", "caffeine") || has("habits", "alcohol"))
     out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day. Cut back on alcohol and caffeine, and avoid mouthwashes that contain alcohol." });
-  if (has("pregnant", "yes") || has("pregnant", "sick"))
+  if (has("conditions", "pregnant") || has("conditions", "pregnantSick"))
     out.push({ id: "pregnant", title: "Looking after your mouth in pregnancy", body: "Tell your dentist you're pregnant — check-ups and most treatment are safe, and the second trimester is often the most comfortable time. Gums often swell and bleed more in pregnancy: keep brushing gently twice a day and clean between your teeth. Keep sweet snacks to mealtimes.", refs: ["adaPregnancy", "pbbTeeth"] });
   if (result.factors.some((f) => f.acid) || has("medTypes", "glp1"))
     out.push({ id: "acid", title: "After vomiting or reflux, don't brush straight away", body: "Rinse with water, then wait about an hour before brushing — acid softens enamel and brushing straight away wears it. In the meantime, smear on fluoride toothpaste or GC Tooth Mousse with a clean finger, or chew sugar-free gum.", refs: ["adaPregnancy", "pbbTeeth"], products: ["gc-tm"] });
@@ -236,7 +239,7 @@ export function riskAdvice(result, answers = {}) {
 export const RISK_GROUPS = [
   { id: "meds", label: "Medicines", qs: ["meds", "medTypes"], act: true, actNote: "Ask your pharmacist or GP for a medicine review." },
   { id: "treat", label: "Cancer treatment", qs: ["cancer"], act: false },
-  { id: "health", label: "Health conditions", qs: ["conditions", "pregnant"], act: false },
+  { id: "health", label: "Health conditions", qs: ["conditions"], act: false },
   { id: "sleep", label: "Sleep and breathing", qs: ["breathing"], act: true, actNote: "Your GP or sleep clinic can often help." },
   { id: "habits", label: "Daily habits", qs: ["habits", "water"], act: true, actNote: "Small changes here make a real difference." },
   { id: "about", label: "Age and sex", qs: ["age", "sex"], act: false },

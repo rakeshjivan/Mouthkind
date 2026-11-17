@@ -39,17 +39,16 @@ test("age and gender from Me replace those questions", () => {
   assert.deepEqual(profileAnswers({}, now), {});
 });
 
-test("pregnancy is asked unless the person is a man; vomiting brings acid advice", () => {
-  assert.ok(visibleRiskQuestions({ sex: "f" }).some((q) => q.id === "pregnant"));
-  assert.ok(visibleRiskQuestions({ sex: "x" }).some((q) => q.id === "pregnant"));
-  assert.ok(!visibleRiskQuestions({ sex: "m" }).some((q) => q.id === "pregnant"));
-  const a = { sex: "f", pregnant: "sick" };
+test("pregnancy is in the health list for everyone; vomiting brings acid advice", () => {
+  for (const sex of ["f", "m", "x"]) assert.ok(!visibleRiskQuestions({ sex }).some((q) => q.id === "pregnant"));
+  const a = { sex: "m", conditions: ["pregnantSick"] };
   const r = scoreRisk(a);
-  assert.ok(r.factors.some((f) => f.q === "pregnant" && f.acid));
+  assert.ok(r.factors.some((f) => f.v === "pregnantSick" && f.acid));
   const ids = riskAdvice(r, a).map((x) => x.id);
   assert.ok(ids.includes("pregnant") && ids.includes("acid"));
-  // A man's stale pregnancy answer is ignored.
-  assert.ok(!scoreRisk({ sex: "m", pregnant: "sick" }).factors.some((f) => f.q === "pregnant"));
+  assert.ok(CARE_TOPICS.find((t) => t.id === "pregnancy").forYou(careContext({ factors: r.factors })));
+  // Older saved answers still count.
+  assert.ok(scoreRisk({ pregnant: "sick" }).factors.some((f) => f.v === "pregnantSick"));
 });
 
 test("GLP-1 and immunotherapy bring their own advice and Advice topics", () => {
@@ -62,7 +61,7 @@ test("GLP-1 and immunotherapy bring their own advice and Advice topics", () => {
 });
 
 test("all advice references exist", () => {
-  const a = { sex: "f", pregnant: "sick", medTypes: ["glp1"], cancer: ["immuno"], conditions: ["reflux", "diabetes"] };
+  const a = { sex: "f", medTypes: ["glp1"], cancer: ["immuno"], conditions: ["reflux", "diabetes", "pregnantSick"] };
   for (const x of riskAdvice(scoreRisk(a), a)) for (const ref of x.refs || []) assert.ok(REFS[ref], `${x.id} → ${ref}`);
   for (const t of CARE_TOPICS) for (const ref of t.refs || []) assert.ok(REFS[ref], `${t.id} → ${ref}`);
 });
