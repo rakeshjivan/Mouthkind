@@ -21,7 +21,7 @@
 // checked for this app. Shown in the plan for clinical review.
 // Mercadante 2021 (cancer therapy).
 
-export const RISK_VERSION = 1;
+export const RISK_VERSION = 2;
 
 // ── Questions ───────────────────────────────────────────────────────────────
 // "one": pick one option. "many": tick any. Every option carries its points.
@@ -55,37 +55,74 @@ export const RISK_QUESTIONS = [
     ],
   },
   {
-    id: "medTypes", type: "many", section: "Medicines", text: "Do you take any of these?",
-    hint: "Tick any that apply. Not sure? Check the box or ask your pharmacist.", none: "None of these, or not sure",
+    id: "medList", type: "lookup", section: "Medicines", text: "Which medicines do you take?",
+    hint: "Type a medicine or brand name. We'll sort them into the groups below — or skip this and tick the groups yourself.",
+  },
+  // The medicine groups share one answer (medTypes), shown over two screens.
+  {
+    id: "medTypes", key: "medMind", type: "many", section: "Medicines", text: "Do you take any of these for mood, sleep, pain or nerves?",
+    hint: "Groups that match the medicines you added are already ticked.", none: "None of these, or not sure",
     options: [
-      { v: "bladder", label: "Bladder tablets for urgency or leaking", hint: "e.g. oxybutynin, solifenacin, tolterodine", pts: 10, why: "Bladder medicines that block acetylcholine cause dry mouth in nearly half of the people who take them.", refs: ["usmani2019", "wolff2017"] },
-      { v: "tca", label: "Older antidepressants, or amitriptyline for pain or sleep", hint: "e.g. amitriptyline, nortriptyline, doxepin", pts: 8, why: "Tricyclic medicines strongly reduce saliva.", refs: ["wolff2017"] },
-      { v: "antidep", label: "Other antidepressants", hint: "e.g. sertraline, escitalopram, venlafaxine, duloxetine", pts: 5, why: "Many antidepressants list dry mouth as a common side effect.", refs: ["wolff2017"] },
-      { v: "antipsych", label: "Antipsychotics or mood stabilisers", hint: "e.g. quetiapine, olanzapine, lithium", pts: 8, why: "These medicines commonly reduce saliva.", refs: ["wolff2017"] },
-      { v: "antihist", label: "Antihistamines, or sleeping tablets", hint: "e.g. promethazine, diphenhydramine, zopiclone, temazepam", pts: 5, why: "Sedating antihistamines and sleep medicines dry the mouth.", refs: ["wolff2017"] },
-      { v: "opioid", label: "Strong pain relief", hint: "e.g. oxycodone, tramadol, codeine, morphine", pts: 5, why: "Opioid pain medicines reduce saliva.", refs: ["wolff2017"] },
-      { v: "bp", label: "Blood pressure or fluid tablets", hint: "e.g. furosemide, hydrochlorothiazide, metoprolol, clonidine", pts: 4, why: "Fluid tablets and several blood pressure medicines can reduce saliva.", refs: ["wolff2017", "villa2016"] },
-      { v: "inhaler", label: "Inhalers for asthma or COPD", hint: "e.g. tiotropium (Spiriva), ipratropium, steroid inhalers", pts: 3, why: "Some inhalers dry the mouth directly.", refs: ["wolff2017"] },
-      { v: "parkinson", label: "Parkinson's medicines", hint: "e.g. benztropine, levodopa", pts: 5, why: "Several Parkinson's medicines reduce saliva.", refs: ["wolff2017"] },
-      { v: "seizure", label: "Epilepsy or nerve-pain medicines", hint: "e.g. pregabalin, gabapentin, carbamazepine", pts: 3, why: "Some of these list dry mouth as a side effect.", refs: ["wolff2017"] },
-      { v: "stimulant", label: "ADHD medicines", hint: "e.g. methylphenidate, dexamfetamine, lisdexamfetamine", pts: 4, why: "Stimulants commonly cause dry mouth.", refs: ["wolff2017"] },
+      { v: "tca", label: "Older antidepressants, or amitriptyline for pain or sleep", hint: "e.g. amitriptyline (Endep), nortriptyline, doxepin", pts: 8, why: "Tricyclic medicines strongly block the nerves that drive saliva.", refs: ["wolff2017"] },
+      { v: "antidep", label: "Other antidepressants", hint: "e.g. sertraline, escitalopram, venlafaxine, duloxetine, mirtazapine", pts: 5, why: "Dry mouth is one of the most common side effects of antidepressants.", refs: ["wolff2017"] },
+      { v: "antipsych", label: "Antipsychotics or lithium", hint: "e.g. quetiapine, olanzapine, risperidone, clozapine, lithium", pts: 8, why: "These medicines commonly reduce saliva.", refs: ["wolff2017"] },
+      { v: "sleep", label: "Sleeping tablets or anxiety tablets", hint: "e.g. temazepam, diazepam, alprazolam, zolpidem, zopiclone", pts: 4, why: "Benzodiazepines and other sleeping tablets can reduce saliva.", refs: ["wolff2017"] },
+      { v: "antihist", label: "Drowsy antihistamines", hint: "e.g. promethazine (Phenergan), doxylamine (Restavit), cyproheptadine", pts: 5, why: "Sedating antihistamines block the nerves that drive saliva.", refs: ["wolff2017"] },
+      { v: "opioid", label: "Strong pain relief, methadone or buprenorphine", hint: "e.g. oxycodone, tramadol, tapentadol, codeine, morphine", pts: 5, why: "Opioid medicines reduce saliva.", refs: ["wolff2017"] },
+      { v: "seizure", label: "Epilepsy or nerve-pain medicines", hint: "e.g. pregabalin (Lyrica), gabapentin, carbamazepine, topiramate", pts: 3, why: "Several of these list dry mouth as a side effect.", refs: ["wolff2017"] },
+      { v: "stimulant", label: "ADHD medicines", hint: "e.g. methylphenidate, dexamfetamine, lisdexamfetamine (Vyvanse)", pts: 4, why: "Stimulants and other ADHD medicines commonly cause dry mouth.", refs: ["wolff2017"] },
+      { v: "parkinson", label: "Parkinson's medicines", hint: "e.g. levodopa, benztropine, pramipexole", pts: 5, why: "Several Parkinson's medicines reduce saliva.", refs: ["wolff2017"] },
       { v: "relaxant", label: "Muscle relaxants", hint: "e.g. baclofen, orphenadrine", pts: 3, why: "Some muscle relaxants reduce saliva.", refs: ["wolff2017"] },
+      { v: "migraine", label: "Migraine tablets (triptans)", hint: "e.g. sumatriptan, rizatriptan", pts: 2, why: "Triptans can cause a dry mouth.", refs: [], limited: true },
+      { v: "cannabis", label: "Medicinal cannabis", hint: "THC or THC/CBD products", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
+    ],
+  },
+  {
+    id: "medTypes", key: "medBody", type: "many", section: "Medicines", text: "And any of these?",
+    hint: "Groups that match the medicines you added are already ticked.", none: "None of these, or not sure",
+    options: [
+      { v: "bladder", label: "Bladder tablets for urgency or leaking", hint: "e.g. oxybutynin, solifenacin (Vesicare), tolterodine", pts: 10, why: "Bladder medicines that block acetylcholine cause dry mouth in nearly half of the people who take them.", refs: ["usmani2019", "wolff2017"] },
+      { v: "glp1", label: "Weight-loss or diabetes injections (GLP-1)", hint: "e.g. Ozempic, Wegovy, Mounjaro, Trulicity, Saxenda", pts: 4, why: "Dry mouth is reported with these medicines, especially semaglutide, often alongside nausea, reflux and drinking less.", refs: ["massarotto2026", "mawardi2023", "alzawawi2026"] },
+      { v: "weightloss", label: "Weight-loss tablets", hint: "e.g. phentermine (Duromine), Contrave", pts: 4, why: "Appetite suppressants commonly dry the mouth.", refs: ["wolff2017"] },
+      { v: "bp", label: "Fluid tablets, or clonidine-type blood pressure tablets", hint: "e.g. furosemide (Lasix), clonidine, moxonidine, beta-blockers", pts: 4, why: "Fluid tablets and several blood pressure medicines reduce saliva.", refs: ["wolff2017", "villa2016"] },
+      { v: "prostate", label: "Prostate or blood pressure alpha-blockers", hint: "e.g. tamsulosin, prazosin, terazosin", pts: 3, why: "Alpha-blockers can dry the mouth.", refs: ["wolff2017"] },
+      { v: "inhaler", label: "Inhalers for asthma or COPD", hint: "e.g. tiotropium (Spiriva), umeclidinium, ipratropium, steroid inhalers", pts: 3, why: "Some inhalers dry the mouth directly.", refs: ["wolff2017"] },
+      { v: "gut", label: "Medicines for stomach cramps, nausea or travel sickness", hint: "e.g. Buscopan, hyoscine (Kwells), prochlorperazine (Stemetil)", pts: 4, why: "These medicines block the nerves that drive saliva.", refs: ["wolff2017"] },
+      { v: "acne", label: "Isotretinoin for acne", hint: "e.g. Roaccutane, Oratane", pts: 6, why: "About half of people taking isotretinoin get a dry mouth, and most get dry lips.", refs: ["alqahtani2026"] },
+      { v: "smoking", label: "Quit-smoking tablets", hint: "e.g. varenicline (Champix), bupropion (Zyban)", pts: 2, why: "Both list dry mouth as a common side effect.", refs: ["wolff2017"] },
+      { v: "allergy", label: "Non-drowsy antihistamines, most days", hint: "e.g. cetirizine, loratadine, fexofenadine", pts: 2, why: "Even non-drowsy antihistamines can dry the mouth a little.", refs: ["wolff2017"] },
       { v: "decong", label: "Cold and flu tablets or decongestants, most days", hint: "e.g. pseudoephedrine", pts: 2, why: "Decongestants dry the mouth while you take them.", refs: ["wolff2017"] },
     ],
   },
   {
     id: "conditions", type: "many", section: "Health", text: "Do you have any of these?", none: "None of these",
     options: [
-      { v: "sjogren", label: "Sjögren's syndrome", pts: 35, major: true, why: "Sjögren's syndrome damages the glands that make saliva and tears.", refs: ["shiboski2017"] },
-      { v: "autoimmune", label: "Rheumatoid arthritis, lupus or scleroderma", pts: 6, why: "These conditions can affect the salivary glands, and are often linked with Sjögren's.", refs: ["villa2015", "shiboski2017"] },
-      { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025"] },
-      { v: "kidney", label: "Kidney disease or dialysis", pts: 6, why: "Fluid limits and kidney disease itself often cause a dry mouth.", refs: [], limited: true },
-      { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Parkinson's medicines often dry the mouth.", refs: ["wolff2017"], limited: true },
-      { v: "dementia", label: "Dementia or Alzheimer's", pts: 4, why: "Lower fluid intake and medicines make dry mouth more likely.", refs: [], limited: true },
+      { v: "sjogren", label: "Sjögren's syndrome", pts: 35, major: true, why: "Sjögren's syndrome damages the glands that make saliva and tears.", refs: ["shiboski2017", "vonbultz2007"] },
+      { v: "autoimmune", label: "Rheumatoid arthritis, lupus or scleroderma", pts: 6, why: "These conditions can affect the salivary glands, and are often linked with Sjögren's.", refs: ["vonbultz2007", "villa2015"] },
+      { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025", "vonbultz2007"] },
+      { v: "kidney", label: "Kidney disease or dialysis", pts: 6, why: "Up to three in four people on dialysis have a dry mouth, from fluid limits, medicines and the disease itself.", refs: ["laheij2021"] },
+      { v: "heart", label: "Heart disease or high blood pressure", as: "Heart disease or high blood pressure", pts: 2, limited: true, why: "Mostly through the medicines used to treat it — fluid tablets and some blood pressure tablets reduce saliva." },
+      { v: "stroke", label: "Stroke", pts: 3, limited: true, why: "A stroke can affect swallowing and mouth control, and often brings several new medicines." },
+      { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Dry mouth is common in Parkinson's, partly from the medicines used to treat it.", refs: ["martimbianco2021"] },
+      { v: "dementia", label: "Dementia or Alzheimer's", pts: 4, limited: true, why: "Drinking less and the medicines used make a dry mouth more likely." },
       { v: "mood", label: "Depression or anxiety", pts: 4, why: "Anxiety reduces saliva, and the medicines for these conditions often do too.", refs: ["villa2015", "wolff2017"] },
-      { v: "hiv", label: "HIV", pts: 5, why: "HIV can affect the salivary glands, and some HIV medicines dry the mouth.", refs: ["villa2015"], limited: true },
-      { v: "hepc", label: "Hepatitis C", pts: 4, why: "Hepatitis C is linked with salivary gland problems.", refs: [], limited: true },
-      { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Hormone changes around menopause are linked with dry mouth.", refs: [], limited: true },
+      { v: "thyroid", label: "Thyroid disease", pts: 2, why: "Thyroid problems are linked with lower saliva flow.", refs: ["naik2018"], limited: true },
+      { v: "hiv", label: "HIV", pts: 5, why: "HIV can affect the salivary glands, and dry mouth is common in people living with HIV.", refs: ["mkonyi2025", "vonbultz2007"] },
+      { v: "hepc", label: "Hepatitis C", pts: 4, why: "Hepatitis C is linked with a Sjögren's-like dryness of the mouth and eyes.", refs: ["cacoub2017", "vonbultz2007"] },
+      { v: "sarcoid", label: "Sarcoidosis", pts: 6, why: "Sarcoidosis can inflame the salivary glands.", refs: ["vonbultz2007"] },
+      { v: "longcovid", label: "Long COVID", pts: 2, why: "Dry mouth and taste changes can linger after COVID-19.", refs: ["avais2025"] },
+      { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, limited: true, why: "Stomach acid wears teeth, and repeated vomiting can leave the mouth dry." },
+      { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, limited: true, why: "Vomiting, restricted fluids and some medicines can dry the mouth and wear the teeth." },
+      { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
+    ],
+  },
+  {
+    id: "pregnant", type: "one", section: "Health", text: "Are you pregnant?",
+    when: (a) => a.sex !== "m",
+    options: [
+      { v: "no", label: "No", pts: 0 },
+      { v: "yes", label: "Yes", as: "Pregnancy", pts: 2, limited: true, why: "Many women notice a drier mouth in pregnancy, and gums become more sensitive.", refs: ["nazir2026"] },
+      { v: "sick", label: "Yes, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 3, acid: true, limited: true, why: "Vomiting brings stomach acid onto the teeth and leaves the mouth dry.", refs: ["nazir2026", "adaPregnancy"] },
     ],
   },
   {
@@ -94,6 +131,7 @@ export const RISK_QUESTIONS = [
       { v: "rt_hn", label: "Radiotherapy to the head or neck", pts: 35, major: true, why: "Radiotherapy near the salivary glands often reduces saliva for good.", refs: ["mercadante2021"] },
       { v: "transplant", label: "Bone marrow or stem cell transplant", pts: 15, why: "Transplants, and graft-versus-host disease after them, often affect the salivary glands.", refs: ["mercadante2021"] },
       { v: "rai", label: "Radioactive iodine for thyroid cancer", pts: 12, why: "Radioactive iodine collects in the salivary glands and can damage them.", refs: ["sunavala2022"] },
+      { v: "immuno", label: "Cancer immunotherapy", hint: "e.g. Keytruda (pembrolizumab), Opdivo (nivolumab), Yervoy", pts: 8, why: "Immunotherapy can trigger a Sjögren's-like dryness of the mouth and eyes, often underrecognised.", refs: ["bitoun2024"] },
       { v: "chemo", label: "Chemotherapy, now or in the last 6 months", pts: 10, why: "Chemotherapy often thins and reduces saliva during and after treatment.", refs: ["mercadante2021"] },
     ],
   },
@@ -135,13 +173,17 @@ export const RISK_BANDS = [
   { id: "veryhigh", lo: 45, label: "Very high", sub: "A dry mouth is very likely. Protect your teeth now.", tone: "red" },
 ];
 
+/** Questions to show, given the answers so far (pregnancy only when not male). */
+export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.when || q.when(answers));
+
 /** Score a set of answers: { score 0–100, band, factors (largest first), major } */
 export function scoreRisk(answers = {}) {
   const factors = [];
-  for (const q of RISK_QUESTIONS) {
+  for (const q of visibleRiskQuestions(answers)) {
+    if (!q.options) continue; // the medicine look-up feeds the medicine groups
     const a = answers[q.id];
     const picked = q.type === "one" ? q.options.filter((o) => o.v === a) : q.options.filter((o) => (a || []).includes(o.v));
-    for (const o of picked) if (o.pts > 0) factors.push({ q: q.id, v: o.v, label: o.as || o.label, pts: o.pts, why: o.why, refs: o.refs || [], major: !!o.major, limited: !!o.limited });
+    for (const o of picked) if (o.pts > 0) factors.push({ q: q.id, v: o.v, label: o.as || o.label, pts: o.pts, why: o.why, refs: o.refs || [], major: !!o.major, limited: !!o.limited, acid: !!o.acid });
   }
   factors.sort((x, y) => y.pts - x.pts);
   const score = Math.min(100, factors.reduce((s, f) => s + f.pts, 0));
@@ -173,6 +215,14 @@ export function riskAdvice(result, answers = {}) {
     out.push({ id: "smoke", title: "Smoking and vaping", body: "Both dry the mouth. Quitting helps your saliva and your teeth — Quitline (13 78 48 in Australia, 0800 778 778 in New Zealand) is free." });
   if (has("water", "low") || has("habits", "caffeine") || has("habits", "alcohol"))
     out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day. Cut back on alcohol and caffeine, and avoid mouthwashes that contain alcohol." });
+  if (has("pregnant", "yes") || has("pregnant", "sick"))
+    out.push({ id: "pregnant", title: "Looking after your mouth in pregnancy", body: "Tell your dentist you're pregnant — check-ups and most treatment are safe, and the second trimester is often the most comfortable time. Gums often swell and bleed more in pregnancy: keep brushing gently twice a day and clean between your teeth. Keep sweet snacks to mealtimes.", refs: ["adaPregnancy", "pbbTeeth"] });
+  if (result.factors.some((f) => f.acid) || has("medTypes", "glp1"))
+    out.push({ id: "acid", title: "After vomiting or reflux, don't brush straight away", body: "Rinse with water, then wait about an hour before brushing — acid softens enamel and brushing straight away wears it. In the meantime, smear on fluoride toothpaste or GC Tooth Mousse with a clean finger, or chew sugar-free gum.", refs: ["adaPregnancy", "pbbTeeth"], products: ["gc-tm"] });
+  if (has("medTypes", "glp1"))
+    out.push({ id: "glp1", title: "On a GLP-1 medicine", body: "Nausea, reflux and simply drinking less are common on these medicines, and all three dry the mouth. Keep sipping water through the day and mention dry mouth to your prescriber.", refs: ["massarotto2026", "alzawawi2026"] });
+  if (has("cancer", "immuno"))
+    out.push({ id: "immuno", title: "Tell your cancer team about dryness", body: "Dry mouth or dry eyes on immunotherapy can be an immune side effect that your team can treat. Report it early — don't wait for your next appointment.", refs: ["bitoun2024"] });
   if (has("conditions", "diabetes"))
     out.push({ id: "diabetes", title: "Keep blood sugar steady", body: "A dry mouth is more common when blood sugar runs high. Mention the dryness at your next diabetes check." , refs: ["huang2025"] });
   if (result.band.lo >= 25)
@@ -186,7 +236,7 @@ export function riskAdvice(result, answers = {}) {
 export const RISK_GROUPS = [
   { id: "meds", label: "Medicines", qs: ["meds", "medTypes"], act: true, actNote: "Ask your pharmacist or GP for a medicine review." },
   { id: "treat", label: "Cancer treatment", qs: ["cancer"], act: false },
-  { id: "health", label: "Health conditions", qs: ["conditions"], act: false },
+  { id: "health", label: "Health conditions", qs: ["conditions", "pregnant"], act: false },
   { id: "sleep", label: "Sleep and breathing", qs: ["breathing"], act: true, actNote: "Your GP or sleep clinic can often help." },
   { id: "habits", label: "Daily habits", qs: ["habits", "water"], act: true, actNote: "Small changes here make a real difference." },
   { id: "about", label: "Age and sex", qs: ["age", "sex"], act: false },

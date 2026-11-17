@@ -31,6 +31,7 @@ async def main():
         btn = lambda name: pg.get_by_role("button", name=name, exact=True)
         dlg = pg.get_by_role("dialog")
         pick = lambda t: dlg.get_by_role("button", name=t)
+        exact = lambda t: dlg.get_by_role("button", name=t, exact=True)
 
         await pg.goto(BASE); await pg.wait_for_timeout(400)
         await shot("01-home-empty", True)
@@ -41,22 +42,34 @@ async def main():
         await pick("65 to 79").click(); await pg.wait_for_timeout(350)
         await pick("Female").click(); await pg.wait_for_timeout(350)
         await pick("5 to 9").click(); await pg.wait_for_timeout(350)
-        await pick("Bladder tablets for urgency or leaking").click()
-        await pick("Blood pressure or fluid tablets").click()
+        # Medicine look-up: brand names find the medicine and tick its group
+        await dlg.get_by_role("searchbox").fill("ozempic"); await pg.wait_for_timeout(150)
+        await dlg.locator(".medlook-hits button").first.click()
+        await dlg.get_by_role("searchbox").fill("Vesic"); await pg.wait_for_timeout(150)
+        await dlg.locator(".medlook-hits button").first.click()
+        await dlg.get_by_role("searchbox").fill("Grandma's tonic"); await pg.wait_for_timeout(150)
+        await dlg.get_by_role("button", name="Add “Grandma's tonic”").click()
         await shot("03-risk-meds")
-        # Go back, see the earlier answer kept, and move forward again without re-answering
-        await pg.locator(".sheet-foot button", has_text="Back").click(); await pg.wait_for_timeout(250)
-        await shot("03b-risk-back")
-        assert await pg.locator(".pick-row.on", has_text="5 to 9").count() == 1
+        assert await dlg.locator(".medlook-list li").count() == 3
+        await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("Next").click(); await pg.wait_for_timeout(250)
         assert await pg.locator(".pick-row.on", has_text="Bladder tablets").count() == 1
+        assert await pg.locator(".pick-row.on", has_text="GLP-1").count() == 1
+        await pick("Fluid tablets").click()
+        await shot("03a-risk-groups")
+        # Go back, see the earlier answer kept, and move forward again without re-answering
+        await pg.locator(".sheet-foot button", has_text="Back").click(); await pg.wait_for_timeout(250)
+        await btn("Next").click(); await pg.wait_for_timeout(250)
+        assert await pg.locator(".pick-row.on", has_text="Fluid tablets").count() == 1
         await btn("Next").click(); await pg.wait_for_timeout(250)
         await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
+        await exact("No").click(); await pg.wait_for_timeout(350)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("I use a CPAP machine").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("Less than 4 glasses").click(); await pg.wait_for_timeout(600)
         await shot("04-risk-result")
+        assert await dlg.get_by_text("On a GLP-1 medicine").count() == 1
         await pg.evaluate("document.querySelector('.sheet-body')?.scrollTo(0, 99999)"); await pg.wait_for_timeout(200)
         await shot("05-risk-result-end")
         await btn("Done").click(); await pg.wait_for_timeout(300)
@@ -64,7 +77,6 @@ async def main():
         # Tooth decay risk: dry mouth and age come from the risk check, so those questions are skipped
         await pg.click(".tile.decay"); await pg.wait_for_timeout(450)
         await shot("05b-decay-q1")
-        exact = lambda t: dlg.get_by_role("button", name=t, exact=True)
         await exact("Yes").click(); await pg.wait_for_timeout(350)
         await pick("Yes, once").click(); await pg.wait_for_timeout(350)
         await pick("3 or more times a day").click(); await pg.wait_for_timeout(350)
@@ -130,8 +142,22 @@ async def main():
         await pg.emulate_media(color_scheme="dark"); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(300)
         await shot("15-home-dark", True)
-        await pg.click("nav >> text=Me"); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=\"Me\""); await pg.wait_for_timeout(200)
+        await pg.get_by_label("First name").fill("Alexandra")
+        await pg.get_by_label("Last name").fill("Fitzgerald-Montgomery")
+        await pg.locator("input[type=date]").fill("1958-03-14")
+        await pg.get_by_label("Gender").select_option("woman")
         await shot("16-me-dark", True)
+        await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
+        h = await pg.locator(".hello-line").evaluate("e => [e.getBoundingClientRect().height, parseFloat(getComputedStyle(e).fontSize)]")
+        assert h[0] < h[1] * 1.6, h  # one line
+        await shot("17-home-name")
+        # The dry mouth check no longer asks age or gender once they're in Me
+        await pg.emulate_media(color_scheme="light")
+        await pg.click(".tile.risk"); await pg.wait_for_timeout(300)
+        await btn("Change my answers").click(); await pg.wait_for_timeout(300)
+        assert await dlg.get_by_text("How old are you?").count() == 0
+        assert await dlg.get_by_text("Are you…").count() == 0
         print("errors:", errs)
         assert not errs, errs
         await b.close()

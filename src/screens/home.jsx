@@ -6,6 +6,7 @@ import { scoreDecay } from "../data/decay.js";
 import { CARE_TOPICS } from "../data/care.js";
 import { nextCheck } from "../data/schedule.js";
 import { fmtShort } from "../lib/store.js";
+import { firstName } from "../data/person.js";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const phReadings = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -56,7 +57,9 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
   const care = CARE_TOPICS.filter((t) => t.forYou(careCtx));
   const due = [sipNext?.due && "dry mouth check", phNext?.due && "pH test"].filter(Boolean);
   const hour = new Date().getHours();
+  const greet = (h) => `${h}${firstName(profile) ? `, ${firstName(profile)}` : ""}`;
   const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting = greet(hello);
   const empty = !sips.length && !phs.length;
   const results = entries.filter((e) => e.sip != null || e.ph != null || e.kind === "risk" || e.kind === "decay");
   const count = results.length;
@@ -70,7 +73,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
     <div className="screen home4">
       <header className="brand-head">
         <p className="brand">Mouthkind</p>
-        <h1 className="display">{hello}{profile.name ? `, ${profile.name}` : ""}</h1>
+        <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {due.length > 0 && <p className="due-line"><i />Due today: {due.join(" and ")}</p>}
       </header>
 

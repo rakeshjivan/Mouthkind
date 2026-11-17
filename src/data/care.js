@@ -89,6 +89,31 @@ export const CARE_TOPICS = [
     products: ["gc-dmg"], refs: ["nuchit2020", "mercadante2021"],
   },
   {
+    id: "acid", icon: "shield", title: "After vomiting or reflux",
+    short: "Acid softens enamel — rinse first, brush later.",
+    forYou: (c) => has(c, "conditions.reflux", "conditions.eating", "pregnant.sick", "medTypes.glp1"),
+    steps: [
+      "Rinse your mouth with plain water straight away.",
+      "Wait about an hour before brushing — brushing softened enamel wears it away.",
+      "In the meantime, smear fluoride toothpaste or GC Tooth Mousse over your teeth with a clean finger, or use an alcohol-free fluoride mouthwash.",
+      "Chew sugar-free gum to get saliva flowing and wash the acid away.",
+      "If reflux or vomiting keeps happening, see your GP — and let your dentist know so they can check for wear.",
+    ],
+    products: ["gc-tm"], refs: ["adaPregnancy", "pbbTeeth"],
+  },
+  {
+    id: "pregnancy", icon: "user", title: "Your mouth in pregnancy",
+    short: "Gums change and snacking increases — a little extra care helps.",
+    forYou: (c) => has(c, "pregnant.yes", "pregnant.sick"),
+    steps: [
+      "Tell your dentist you're pregnant. Check-ups and most treatment are safe — many people find the second trimester most comfortable.",
+      "Gums often swell and bleed more in pregnancy. Keep brushing gently twice a day with a soft brush and fluoride toothpaste, and clean between your teeth daily.",
+      "Cravings and grazing feed decay. Keep sweet treats to mealtimes and choose cheese, plain yoghurt or crackers between meals.",
+      "If brushing makes you gag, try a smaller brush head, an unflavoured toothpaste, or brush at a different time of day.",
+    ],
+    products: ["oranurse"], refs: ["adaPregnancy", "pbbTeeth"],
+  },
+  {
     id: "medicines", icon: "doc", title: "Check your medicines",
     short: "Many medicines dry the mouth. Some can be changed.",
     forYou: (c) => [...c.f].some((i) => i.startsWith("medTypes.") || i === "meds.5" || i === "meds.10"),

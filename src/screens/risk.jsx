@@ -1,19 +1,44 @@
 import { useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { Breakdown, Pick, RiskMeter, TickRows } from "../components/kit.jsx";
-import { RISK_BANDS, RISK_QUESTIONS, RISK_VERSION, riskBreakdown, scoreRisk } from "../data/risk.js";
+import { RISK_BANDS, RISK_VERSION, riskAdvice, riskBreakdown, scoreRisk, visibleRiskQuestions } from "../data/risk.js";
+import { groupsFor, medicineById } from "../data/medicines.js";
+import { MedLookup } from "../components/medLookup.jsx";
+import { ProductImage } from "../components/productImage.jsx";
+import { PRODUCTS } from "../data/products.js";
 import { fmtDate } from "../lib/store.js";
 
-const DRY_MODEL = {
-  title: "Dry mouth risk check",
-  questions: () => RISK_QUESTIONS,
-  entry: (a, id) => { const r = scoreRisk(a); return { id: id || `r_${Date.now()}`, ts: Date.now(), kind: "risk", v: RISK_VERSION, answers: a, score: r.score, band: r.band.id }; },
-  Result: (p) => <RiskResult {...p} />,
-};
+/** The dry mouth risk check. Answers already in Me (age, gender) are used instead of asked. */
+export function dryModel(fromProfile = {}) {
+  return {
+    title: "Dry mouth risk check",
+    questions: (a) => visibleRiskQuestions({ ...a, ...fromProfile }).filter((q) => !(q.id in fromProfile)),
+    entry: (a, id) => {
+      const answers = { ...a, ...fromProfile };
+      const r = scoreRisk(answers);
+      return { id: id || `r_${Date.now()}`, ts: Date.now(), kind: "risk", v: RISK_VERSION, answers, score: r.score, band: r.band.id };
+    },
+    Result: (p) => <RiskResult {...p} />,
+  };
+}
+
+/** Keep the medicine groups in step with the looked-up medicines: add a group when a medicine is added,
+ *  drop it when the last medicine in that group is removed. */
+function syncGroups(ans, list) {
+  const before = new Set(groupsFor(ans.medList)), after = new Set(groupsFor(list));
+  const out = { ...ans, medList: list };
+  for (const g of new Set([...before, ...after])) {
+    const [q, v] = g.split(".");
+    const cur = out[q] || [];
+    if (after.has(g) && !cur.includes(v)) out[q] = [...cur, v];
+    if (!after.has(g) && before.has(g)) out[q] = cur.filter((x) => x !== v);
+  }
+  return out;
+}
 
 /** A risk questionnaire, one question per screen. Starts from the last answers when updating.
  *  `model` supplies the questions (which can depend on earlier answers), the saved entry and the result screen. */
-export function RiskFlow({ last, onClose, onSave, onCare, model = DRY_MODEL }) {
+export function RiskFlow({ last, onClose, onSave, onCare, model = dryModel() }) {
   const [ans, setAns] = useState(() => ({ ...(last?.answers || {}) }));
   const [i, setI] = useState(0);
   const [saved, setSaved] = useState(null);
@@ -28,13 +53,15 @@ export function RiskFlow({ last, onClose, onSave, onCare, model = DRY_MODEL }) {
   if (saved) return model.Result({ entry: saved, onClose, onCare,
     onRedo: () => { setEditId(saved.id); setSaved(null); setI(0); } });
 
-  const picked = q.type === "many" ? ans[q.id] || [] : ans[q.id];
+  const picked = q.type === "many" || q.type === "lookup" ? ans[q.id] || [] : ans[q.id];
   return (
     <Sheet title={model.title} onClose={onClose} onBack={i ? () => setI(i - 1) : null}
       progress={{ of: qs.length, at: i, label: `${i + 1} of ${qs.length}` }}
-      footer={(i > 0 || q.type === "many" || picked != null) ? (<>
+      footer={(i > 0 || q.type !== "one" || picked != null) ? (<>
         {i > 0 && <button className="btn ghost" onClick={() => setI(i - 1)}><Icon name="back" size={18} /> Back</button>}
-        {q.type === "many" ? (
+        {q.type === "lookup" ? (
+          <button className="btn primary big" onClick={() => next()}>{picked.length ? "Next" : "Skip"}</button>
+        ) : q.type === "many" ? (
           <button className="btn primary big" onClick={() => next()}>{picked.length ? (lastQ ? "See my result" : "Next") : q.none}</button>
         ) : picked != null ? (
           <button className="btn primary big" onClick={() => next()}>{lastQ ? "See my result" : "Next"}</button>
@@ -43,11 +70,13 @@ export function RiskFlow({ last, onClose, onSave, onCare, model = DRY_MODEL }) {
       <p className="eyebrow-q">{q.section}</p>
       <h2 className="q">{q.text}</h2>
       {q.hint && <p className="lede tight">{q.hint}</p>}
-      {q.type === "one" ? (
+      {q.type === "lookup" ? (
+        <MedLookup value={picked} onChange={(list) => setAns(syncGroups(ans, list))} />
+      ) : q.type === "one" ? (
         <Pick options={q.options} value={picked}
           onPick={(v) => { const a = { ...ans, [q.id]: v }; setAns(a); setTimeout(() => next(a), 180); }} />
       ) : (
-        <TickRows options={q.options} value={picked} onChange={(v) => setAns({ ...ans, [q.id]: v })} />
+        <TickRows key={q.key || q.id} options={q.options} value={picked} onChange={(v) => setAns({ ...ans, [q.id]: v })} />
       )}
     </Sheet>
   );
@@ -104,6 +133,27 @@ export function RiskResult({ entry, onClose, onCare, onRedo }) {
           </section>
         )}
       </>) : <p className="lede">You didn't report any of the common risk factors for dry mouth. Keep looking after your teeth with fluoride toothpaste twice a day.</p>}
+
+      {(() => {
+        const adv = riskAdvice(r, entry.answers);
+        return adv.length > 0 && (
+          <section className="rblock plan">
+            <h3>What helps you</h3>
+            <ol className="plan-list">
+              {adv.map((s) => (
+                <li key={s.id}><strong>{s.title}</strong><p>{s.body}</p>
+                  {s.products?.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean).map((p) => (
+                    <div key={p.id} className="plan-prod"><ProductImage product={p} size="sm" /><span>{p.name}</span></div>
+                  ))}
+                </li>
+              ))}
+            </ol>
+          </section>
+        );
+      })()}
+      {entry.answers.medList?.length > 0 && (
+        <p className="soft-note">Your medicines: {entry.answers.medList.map((x) => x.brand || medicineById(x.id)?.g || x.name).filter(Boolean).join(", ")}.</p>
+      )}
 
       {r.band.lo >= 10 && (
         <section className="next-steps">

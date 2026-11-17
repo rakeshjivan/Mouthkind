@@ -112,6 +112,7 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 export function Summary({ entries, profile, onClose }) {
   const risk = [...entries].filter(by("risk")).sort((a, b) => b.ts - a.ts)[0];
   const r = risk && scoreRisk(risk.answers);
+  const fullName = [profile.firstName ?? profile.name, profile.lastName].filter(Boolean).join(" ").trim();
   const decay = [...entries].filter(by("decay")).sort((a, b) => b.ts - a.ts)[0];
   const dr = decay && scoreDecay(decay.answers, decay.ctx);
   const sips = entries.filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts).slice(0, 12);
@@ -120,7 +121,8 @@ export function Summary({ entries, profile, onClose }) {
     <Sheet title="Summary for your dentist" onClose={onClose}
       footer={<button className="btn primary big" onClick={() => window.print()}><Icon name="doc" /> Print or save as PDF</button>}>
       <article className="report2">
-        <h1>Dry mouth and decay risk summary{profile.name ? ` — ${profile.name}` : ""}</h1>
+        <h1>Dry mouth and decay risk summary{fullName ? ` — ${fullName}` : ""}</h1>
+        {profile.dob && <p className="rep-meta">Date of birth {fmtDate(new Date(`${profile.dob}T00:00:00`).getTime())}</p>}
         <p className="rep-meta">Prepared {fmtDate(Date.now())} with Mouthkind. Patient-reported.</p>
         <section>
           <h2>Dry mouth risk factors</h2>

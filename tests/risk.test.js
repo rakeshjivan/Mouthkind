@@ -35,7 +35,8 @@ test("a typical older patient on several drying medicines is high or very high",
   assert.equal(r.factors[0].label, "5 to 9 regular medicines");
 });
 test("score is capped at 100", () => {
-  const all = Object.fromEntries(RISK_QUESTIONS.map((q) => [q.id, q.type === "many" ? q.options.map((o) => o.v) : q.options.at(-1).v]));
+  const all = {};
+  for (const q of RISK_QUESTIONS.filter((q) => q.options)) all[q.id] = q.type === "many" ? [...(all[q.id] || []), ...q.options.map((o) => o.v)] : q.options.at(-1).v;
   assert.equal(scoreRisk(all).score, 100);
 });
 test("bands are in order and cover 0", () => {
@@ -43,7 +44,7 @@ test("bands are in order and cover 0", () => {
   for (let i = 1; i < RISK_BANDS.length; i++) assert.ok(RISK_BANDS[i].lo > RISK_BANDS[i - 1].lo);
 });
 test("every scored option explains itself; cited sources exist; uncited ones are flagged limited", () => {
-  for (const q of RISK_QUESTIONS) for (const o of q.options) {
+  for (const q of RISK_QUESTIONS.filter((q) => q.options)) for (const o of q.options) {
     if (!o.pts) continue;
     assert.ok(o.why, `${q.id}.${o.v} has no explanation`);
     for (const r of o.refs || []) assert.ok(REFS[r], `${q.id}.${o.v} → ${r}`);

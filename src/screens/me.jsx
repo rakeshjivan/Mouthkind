@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Icon } from "../components/ui.jsx";
 import { freqFor } from "../data/schedule.js";
 import { REGIONS } from "../data/clinical.js";
+import { GENDERS, ageFrom } from "../data/person.js";
 
 export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
   const [sure, setSure] = useState(false);
@@ -12,8 +13,23 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
         <p className="lede">Everything stays on this device. Nothing is sent anywhere.</p></header>
 
       <section className="panel">
-        <label className="field"><span>Your first name (optional)</span>
-          <input value={profile.name || ""} onChange={(e) => set({ name: e.target.value })} autoComplete="given-name" placeholder="Shown on your summary" /></label>
+        <h2 className="panel-title">About you</h2>
+        <p className="soft-note tight">Your age and gender are used in your risk checks, so they aren't asked again. All optional.</p>
+        <div className="field-row">
+          <label className="field"><span>First name</span>
+            <input value={profile.firstName ?? profile.name ?? ""} onChange={(e) => set({ firstName: e.target.value, name: e.target.value })} autoComplete="given-name" /></label>
+          <label className="field"><span>Last name</span>
+            <input value={profile.lastName || ""} onChange={(e) => set({ lastName: e.target.value })} autoComplete="family-name" /></label>
+        </div>
+        <div className="field-row">
+          <label className="field"><span>Date of birth{ageFrom(profile.dob) != null ? ` · ${ageFrom(profile.dob)} years` : ""}</span>
+            <input type="date" value={profile.dob || ""} max={new Date().toISOString().slice(0, 10)} min="1900-01-01" onChange={(e) => set({ dob: e.target.value })} autoComplete="bday" /></label>
+          <label className="field"><span>Gender</span>
+            <select value={profile.gender || ""} onChange={(e) => set({ gender: e.target.value })}>
+              <option value="">Choose…</option>
+              {GENDERS.map((g) => <option key={g.v} value={g.v}>{g.label}</option>)}
+            </select></label>
+        </div>
         <div className="field"><span>Where you live</span>
           <div className="seg full">{Object.entries(REGIONS).map(([k, r]) => <button key={k} className={profile.region === k ? "on" : ""} onClick={() => set({ region: k })}>{r.name}</button>)}</div>
         </div>

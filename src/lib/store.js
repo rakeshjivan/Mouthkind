@@ -22,7 +22,7 @@ export const save = (k, v) => driver.set(k, v);
 export const wipe = () => KEYS.forEach((k) => driver.del(k));
 
 export const DEFAULT_PROFILE = {
-  name: "", region: "AU", treatments: [], phase: "during", endDate: "",
+  name: "", firstName: "", lastName: "", dob: "", gender: "", region: "AU", treatments: [], phase: "during", endDate: "",
   team: { name: "", phone24: "" }, dentist: { name: "", phone: "" },
   carer: false, phStrips: false, chemoDates: [], asked: [], ownQuestions: [],
   onboarded: false,

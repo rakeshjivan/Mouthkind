@@ -6,7 +6,8 @@ import { Shop } from "./screens/shop.jsx";
 import { careContext } from "./data/care.js";
 import { phPattern } from "./data/ph.js";
 import { scoreRisk } from "./data/risk.js";
-import { RiskFlow, RiskResult } from "./screens/risk.jsx";
+import { RiskFlow, RiskResult, dryModel } from "./screens/risk.jsx";
+import { profileAnswers } from "./data/person.js";
 import { DecayFlow, DecayResult } from "./screens/decay.jsx";
 import { decayContext, scoreDecay } from "./data/decay.js";
 import { FrequencyPicker, PhFlow, Reminder, SipFlow } from "./screens/extras.jsx";
@@ -67,7 +68,8 @@ export default function App() {
   const latestSip = sipReadings(entries).at(-1)?.sip ?? null;
   const phLevel = phPattern(phReadings(entries)).level;
   // The decay check takes dry mouth and pH from the other checks instead of asking again.
-  const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: risk?.answers?.age || null });
+  const fromProfile = profileAnswers(profile);
+  const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: fromProfile.age || risk?.answers?.age || null });
   const decay = latestOf(entries, "decay");
   const decayR = decay && scoreDecay(decay.answers, decay.ctx);
   const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null });
@@ -91,7 +93,7 @@ export default function App() {
         ))}
       </nav>
 
-      {sheet === "risk" && <RiskFlow last={risk} onClose={close} onSave={addEntry} onCare={() => go("advice")} />}
+      {sheet === "risk" && <RiskFlow last={risk} model={dryModel(fromProfile)} onClose={close} onSave={addEntry} onCare={() => go("advice")} />}
       {sheet === "riskresult" && risk && <RiskResult entry={risk} onClose={close} onCare={() => go("advice")} onRedo={() => setSheet("risk")} />}
       {sheet === "decay" && <DecayFlow last={decay} ctx={decayCtx} onClose={close} onSave={addEntry} onShop={() => go("shop")} />}
       {sheet === "decayresult" && decay && <DecayResult entry={decay} onClose={close} onRedo={() => setSheet("decay")} onShop={() => go("shop")} />}
