@@ -88,3 +88,8 @@ test("swelling or trouble breathing is an emergency; exposed bone goes to the te
   const j = journey({ situation: ["cancer"], treatments: ["bone"] }, NOW);
   assert.equal(j.cards[0].id, "bone");
 });
+
+test("radiotherapy somewhere else is an option, with its own card", () => {
+  assert.ok(journey({ situation: ["cancer"], treatments: ["rt_other"] }, NOW).cards.some((c) => c.id === "rt_other"));
+  assert.ok(!journey({ situation: ["cancer"], treatments: ["rt_other", "rt_hn"] }, NOW).cards.some((c) => c.id === "rt_other"));
+});

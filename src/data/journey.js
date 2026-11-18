@@ -14,6 +14,7 @@
 
 export const TREATMENTS = [
   { v: "rt_hn", label: "Radiotherapy to the head or neck" },
+  { v: "rt_other", label: "Radiotherapy somewhere else", hint: "e.g. breast, chest, pelvis or brain" },
   { v: "chemo", label: "Chemotherapy" },
   { v: "transplant", label: "Bone marrow or stem cell transplant" },
   { v: "immuno", label: "Immunotherapy", hint: "e.g. Keytruda, Opdivo" },
@@ -77,6 +78,13 @@ export function journey(p, now = Date.now()) {
   const out = { cards: [] };
   if (hasTx(p, "rt_hn")) out.cards.push(rtCard(p, now));
   if (hasTx(p, "chemo") || hasTx(p, "transplant")) out.cards.push(chemoCard(p, now));
+  // Radiotherapy away from the head and neck doesn't reach the salivary glands, so it
+  // rarely affects the mouth directly; chemotherapy given with it, and tiredness, can.
+  if (hasTx(p, "rt_other") && !hasTx(p, "rt_hn")) out.cards.push({ id: "rt_other", title: "Radiotherapy", when: "During and after", items: [
+    { t: "Radiotherapy away from the head and neck doesn't usually affect the mouth directly, because the salivary glands aren't in the treated area.", refs: ["ccaMouth2025"] },
+    { t: "Radiotherapy to the upper chest can make swallowing sore for a while. Tell your team if it hurts to swallow." },
+    { t: "If you're having chemotherapy as well, or you're tired and eating less, keep brushing twice a day with fluoride toothpaste and sip water often.", refs: ["ccaMouth2025"] },
+  ] });
   if (hasTx(p, "immuno")) out.cards.push({ id: "immuno", title: "Immunotherapy", when: "Any time during or after", items: [
     { t: "Immunotherapy can cause a dry mouth or dry eyes at any point, even months in. It's an immune side effect your team can treat.", refs: ["bitoun2024"] },
     { t: "Tell your team early if your mouth or eyes become dry — don't wait for your next appointment." },
