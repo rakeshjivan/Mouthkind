@@ -78,9 +78,10 @@ export default function App() {
   const fromProfile = profileAnswers(profile);
   const riskHas = (q, v) => [].concat(risk?.answers?.[q] || []).includes(v);
   const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: fromProfile.age || risk?.answers?.age || null,
-    rtHN: riskHas("cancer", "rt_hn") || (inCancerCare(profile) && (profile.treatments || []).includes("rt_hn")), sjogren: riskHas("conditions", "sjogren") });
+    rtHN: riskHas("cancer", "rt_hn") || (inCancerCare(profile) && (profile.treatments || []).includes("rt_hn")), sjogren: riskHas("conditions", "sjogren"),
+    acid: riskHas("conditions", "pregnantSick") ? "Morning sickness or vomiting" : riskHas("conditions", "eating") || riskHas("conditions", "reflux") ? "Vomiting or reflux" : null });
   // Radiotherapy and Sjögren's always count for decay, even on results saved before they were known.
-  const view = useMemo(() => entries.map((e) => (e.kind === "decay" ? { ...e, ctx: { ...(e.ctx || {}), rtHN: decayCtx.rtHN, sjogren: decayCtx.sjogren } } : e)), [entries, decayCtx.rtHN, decayCtx.sjogren]);
+  const view = useMemo(() => entries.map((e) => (e.kind === "decay" ? { ...e, ctx: { ...(e.ctx || {}), rtHN: decayCtx.rtHN, sjogren: decayCtx.sjogren, acid: decayCtx.acid } } : e)), [entries, decayCtx.rtHN, decayCtx.sjogren, decayCtx.acid]);
   const decay = latestOf(view, "decay");
   const decayR = decay && scoreDecay(decay.answers, decay.ctx);
   const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null,

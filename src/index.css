@@ -943,8 +943,8 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 }
 
 /* ─── Tooth decay risk ─────────────────────────────────────────────────────── */
-:root { --g-history: #b8452f; --g-diet: #d08a1e; --g-clean: #2f6fb0; --g-teeth: #8a4fb8; --g-saliva: #2a9aa8; }
-[data-theme="dark"] { --g-history: #ec8a72; --g-diet: #f0b45e; --g-clean: #6aa6e4; --g-teeth: #b88ae0; --g-saliva: #5cc8d4; }
+:root { --g-history: #b8452f; --g-diet: #d08a1e; --g-clean: #2f6fb0; --g-teeth: #8a4fb8; --g-saliva: #2a9aa8; --g-acid: #c2547a; }
+[data-theme="dark"] { --g-history: #ec8a72; --g-diet: #f0b45e; --g-clean: #6aa6e4; --g-teeth: #b88ae0; --g-saliva: #5cc8d4; --g-acid: #ef8fb0; }
 .g-history { background: var(--g-history); } .g-diet { background: var(--g-diet); } .g-clean { background: var(--g-clean); }
 .g-teeth { background: var(--g-teeth); } .g-saliva { background: var(--g-saliva); }
 .fgroup.g-history, .fgroup.g-diet, .fgroup.g-clean, .fgroup.g-teeth, .fgroup.g-saliva { background: var(--card); }
@@ -1304,3 +1304,4 @@ details.srcs .sources { margin-top: 4px; }
 .carer-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--amberbg); border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--card)); margin: 0 0 14px; }
 .carer-note svg { flex: none; color: var(--amber); margin-top: 2px; }
 .carer-note p { margin: 0; }
+.g-acid { background: var(--g-acid); } .fgroup.g-acid { background: var(--card); } .g-acid .fg-head i { background: var(--g-acid); }

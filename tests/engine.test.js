@@ -196,3 +196,15 @@ test("the plan is built step by step: checks first, questions last, then the pla
   // Once built, a new question doesn't take the plan away.
   assert.ok(setupState({ entries: checks, profile: { phSkip: true, planBuilt: true }, openQs: 1 }).built);
 });
+
+test("pregnancy with morning sickness: moderate dry mouth risk, and the decay check counts the acid", async () => {
+  const { scoreRisk, riskAdvice } = await import("../src/data/risk.js");
+  const { scoreDecay, decayContext } = await import("../src/data/decay.js");
+  const a = { age: "u40", sex: "f", conditions: ["pregnantSick"] };
+  const r = scoreRisk(a);
+  assert.equal(r.band.id, "moderate");
+  assert.match(riskAdvice(r, a).find((x) => x.id === "acid").title, /morning sickness/);
+  const clean = { teeth: "yes", recent: "no", sugar: "rare", brush: "2", between: "daily", mouth: [], habits: [], dentist: "1", protect: [] };
+  const d = scoreDecay(clean, decayContext({ acid: "Morning sickness or vomiting", ageAns: "u40" }));
+  assert.ok(d.factors.some((f) => f.v === "acid"));
+});

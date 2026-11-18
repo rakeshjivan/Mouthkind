@@ -186,9 +186,9 @@ const band = (id) => DECAY_BANDS.find((b) => b.id === id);
  * Dry mouth context from the person's other checks, so it isn't asked twice.
  * { dryRisk: band id, sip: latest SIP (5–15), ph: phPattern level, ageAns: dry mouth risk age answer }
  */
-export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false } = {}) {
+export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false, acid = null } = {}) {
   const dry = dryRisk != null || sip != null || rtHN || sjogren;
-  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren };
+  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren, acid };
 }
 
 /** Points from the other checks: radiotherapy, Sjögren's, saliva flow and pH. */
@@ -200,6 +200,11 @@ function contextFactors(ctx) {
   if (ctx.rtHN)
     out.push({ q: "ctx", v: "rt", label: "Radiotherapy to the head or neck", pts: 12, floor: "veryhigh", dryStrong: true, from: "risk",
       why: "Radiotherapy reduces saliva and weakens the teeth themselves. Decay can start within months and spread fast.", refs: ["moore2020", "featherstone2021"] });
+  // Vomiting, morning sickness or reflux (from the dry mouth risk check): acid softens enamel,
+  // and frequent snacking to settle nausea adds acid attacks.
+  if (ctx.acid)
+    out.push({ q: "acid", v: "acid", label: ctx.acid, pts: 8, from: "risk",
+      why: "Stomach acid softens enamel, and snacking often to settle nausea adds more acid attacks.", refs: ["adaPregnancy", "pbbTeeth"] });
   if (ctx.sjogren)
     out.push({ q: "ctx", v: "sjogren", label: "Sjögren's", pts: 8, floor: "high", dryStrong: true, from: "risk",
       why: "Sjögren's reduces saliva for good, and saliva is the teeth's main natural protection.", refs: ["featherstone2021"] });
@@ -317,6 +322,7 @@ export const DECAY_GROUPS = [
   { id: "clean", label: "Cleaning", qs: ["brush", "between", "dentist"], act: true, actNote: "Twice-daily fluoride toothpaste and regular check-ups." },
   { id: "teeth", label: "Your teeth", qs: ["mouth"], act: false },
   { id: "saliva", label: "Saliva", qs: ["dry", "ctx"], act: true, actNote: "Saliva gel, water and sugar-free gum help." },
+  { id: "acid", label: "Stomach acid", qs: ["acid"], act: true, actNote: "After vomiting, rinse with water and wait about an hour before brushing." },
   { id: "habits", label: "Habits", qs: ["habits"], act: true, actNote: "Small changes here make a real difference." },
   { id: "about", label: "Age", qs: ["age"], act: false },
 ];

@@ -120,7 +120,17 @@ export function RiskResult({ entry, onClose, onCare, onRedo, plan, next }) {
         )}
       </>) : <p className="lede">You didn't report any of the common risk factors for dry mouth. Keep looking after your teeth with fluoride toothpaste twice a day.</p>}
 
-      {next ? null : plan?.length > 0 ? (
+      {next ? (() => {
+        // While the plan is being built, only advice that matters straight away is shown here.
+        const now = riskAdvice(r, entry.answers).filter((x) => ["acid", "pregnant", "immuno"].includes(x.id));
+        return now.length > 0 && (
+          <section className="rblock plan">
+            <h3>Important for you now</h3>
+            <ol className="plan-list">{now.map((x) => <li key={x.id}><strong>{x.title}</strong><p>{x.body}</p></li>)}</ol>
+            <p className="soft-note">The rest of your advice comes in your plan, once you've finished.</p>
+          </section>
+        );
+      })() : plan?.length > 0 ? (
         <section className="rblock plan">
           <h3>Added to your plan</h3>
           <ol className="plan-list">{plan.slice(0, 3).map((it) => <li key={it.id}><strong>{it.title}</strong><p>{it.because[0]}</p></li>)}</ol>

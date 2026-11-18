@@ -109,8 +109,8 @@ export const RISK_QUESTIONS = [
       { v: "longcovid", label: "Long COVID", pts: 2, why: "Dry mouth and taste changes can linger after COVID-19.", refs: ["avais2025"] },
       { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, limited: true, why: "Stomach acid wears teeth, and repeated vomiting can leave the mouth dry." },
       { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, limited: true, why: "Vomiting, restricted fluids and some medicines can dry the mouth and wear the teeth." },
-      { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 2, limited: true, why: "Many people notice a drier mouth in pregnancy, and gums become more sensitive.", refs: ["nazir2026"] },
-      { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 3, acid: true, limited: true, why: "Vomiting brings stomach acid onto the teeth and leaves the mouth dry.", refs: ["nazir2026", "adaPregnancy"] },
+      { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 10, why: "More than half of pregnant women report a dry mouth, and gums become more sensitive.", refs: ["nazir2026"] },
+      { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 12, acid: true, why: "More than half of pregnant women report a dry mouth, and vomiting adds to it: it brings stomach acid onto the teeth and can leave you dehydrated.", refs: ["nazir2026", "adaPregnancy"] },
       { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
     ],
   },
@@ -367,7 +367,7 @@ export function riskAdvice(result, answers = {}) {
   if (has("conditions", "pregnant") || has("conditions", "pregnantSick"))
     out.push({ id: "pregnant", title: "Looking after your mouth in pregnancy", body: "Tell your dentist you're pregnant — check-ups and most treatment are safe, and the second trimester is often the most comfortable time. Gums often swell and bleed more in pregnancy: keep brushing gently twice a day and clean between your teeth. Keep sweet snacks to mealtimes.", refs: ["adaPregnancy", "pbbTeeth"] });
   if (result.factors.some((f) => f.acid) || has("medTypes", "glp1"))
-    out.push({ id: "acid", title: "After vomiting or reflux, don't brush straight away", body: "Rinse with water, then wait about an hour before brushing — acid softens enamel and brushing straight away wears it. In the meantime, smear on fluoride toothpaste, GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) with a clean finger, or chew sugar-free gum.", refs: ["adaPregnancy", "pbbTeeth"], products: ["gc-tm", "gc-tmp"] });
+    out.push({ id: "acid", title: has("conditions", "pregnantSick") ? "After morning sickness, don't brush straight away" : "After vomiting or reflux, don't brush straight away", body: "Rinse with water, then wait about an hour before brushing — acid softens enamel and brushing straight away wears it. In the meantime, smear on fluoride toothpaste, GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) with a clean finger, or chew sugar-free gum.", refs: ["adaPregnancy", "pbbTeeth"], products: ["gc-tm", "gc-tmp"] });
   if (has("medTypes", "glp1"))
     out.push({ id: "glp1", title: "On a GLP-1 medicine", body: "Nausea, reflux and simply drinking less are common on these medicines, and all three dry the mouth. Keep sipping water through the day and mention dry mouth to your prescriber.", refs: ["massarotto2026", "alzawawi2026"] });
   if (has("cancer", "immuno"))

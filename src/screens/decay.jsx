@@ -55,7 +55,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop, next }) {
               {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
             </div>
           ))}
-          {fromChecks.length > 0 && <p className="soft-note">Saliva results come from your dry mouth and pH checks.</p>}
+          {fromChecks.length > 0 && <p className="soft-note">Some of these come from your other checks, so you weren't asked again.</p>}
         </section>
       )}
 
