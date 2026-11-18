@@ -30,7 +30,7 @@ export function profileAnswers(profile = {}, now = new Date()) {
   const band = ageBand(ageFrom(profile.dob, now));
   if (band) out.age = band;
   const g = profile.gender;
-  if (g) out.sex = g === "woman" ? "f" : g === "man" ? "m" : "x";
+  if (g) out.sex = { woman: "f", man: "m", nonbinary: "nb", different: "diff" }[g] || "x";
   return out;
 }
 

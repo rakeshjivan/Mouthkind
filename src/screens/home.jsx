@@ -9,6 +9,7 @@ import { fmtShort } from "../lib/store.js";
 import { firstName } from "../data/person.js";
 import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
 import { dailyTriage, sameDay } from "../data/daily.js";
+import { FocusList } from "./plan.jsx";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const phReadings = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -50,7 +51,7 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, e
   );
 }
 
-export function Home({ profile, entries, prefs, careCtx, open, go }) {
+export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const decay = latestOf(entries, "decay");
@@ -114,6 +115,9 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
           <span className="txcard-more">What to expect <Icon name="chev" size={16} /></span>
         </button>
       )}
+
+      {ask}
+      <FocusList plan={plan.filter((it) => !it.id.startsWith("start"))} onOpen={() => go("advice", "plan")} />
 
       <div className="boxes">
         <Box kind="risk" title="My dry mouth risk" icon={<Icon name="shield" size={22} />}

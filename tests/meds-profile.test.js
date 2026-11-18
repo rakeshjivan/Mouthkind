@@ -79,7 +79,8 @@ test("age and gender from Me replace those questions", () => {
   assert.equal(ageFrom("1958-11-19", now), 67);
   assert.equal(ageBand(67), "65");
   assert.deepEqual(profileAnswers({ dob: "1958-11-19", gender: "woman" }, now), { age: "65", sex: "f" });
-  assert.deepEqual(profileAnswers({ gender: "nonbinary" }, now), { sex: "x" });
+  assert.deepEqual(profileAnswers({ gender: "nonbinary" }, now), { sex: "nb" });
+  assert.deepEqual(profileAnswers({ gender: "none" }, now), { sex: "x" });
   assert.deepEqual(profileAnswers({}, now), {});
 });
 
@@ -108,4 +109,40 @@ test("all advice references exist", () => {
   const a = { sex: "f", medTypes: ["glp1"], cancer: ["immuno"], conditions: ["reflux", "diabetes", "pregnantSick"] };
   for (const x of riskAdvice(scoreRisk(a), a)) for (const ref of x.refs || []) assert.ok(REFS[ref], `${x.id} → ${ref}`);
   for (const t of CARE_TOPICS) for (const ref of t.refs || []) assert.ok(REFS[ref], `${t.id} → ${ref}`);
+});
+
+test("medicines: count in full, kinds with diminishing weight, capped below a near-certain cause", async () => {
+  const { MED_CAP } = await import("../src/data/risk.js");
+  const r = scoreRisk({ meds: "10", medTypes: ["bladder", "tca", "antipsych", "opioid"] });
+  const med = r.factors.filter((f) => f.q === "meds" || f.q === "medTypes");
+  assert.equal(med.reduce((s, f) => s + f.pts, 0), MED_CAP);
+  assert.ok(MED_CAP < 35);
+  assert.equal(r.band.id, "high");
+  const one = scoreRisk({ meds: "1", medTypes: ["bladder"] });
+  assert.equal(one.score, 13); // a single drying medicine counts in full
+  const two = scoreRisk({ meds: "1", medTypes: ["bladder", "tca"] });
+  assert.equal(two.score, 17); // the second at half
+});
+
+test("a condition counts at half only when its medicine is named", () => {
+  const ser = MEDICINES.find((m) => m.g === "sertraline");
+  const named = scoreRisk({ conditions: ["mood"], medFor: ["mood"], medList: [{ id: ser.id, name: "sertraline" }] });
+  assert.equal(named.factors.find((f) => f.q === "conditions").pts, 2);
+  const unnamed = scoreRisk({ conditions: ["mood"], medFor: ["mood"] });
+  assert.equal(unnamed.factors.find((f) => f.q === "conditions").pts, 4);
+});
+
+test("cannabis counts once, prescribed or not", () => {
+  const r = scoreRisk({ medTypes: ["cannabis"], habits: ["cannabis"] });
+  assert.equal(r.factors.filter((f) => f.v === "cannabis").length, 1);
+});
+
+test("conditions come first, and the medicine screen leads with them", () => {
+  const ids = visibleRiskQuestions({}).map((q) => q.id);
+  assert.equal(ids[0], "conditions");
+  assert.ok(ids.indexOf("medFor") < ids.indexOf("cancer") && ids.indexOf("cancer") < ids.indexOf("age"));
+  const mf = visibleRiskQuestions({ conditions: ["parkinsons", "heart"] }).find((q) => q.id === "medFor");
+  assert.deepEqual(mf.options.slice(0, 2).map((o) => o.v), ["parkinsons", "bp"]);
+  const sex = RISK_QUESTIONS.find((q) => q.id === "sex");
+  assert.deepEqual(sex.options.map((o) => o.label), ["Woman or female", "Man or male", "Non-binary", "I use a different term", "Prefer not to answer"]);
 });

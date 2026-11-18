@@ -4,14 +4,14 @@ import { DAILY_TIPS, GRADES, dailyQuestions, dailyTriage, mucositisGrade } from 
 import { USED } from "../data/used.js";
 
 /** The 10-second daily mouth check: one screen of taps, then what to do. */
-export function DailyCheck({ profile, onClose, onSave, onUsed }) {
+export function DailyCheck({ profile, onClose, onSave, onUsed, followUp }) {
   const qs = dailyQuestions(profile);
   const [a, setA] = useState({});
   const [done, setDone] = useState(null);
   const ready = qs.every((q) => a[q.id] != null);
   const who = profile.carer && profile.carerFor ? `${profile.carerFor}'s` : "your";
 
-  if (done) return <DailyResult entry={done} profile={profile} onClose={onClose} onUsed={onUsed} />;
+  if (done) return <DailyResult entry={done} profile={profile} onClose={onClose} onUsed={onUsed} followUp={followUp} />;
   return (
     <Sheet title={`How's ${who} mouth today?`} onClose={onClose}
       footer={<button className="btn primary big" disabled={!ready} onClick={() => {
@@ -37,7 +37,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed }) {
   );
 }
 
-export function DailyResult({ entry, profile, onClose, onUsed }) {
+export function DailyResult({ entry, profile, onClose, onUsed, followUp }) {
   const t = dailyTriage(entry);
   const g = GRADES[entry.grade ?? mucositisGrade(entry)];
   const phone = profile.team?.phone24;
@@ -66,6 +66,7 @@ export function DailyResult({ entry, profile, onClose, onUsed }) {
       )}
       {t.level === "now" && t.today.length > 0 && <div className="callout-more">{t.today.map((r) => <p key={r}>{r}</p>)}</div>}
 
+      {t.level !== "now" && followUp}
       <div className={`grade-pill t-${g.tone}`}><span>Mouth sores</span><strong>{g.label}</strong></div>
 
       {tips.length > 0 && (

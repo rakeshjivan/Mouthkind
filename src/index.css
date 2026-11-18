@@ -1173,3 +1173,42 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 details.srcs { margin-top: 8px; }
 details.srcs summary { cursor: pointer; color: var(--ink3); font-size: calc(14px * var(--s)); font-weight: 600; min-height: 32px; display: inline-flex; align-items: center; }
 details.srcs .sources { margin-top: 4px; }
+
+.fg-note{display:block;font-style:normal;color:var(--ink3);font-size:.9em;margin-top:2px}
+
+/* ── The engine: one question, your focus, your plan ── */
+.ask{background:var(--card);border:2px solid var(--accent);border-radius:18px;padding:16px 18px;margin:14px 0;display:grid;gap:10px}
+.ask.compact{margin:16px 0 8px}
+.ask.done{border-color:var(--good)}
+.ask-k{margin:0;font-weight:700;font-size:.85rem;color:var(--accent);display:flex;align-items:center;gap:6px}
+.ask.done .ask-k{color:var(--ink)}
+.ask-q{margin:0;font-size:1.15rem;line-height:1.3;text-wrap:balance}
+.ask-opts{display:flex;flex-wrap:wrap;gap:8px}
+.ask-opt{flex:1 1 auto;min-height:48px}
+.ask-why summary{cursor:pointer;color:var(--ink2);font-size:.92rem}
+.ask-why p{margin:6px 0;color:var(--ink2)}
+.ask-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ask-foot .btn{min-height:44px}
+.focus{margin:14px 0 18px}
+.focus-head{display:flex;justify-content:space-between;align-items:baseline}
+.focus-head h2{margin:0 0 8px;font-size:1.1rem}
+.focus ol{list-style:none;margin:0;padding:0;display:grid;gap:8px;counter-reset:f}
+.focus li button{all:unset;box-sizing:border-box;width:100%;cursor:pointer;display:grid;grid-template-columns:28px 1fr;column-gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;counter-increment:f}
+.focus li button::before{content:counter(f);grid-row:span 2;width:26px;height:26px;border-radius:50%;background:var(--tint);color:var(--accent);font-weight:800;display:grid;place-items:center;font-size:.9rem}
+.focus li button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.focus li strong{font-size:1rem}
+.focus li span{color:var(--ink2);font-size:.9rem;margin-top:2px}
+.plan-block{margin-bottom:8px}
+.plan-sum{background:var(--paper);border-radius:14px;padding:12px 14px;color:var(--ink);margin:0 0 12px;line-height:1.5}
+.pitem{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:10px 0;display:grid;gap:8px}
+.pitem h3{margin:0;font-size:1.05rem;text-wrap:balance}
+.pitem>p{margin:0;line-height:1.5}
+.pwhy-btn{all:unset;cursor:pointer;color:var(--accent);font-weight:600;font-size:.92rem;display:inline-flex;align-items:center;gap:4px}
+.pwhy-btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.pwhy-btn .rot{transform:rotate(90deg)}
+.pwhy ul{margin:6px 0 0;padding-left:18px;color:var(--ink2)}
+.pwhy li{margin:2px 0}
+.pprods{display:flex;flex-wrap:wrap;gap:8px}
+.pprod{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600}
+.pact{justify-self:start}
+.ask{min-width:0}.ask .chips{min-width:0}.ask .chip{white-space:normal;max-width:100%;text-align:left;height:auto;min-height:44px}

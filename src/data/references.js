@@ -1,12 +1,6 @@
 // Every piece of advice in the app points at one of these keys.
 // Keep this list in step with the evidence dossier.
 export const REFS = {
-  elad2020: {
-    short: "Elad 2020",
-    title: "MASCC/ISOO guidelines for mucositis secondary to cancer therapy",
-    where: "Cancer 2020;126:4423–31",
-    url: "https://doi.org/10.1002/cncr.33100",
-  },
   hong2019: {
     short: "Hong 2019",
     title: "Basic oral care for oral mucositis — MASCC/ISOO systematic review",
@@ -24,12 +18,6 @@ export const REFS = {
     title: "MASCC/ISOO practice statement: managing dry mouth in cancer patients",
     where: "Support Care Cancer 2024;32:548",
     url: "https://doi.org/10.1007/s00520-024-08688-9",
-  },
-  peterson2024: {
-    short: "Peterson 2024",
-    title: "Osteoradionecrosis after head and neck radiotherapy: ISOO/MASCC/ASCO guideline",
-    where: "J Clin Oncol 2024;42:1975–96",
-    url: "https://doi.org/10.1200/JCO.23.02750",
   },
   yarom2019: {
     short: "Yarom 2019",
@@ -219,4 +207,6 @@ export const REFS = {
   canberraHN: { short: "Canberra Health Services", title: "Self care for patients receiving head and neck radiotherapy", where: "Canberra Health Services", url: "https://www.canberrahealthservices.act.gov.au/__data/assets/pdf_file/0006/3107283/Self-care-for-patients-receiving-head-and-neck-radiotherapy.pdf" },
   nciPdqHp: { short: "NCI PDQ", title: "Oral complications of cancer therapies (PDQ) — health professional version", where: "National Cancer Institute", url: "https://www.cancer.gov/about-cancer/treatment/side-effects/mouth-throat/oral-complications-hp-pdq" },
   gcSalivaCheck: { short: "GC Saliva-Check BUFFER", title: "Saliva-Check BUFFER: resting saliva pH and testing instructions", where: "GC product brochure", url: "https://henryschein.com.au/Documents/brochure%20saliva%20check%20buffer.pdf" },
+  ramosCasals2020: { short: "Ramos-Casals 2020", title: "EULAR recommendations for the management of Sjögren's syndrome with topical and systemic therapies", where: "Ann Rheum Dis 2020;79:3–18", url: "https://doi.org/10.1136/annrheumdis-2019-216114" },
+  asthmaHandbook: { short: "Australian Asthma Handbook", title: "Managing side effects of inhaled corticosteroids (rinse and spit; use a spacer)", where: "National Asthma Council Australia", url: "https://www.asthmahandbook.org.au" },
 };

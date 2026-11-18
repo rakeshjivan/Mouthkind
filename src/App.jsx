@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon } from "./components/ui.jsx";
 import { Home, latestOf, phReadings, sipReadings } from "./screens/home.jsx";
 import { Care } from "./screens/care.jsx";
@@ -18,6 +18,8 @@ import { Backup } from "./screens/backup.jsx";
 import { Welcome } from "./screens/onboarding.jsx";
 import { DailyCheck, DailyResult, UsedLog } from "./screens/daily.jsx";
 import { ChemoToday, JawTool, Journey, Questions, RtCard } from "./screens/journey.jsx";
+import { buildModel, buildPlan, nextQuestion, summary } from "./data/engine.js";
+import { AskCard } from "./screens/plan.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js";
 
 const TABS = [
@@ -81,14 +83,20 @@ export default function App() {
   const daily = latestOf(entries, "daily");
   const lastUsed = latestOf(entries, "used");
   const showWelcome = !profile.onboarded && !entries.length;
+  // The engine: one picture of the person → the next question and the plan.
+  const model = useMemo(() => buildModel({ profile, entries }), [profile, entries]);
+  const plan = useMemo(() => buildPlan(model), [model]);
+  const sum = useMemo(() => summary(model), [model]);
+  const q = nextQuestion(model);
+  const ask = (compact) => <AskCard key={compact ? "c" : "f"} q={q} m={model} profile={profile} setProfile={setProfile} onPlan={() => go("advice", "plan")} compact={compact} />;
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
 
   return (
     <div className="app">
       <main className="main" id="main">
-        {tab === "home" && <Home profile={profile} entries={entries} prefs={prefs} careCtx={careCtx} open={open} go={go} />}
+        {tab === "home" && <Home profile={profile} entries={entries} prefs={prefs} careCtx={careCtx} open={open} go={go} plan={plan} ask={ask(false)} />}
         {tab === "shop" && <Shop />}
-        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} />}
+        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} plan={plan} sum={sum} ask={ask(false)} profile={profile} open={open} />}
         {tab === "tracker" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
@@ -109,13 +117,13 @@ export default function App() {
         <FrequencyPicker value={prefs.sipEvery} first={!!afterFreq} onClose={() => { setAfterFreq(null); close(); }}
           onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq); setAfterFreq(null); }} />
       )}
-      {sheet === "sip" && prefs.sipEvery && <SipFlow every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} />}
+      {sheet === "sip" && prefs.sipEvery && <SipFlow every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} followUp={ask(true)} />}
       {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
-      {sheet === "ph" && <PhFlow readings={phReadings(entries)} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
+      {sheet === "ph" && <PhFlow readings={phReadings(entries)} followUp={ask(true)} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
       {sheet === "report" && <Summary entries={entries} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
-      {sheet === "daily" && <DailyCheck profile={profile} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} />}
-      {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onClose={close} onUsed={() => setSheet("used")} />}
+      {sheet === "daily" && <DailyCheck profile={profile} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} followUp={ask(true)} />}
+      {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onClose={close} onUsed={() => setSheet("used")} followUp={ask(true)} />}
       {sheet === "used" && <UsedLog onClose={close} onSave={addEntry} last={lastUsed?.items} />}
       {sheet === "journey" && <Journey profile={profile} onClose={close} openTool={setSheet} onEdit={() => setSheet("situation")} />}
       {sheet === "jaw" && <JawTool entries={entries} onClose={close} onSave={addEntry} />}

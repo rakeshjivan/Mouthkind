@@ -91,20 +91,27 @@ export function deriveMeds(a, lookup) {
 
 export const RISK_QUESTIONS = [
   {
-    id: "age", type: "one", section: "About you", text: "How old are you?",
+    id: "conditions", type: "many", section: "Health", text: "Do you have any of these?", none: "None of these",
     options: [
-      { v: "u40", label: "Under 40", pts: 0 },
-      { v: "40", label: "40 to 64", as: "Age 40 to 64", pts: 3, why: "Dry mouth becomes more common with age, mostly because of medicines and health conditions.", refs: ["agostini2018", "villa2015"] },
-      { v: "65", label: "65 to 79", as: "Age 65 to 79", pts: 6, why: "Dry mouth affects many people over 65 — more medicines, more conditions.", refs: ["agostini2018"] },
-      { v: "80", label: "80 or over", as: "Age 80 or over", pts: 8, why: "Dry mouth is most common in people over 80.", refs: ["agostini2018"] },
-    ],
-  },
-  {
-    id: "sex", type: "one", section: "About you", text: "Are you…",
-    options: [
-      { v: "f", label: "Female", pts: 2, why: "Women report dry mouth more often than men.", refs: ["agostini2018"] },
-      { v: "m", label: "Male", pts: 0 },
-      { v: "x", label: "Prefer not to say", pts: 0 },
+      { v: "sjogren", label: "Sjögren's syndrome", pts: 35, major: true, why: "Sjögren's syndrome damages the glands that make saliva and tears.", refs: ["shiboski2017", "vonbultz2007"] },
+      { v: "autoimmune", label: "Rheumatoid arthritis, lupus or scleroderma", pts: 6, why: "These conditions can affect the salivary glands, and are often linked with Sjögren's.", refs: ["vonbultz2007", "villa2015"] },
+      { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025", "vonbultz2007"] },
+      { v: "kidney", label: "Kidney disease or dialysis", pts: 6, why: "Up to three in four people on dialysis have a dry mouth, from fluid limits, medicines and the disease itself.", refs: ["laheij2021"] },
+      { v: "heart", label: "Heart disease or high blood pressure", as: "Heart disease or high blood pressure", pts: 2, limited: true, why: "Mostly through the medicines used to treat it — fluid tablets and some blood pressure tablets reduce saliva." },
+      { v: "stroke", label: "Stroke", pts: 3, limited: true, why: "A stroke can affect swallowing and mouth control, and often brings several new medicines." },
+      { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Dry mouth is common in Parkinson's, partly from the medicines used to treat it.", refs: ["martimbianco2021"] },
+      { v: "dementia", label: "Dementia or Alzheimer's", pts: 4, limited: true, why: "Drinking less and the medicines used make a dry mouth more likely." },
+      { v: "mood", label: "Depression or anxiety", pts: 4, why: "Anxiety reduces saliva, and the medicines for these conditions often do too.", refs: ["villa2015", "wolff2017"] },
+      { v: "thyroid", label: "Thyroid disease", pts: 2, why: "Thyroid problems are linked with lower saliva flow.", refs: ["naik2018"], limited: true },
+      { v: "hiv", label: "HIV", pts: 5, why: "HIV can affect the salivary glands, and dry mouth is common in people living with HIV.", refs: ["mkonyi2025", "vonbultz2007"] },
+      { v: "hepc", label: "Hepatitis C", pts: 4, why: "Hepatitis C is linked with a Sjögren's-like dryness of the mouth and eyes.", refs: ["cacoub2017", "vonbultz2007"] },
+      { v: "sarcoid", label: "Sarcoidosis", pts: 6, why: "Sarcoidosis can inflame the salivary glands.", refs: ["vonbultz2007"] },
+      { v: "longcovid", label: "Long COVID", pts: 2, why: "Dry mouth and taste changes can linger after COVID-19.", refs: ["avais2025"] },
+      { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, limited: true, why: "Stomach acid wears teeth, and repeated vomiting can leave the mouth dry." },
+      { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, limited: true, why: "Vomiting, restricted fluids and some medicines can dry the mouth and wear the teeth." },
+      { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 2, limited: true, why: "Many people notice a drier mouth in pregnancy, and gums become more sensitive.", refs: ["nazir2026"] },
+      { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 3, acid: true, limited: true, why: "Vomiting brings stomach acid onto the teeth and leaves the mouth dry.", refs: ["nazir2026", "adaPregnancy"] },
+      { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
     ],
   },
   {
@@ -175,31 +182,7 @@ export const RISK_QUESTIONS = [
     ],
   },
   {
-    id: "conditions", type: "many", section: "Health", text: "Do you have any of these?", none: "None of these",
-    options: [
-      { v: "sjogren", label: "Sjögren's syndrome", pts: 35, major: true, why: "Sjögren's syndrome damages the glands that make saliva and tears.", refs: ["shiboski2017", "vonbultz2007"] },
-      { v: "autoimmune", label: "Rheumatoid arthritis, lupus or scleroderma", pts: 6, why: "These conditions can affect the salivary glands, and are often linked with Sjögren's.", refs: ["vonbultz2007", "villa2015"] },
-      { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025", "vonbultz2007"] },
-      { v: "kidney", label: "Kidney disease or dialysis", pts: 6, why: "Up to three in four people on dialysis have a dry mouth, from fluid limits, medicines and the disease itself.", refs: ["laheij2021"] },
-      { v: "heart", label: "Heart disease or high blood pressure", as: "Heart disease or high blood pressure", pts: 2, limited: true, why: "Mostly through the medicines used to treat it — fluid tablets and some blood pressure tablets reduce saliva." },
-      { v: "stroke", label: "Stroke", pts: 3, limited: true, why: "A stroke can affect swallowing and mouth control, and often brings several new medicines." },
-      { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Dry mouth is common in Parkinson's, partly from the medicines used to treat it.", refs: ["martimbianco2021"] },
-      { v: "dementia", label: "Dementia or Alzheimer's", pts: 4, limited: true, why: "Drinking less and the medicines used make a dry mouth more likely." },
-      { v: "mood", label: "Depression or anxiety", pts: 4, why: "Anxiety reduces saliva, and the medicines for these conditions often do too.", refs: ["villa2015", "wolff2017"] },
-      { v: "thyroid", label: "Thyroid disease", pts: 2, why: "Thyroid problems are linked with lower saliva flow.", refs: ["naik2018"], limited: true },
-      { v: "hiv", label: "HIV", pts: 5, why: "HIV can affect the salivary glands, and dry mouth is common in people living with HIV.", refs: ["mkonyi2025", "vonbultz2007"] },
-      { v: "hepc", label: "Hepatitis C", pts: 4, why: "Hepatitis C is linked with a Sjögren's-like dryness of the mouth and eyes.", refs: ["cacoub2017", "vonbultz2007"] },
-      { v: "sarcoid", label: "Sarcoidosis", pts: 6, why: "Sarcoidosis can inflame the salivary glands.", refs: ["vonbultz2007"] },
-      { v: "longcovid", label: "Long COVID", pts: 2, why: "Dry mouth and taste changes can linger after COVID-19.", refs: ["avais2025"] },
-      { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, limited: true, why: "Stomach acid wears teeth, and repeated vomiting can leave the mouth dry." },
-      { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, limited: true, why: "Vomiting, restricted fluids and some medicines can dry the mouth and wear the teeth." },
-      { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 2, limited: true, why: "Many people notice a drier mouth in pregnancy, and gums become more sensitive.", refs: ["nazir2026"] },
-      { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 3, acid: true, limited: true, why: "Vomiting brings stomach acid onto the teeth and leaves the mouth dry.", refs: ["nazir2026", "adaPregnancy"] },
-      { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
-    ],
-  },
-  {
-    id: "cancer", type: "many", section: "Health", text: "Have you had any of these treatments?", none: "None of these",
+    id: "cancer", type: "many", section: "Treatments", text: "Have you had any of these treatments?", none: "None of these",
     options: [
       { v: "rt_hn", label: "Radiotherapy to the head or neck", pts: 35, major: true, why: "Radiotherapy near the salivary glands often reduces saliva for good.", refs: ["mercadante2021"] },
       { v: "transplant", label: "Bone marrow or stem cell transplant", pts: 15, why: "Transplants, and graft-versus-host disease after them, often affect the salivary glands.", refs: ["mercadante2021"] },
@@ -222,7 +205,7 @@ export const RISK_QUESTIONS = [
     options: [
       { v: "smoke", label: "I smoke", as: "Smoking", pts: 5, why: "Smoking is linked with a drier mouth and less saliva.", refs: [], limited: true },
       { v: "vape", label: "I vape", as: "Vaping", pts: 4, why: "Vaping liquids draw moisture from the mouth.", refs: [], limited: true },
-      { v: "cannabis", label: "I use cannabis (not prescribed)", as: "Cannabis use", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
+      { v: "cannabis", label: "I use cannabis, prescribed or not", as: "Cannabis use", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
       { v: "alcohol", label: "I have more than 2 alcoholic drinks most days", as: "More than 2 alcoholic drinks most days", pts: 3, why: "Alcohol dries the mouth.", refs: [], limited: true },
       { v: "caffeine", label: "I have more than 3 coffees, teas or energy drinks a day", as: "More than 3 caffeinated drinks a day", pts: 2, why: "Caffeine can add to a dry mouth.", refs: [], limited: true },
     ],
@@ -234,6 +217,26 @@ export const RISK_QUESTIONS = [
       { v: "low", label: "Less than 4 glasses", as: "Less than 4 glasses of water a day", pts: 4, why: "Not drinking enough leaves less fluid for saliva.", refs: [], limited: true },
       { v: "mid", label: "4 to 7 glasses", pts: 0 },
       { v: "high", label: "8 glasses or more", pts: 0 },
+    ],
+  },
+  {
+    id: "age", type: "one", section: "About you", text: "How old are you?",
+    options: [
+      { v: "u40", label: "Under 40", pts: 0 },
+      { v: "40", label: "40 to 64", as: "Age 40 to 64", pts: 3, why: "Dry mouth becomes more common with age, mostly because of medicines and health conditions.", refs: ["agostini2018", "villa2015"] },
+      { v: "65", label: "65 to 79", as: "Age 65 to 79", pts: 6, why: "Dry mouth affects many people over 65 — more medicines, more conditions.", refs: ["agostini2018"] },
+      { v: "80", label: "80 or over", as: "Age 80 or over", pts: 8, why: "Dry mouth is most common in people over 80.", refs: ["agostini2018"] },
+    ],
+  },
+  {
+    id: "sex", type: "one", section: "About you", text: "Which best describes your gender?",
+    hint: "Options follow the Australian Bureau of Statistics standard.",
+    options: [
+      { v: "f", label: "Woman or female", as: "Woman or female", pts: 2, why: "Women report dry mouth more often than men.", refs: ["agostini2018"] },
+      { v: "m", label: "Man or male", pts: 0 },
+      { v: "nb", label: "Non-binary", pts: 0 },
+      { v: "diff", label: "I use a different term", pts: 0 },
+      { v: "x", label: "Prefer not to answer", pts: 0 },
     ],
   },
 ];
@@ -249,14 +252,70 @@ export const RISK_BANDS = [
 /** Answers saved before pregnancy moved into the health list. */
 function migrate(a) {
   a = deriveMeds(a, medicineById);
+  if ((a.medTypes || []).includes("cannabis")) a = { ...a, medTypes: a.medTypes.filter((x) => x !== "cannabis"), habits: [...new Set([...(a.habits || []), "cannabis"])] };
   if (!a.pregnant || a.pregnant === "no") return a;
   const v = a.pregnant === "sick" ? "pregnantSick" : "pregnant";
   const { pregnant, ...rest } = a;
   return { ...rest, conditions: [...new Set([...(a.conditions || []), v])] };
 }
 
+// ── Medicines: how many, and which kinds ──────────────────────────────────
+// Both matter. The number of regular medicines is an independent risk
+// (polypharmacy; Villa 2016, Wolff 2017), and so is each kind known to dry the
+// mouth. Anticholinergic burden scales simply add drug scores; for dry mouth
+// the effect levels off, so here:
+//   - the count always counts in full;
+//   - the strongest drying medicine counts in full, the next at half, the
+//     rest at a quarter each;
+//   - all medicine points together stop at MED_CAP — below a single
+//     near-certain cause (35), so medicines alone reach "high" and need another
+//     factor (age, a condition) to reach "very high".
+export const MED_CAP = 30;
+const MED_WEIGHTS = [1, 0.5];
+function combineMedicines(factors) {
+  const count = factors.filter((f) => f.q === "meds");
+  const kinds = factors.filter((f) => f.q === "medTypes" || f.q === "medRep").sort((x, y) => y.pts - x.pts);
+  let left = MED_CAP;
+  for (const f of count) { f.full = f.pts; f.pts = Math.min(f.pts, left); left -= f.pts; }
+  kinds.forEach((f, i) => {
+    f.full = f.pts;
+    const w = MED_WEIGHTS[i] ?? 0.25;
+    f.pts = Math.min(left, Math.max(1, Math.round(f.full * w)));
+    left -= f.pts;
+    if (f.pts < f.full) f.note = f.pts ? "Counted at part value: its effect overlaps with your other medicines." : "Already covered by your other medicines.";
+  });
+  for (let i = factors.length - 1; i >= 0; i--) if (factors[i].pts <= 0) factors.splice(i, 1);
+}
+
+// ── Conditions and their own medicines ─────────────────────────────────────
+// A condition whose dryness comes partly from its medicines counts at half
+// when a medicine for it has been named and counted. If no names are given,
+// it keeps its full points, as a safety net for medicines the person doesn't know.
+const COND_MED = { mood: "mood", parkinsons: "parkinsons", heart: "bp" };
+function countConditionsOnce(factors, a) {
+  const named = (a.medList || []).map((x) => (x.id ? medicineById(x.id) : null)).filter((m) => m && m.c && m.c !== "rep");
+  for (const f of factors) {
+    if (f.q !== "conditions" || !COND_MED[f.v]) continue;
+    if (!named.some((m) => m.p?.includes(COND_MED[f.v]))) continue;
+    f.full = f.pts; f.pts = Math.ceil(f.pts / 2);
+    f.note = "Counted at half: the medicine you take for it is already counted.";
+  }
+}
+
+/** The answers with medicines worked out, as scoring sees them. */
+export const fullAnswers = (a = {}) => migrate(a);
+
 /** Questions to show, given the answers so far. */
-export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.hidden && (!q.when || q.when(answers)));
+export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.hidden && (!q.when || q.when(answers))).map((q) => (q.id === "medFor" ? orderPurposes(q, answers) : q));
+
+// Conditions come first, so the medicine screen can lead with the conditions the person ticked.
+const COND_PURPOSE = { mood: "mood", parkinsons: "parkinsons", heart: "bp", diabetes: "diabetes", reflux: "stomach", pregnantSick: "stomach" };
+function orderPurposes(q, a) {
+  const mine = [...new Set((a.conditions || []).map((c) => COND_PURPOSE[c]).filter(Boolean))];
+  if (!mine.length) return q;
+  const top = mine.map((v) => q.options.find((o) => o.v === v)).filter(Boolean).map((o) => ({ ...o, hint: "You said you have this" }));
+  return { ...q, options: [...top, ...q.options.filter((o) => !mine.includes(o.v))] };
+}
 
 /** Score a set of answers: { score 0–100, band, factors (largest first), major } */
 export function scoreRisk(answers = {}) {
@@ -270,6 +329,8 @@ export function scoreRisk(answers = {}) {
     const picked = q.type === "one" ? q.options.filter((o) => o.v === a) : q.options.filter((o) => (a || []).includes(o.v));
     for (const o of picked) if (o.pts > 0) factors.push({ q: q.id, v: o.v, label: o.as || o.label, pts: o.pts, why: o.why, refs: o.refs || [], major: !!o.major, limited: !!o.limited, acid: !!o.acid });
   }
+  combineMedicines(factors);
+  countConditionsOnce(factors, answers);
   factors.sort((x, y) => y.pts - x.pts);
   const score = Math.min(100, factors.reduce((s, f) => s + f.pts, 0));
   const major = factors.some((f) => f.major);

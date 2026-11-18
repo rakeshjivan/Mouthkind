@@ -45,11 +45,12 @@ async def main():
 
         # Risk check
         await pg.click(".tile.risk"); await pg.wait_for_timeout(450)
-        await shot("02-risk-age")
-        await pick("65 to 79").click(); await pg.wait_for_timeout(350)
-        await pick("Female").click(); await pg.wait_for_timeout(350)
-        # What medicines are for, then names (optional)
+        # Conditions first, then medicines for them
+        await shot("02-risk-conditions")
+        await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await shot("03-risk-medfor")
+        # The condition ticked comes first on the medicine screen
+        assert "Diabetes" in await dlg.locator(".pick-row").first.inner_text()
         await pick("Bladder urgency or leaking").click()
         await pick("Weight loss").click()
         await pick("Strong or long-term pain").click()
@@ -74,11 +75,13 @@ async def main():
         assert await dlg.locator(".medlook-list li").count() == 4
         await btn("Next").click(); await pg.wait_for_timeout(250)
         assert await dlg.get_by_text("How many different medicines").count() == 0
-        await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("I use a CPAP machine").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
-        await pick("Less than 4 glasses").click(); await pg.wait_for_timeout(600)
+        await pick("Less than 4 glasses").click(); await pg.wait_for_timeout(350)
+        await pick("65 to 79").click(); await pg.wait_for_timeout(350)
+        assert await dlg.get_by_role("button", name="I use a different term").count() == 1
+        await pick("Woman or female").click(); await pg.wait_for_timeout(600)
         await shot("04-risk-result")
         assert await dlg.get_by_text("On a GLP-1 medicine").count() == 1
         await pg.evaluate("document.querySelector('.sheet-body')?.scrollTo(0, 99999)"); await pg.wait_for_timeout(200)
@@ -188,12 +191,12 @@ async def main():
         assert await dlg.locator("a.call-btn").get_attribute("href") == "tel:0752020000"
         await shot("20-daily-red")
         await dlg.get_by_role("button", name="Log what I used").click(); await pg.wait_for_timeout(200)
-        await dlg.get_by_role("button", name="GC Dry Mouth Gel").click(); await btn("Save").click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("button", name="GC Dry Mouth Gel").click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
         assert await pg.locator(".today.t-red").count() == 1
         await pg.click(".txcard"); await pg.wait_for_timeout(300)
         await shot("21-journey")
         await dlg.get_by_role("button", name="Jaw opening check").click(); await pg.wait_for_timeout(200)
-        await dlg.get_by_role("radio", name="2", exact=True).click(); await btn("Save").click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("radio", name="2", exact=True).click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
         assert await dlg.get_by_text("may not be opening fully").count() == 1
         await btn("Done").click(); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
@@ -203,6 +206,30 @@ async def main():
         await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(300)
         assert await pg.get_by_text("When to get help straight away").count() == 1
         await shot("23-advice-cancer", True)
+
+        # The engine: a score that rose → one question on Home → the plan changes
+        await pg.evaluate("""() => {
+          const now = Date.now(), D = 86400000;
+          localStorage.setItem('mkt:profile', JSON.stringify({ firstName: 'Ann', onboarded: true, situation: ['meds'] }));
+          localStorage.setItem('mkt:prefs', JSON.stringify({ theme: 'auto', text: 'm', sipEvery: 14 }));
+          localStorage.setItem('mkt:entries', JSON.stringify([
+            { id: 'r1', kind: 'risk', ts: now - 30*D, v: 2, answers: { conditions: [], medFor: ['bladder'], meds: '3', cancer: [], breathing: [], habits: [], water: 'mid', age: '65', sex: 'f' } },
+            { id: 's1', kind: 'sip', sip: 9, ts: now - 20*D }, { id: 's2', kind: 'sip', sip: 12, ts: now - 3600000 },
+            { id: 'p1', kind: 'ph', ph: 7.0, ts: now - 3600000 } ]));
+        }""")
+        await pg.reload(); await pg.wait_for_timeout(500)
+        ask = pg.locator(".ask")
+        assert "went up from 9 to 12" in await ask.inner_text()
+        await shot("24-ask-home")
+        await ask.get_by_role("button", name="A new or changed medicine").click()
+        await ask.get_by_role("button", name="Save").click(); await pg.wait_for_timeout(300)
+        assert await pg.get_by_text("your plan has been updated").count() == 1
+        assert "Ask your pharmacist about the new medicine" in await pg.locator(".focus li").first.inner_text()
+        await shot("25-focus", True)
+        await pg.locator(".focus .link-btn").click(); await pg.wait_for_timeout(400)
+        assert await pg.get_by_role("heading", name="Your plan").count() == 1
+        assert "9 to 12" in await pg.locator(".pitem").first.inner_text()
+        await shot("26-plan", True)
         print("errors:", errs)
         assert not errs, errs
         await b.close()

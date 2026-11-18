@@ -3,13 +3,14 @@ import { Icon, Sources } from "../components/ui.jsx";
 import { CARE_TOPICS } from "../data/care.js";
 import { PRODUCTS } from "../data/products.js";
 import { ProductImage } from "../components/productImage.jsx";
+import { PlanBlock } from "./plan.jsx";
 
 /** Support strategies. Topics that match the person's results come first. */
-export function Care({ ctx, focus }) {
+export function Care({ ctx, focus, plan = [], sum = [], ask, profile, open }) {
   const mine = CARE_TOPICS.filter((t) => t.forYou(ctx));
   const rest = CARE_TOPICS.filter((t) => !t.forYou(ctx));
-  const [openId, setOpenId] = useState(focus || mine[0]?.id || null);
-  useEffect(() => { if (focus) document.getElementById(`care-${focus}`)?.scrollIntoView({ block: "start" }); }, [focus]);
+  const [openId, setOpenId] = useState(focus && focus !== "plan" ? focus : plan.length ? null : mine[0]?.id || null);
+  useEffect(() => { if (focus) document.getElementById(focus === "plan" ? "my-plan" : `care-${focus}`)?.scrollIntoView({ block: "start" }); }, [focus]);
 
   const Topic = ({ t, mineFlag }) => {
     const on = openId === t.id;
@@ -45,8 +46,9 @@ export function Care({ ctx, focus }) {
     <div className="screen">
       <header className="hero"><h1 className="display">Mouth care advice</h1>
         <p className="lede">What helps a dry or acidic mouth, and protects your teeth from decay.</p></header>
+      <PlanBlock plan={plan} sum={sum} profile={profile} open={open} ask={ask} />
       {mine.length > 0 && (<>
-        <h2 className="list-h first">Most important for you</h2>
+        <h2 className={`list-h${plan.length ? "" : " first"}`}>{plan.length ? "Topics for you" : "Most important for you"}</h2>
         {mine.map((t) => <Topic key={t.id} t={t} mineFlag />)}
       </>)}
       <h2 className="list-h">{mine.length ? "Everything else" : "Looking after your mouth"}</h2>
