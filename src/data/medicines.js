@@ -11,9 +11,23 @@
 // this is not a complete list — anything not found is kept as typed, and the
 // person is told to ask their pharmacist.
 //
-// [generic, [brands], group]
-const M = (g, b, c) => ({ g, b, c });
-const T = (c) => (c.includes(".") ? c : `medTypes.${c}`);
+// Everyday medicines that aren't known to dry the mouth are listed too (group null), so people
+// find what they take, see it isn't a concern, and it still counts towards how many they take.
+//
+// Each medicine also carries what it's taken for (the purposes on the "What do you take
+// medicines for?" screen), so a named medicine replaces the guess for that purpose.
+//
+// M(generic, [brands], group, purposes?) · N(generic, [brands], purposes) = not known to dry the mouth
+const GROUP_PURPOSE = {
+  tca: ["mood", "pain", "sleep"], antidep: ["mood"], antipsych: ["mental", "mood"], sleep: ["sleep", "mood"],
+  antihist: ["allergy", "sleep", "stomach"], allergy: ["allergy"], opioid: ["pain"], seizure: ["nerve", "pain", "mood"],
+  stimulant: ["adhd"], parkinson: ["parkinsons"], relaxant: ["muscle", "pain"], migraine: ["migraine"], cannabis: ["pain", "sleep", "other"],
+  bladder: ["bladder"], glp1: ["weight", "diabetes"], weightloss: ["weight"], bp: ["bp"], prostate: ["prostate", "bp"],
+  inhaler: ["breathing"], gut: ["stomach"], acne: ["acne"], smoking: ["smoking"], decong: ["allergy"], "cancer.immuno": ["other"],
+};
+const M = (g, b, c, p) => ({ g, b, c, p: p || GROUP_PURPOSE[c] || ["other"] });
+const N = (g, b, p) => ({ g, b, c: null, p });
+const T = (c) => (!c ? null : c.includes(".") ? c : `medTypes.${c}`);
 
 const LIST = [
   // Older (tricyclic) antidepressants
@@ -95,6 +109,55 @@ const LIST = [
   // Cancer immunotherapy
   M("pembrolizumab", ["Keytruda"], "cancer.immuno"), M("nivolumab", ["Opdivo"], "cancer.immuno"), M("ipilimumab", ["Yervoy"], "cancer.immuno"),
   M("atezolizumab", ["Tecentriq"], "cancer.immuno"), M("durvalumab", ["Imfinzi"], "cancer.immuno"), M("cemiplimab", ["Libtayo"], "cancer.immuno"),
+  // Inhalers that relieve (asthma)
+  M("salbutamol", ["Ventolin", "Asmol"], "inhaler"), M("terbutaline", ["Bricanyl"], "inhaler"),
+
+  // ── Everyday medicines not known to dry the mouth ──
+  // Pain and inflammation
+  N("paracetamol", ["Panadol", "Panamax", "Panadol Osteo"], ["pain"]), N("ibuprofen", ["Nurofen", "Brufen"], ["pain"]),
+  N("naproxen", ["Naprosyn", "Naprogesic"], ["pain"]), N("diclofenac", ["Voltaren"], ["pain"]), N("celecoxib", ["Celebrex"], ["pain"]),
+  N("meloxicam", ["Mobic"], ["pain"]), N("aspirin", ["Cartia", "Astrix", "Disprin"], ["bp", "pain"]),
+  // Cholesterol, heart, blood thinners
+  N("atorvastatin", ["Lipitor"], ["bp"]), N("rosuvastatin", ["Crestor"], ["bp"]), N("simvastatin", ["Zocor"], ["bp"]),
+  N("pravastatin", ["Pravachol"], ["bp"]), N("ezetimibe", ["Ezetrol"], ["bp"]), N("perindopril", ["Coversyl"], ["bp"]),
+  N("ramipril", ["Tritace"], ["bp"]), N("candesartan", ["Atacand"], ["bp"]), N("irbesartan", ["Avapro"], ["bp"]),
+  N("telmisartan", ["Micardis"], ["bp"]), N("olmesartan", ["Olmetec"], ["bp"]), N("valsartan", ["Diovan"], ["bp"]),
+  N("amlodipine", ["Norvasc"], ["bp"]), N("lercanidipine", ["Zanidip"], ["bp"]), N("felodipine", ["Plendil"], ["bp"]),
+  N("diltiazem", ["Cardizem"], ["bp"]), N("verapamil", ["Isoptin"], ["bp"]), N("apixaban", ["Eliquis"], ["bp"]),
+  N("rivaroxaban", ["Xarelto"], ["bp"]), N("dabigatran", ["Pradaxa"], ["bp"]), N("warfarin", ["Coumadin", "Marevan"], ["bp"]),
+  N("clopidogrel", ["Plavix"], ["bp"]), N("ticagrelor", ["Brilinta"], ["bp"]), N("digoxin", ["Lanoxin"], ["bp"]),
+  N("isosorbide mononitrate", ["Imdur"], ["bp"]), N("glyceryl trinitrate", ["Nitrolingual", "Anginine"], ["bp"]),
+  // Diabetes
+  N("metformin", ["Diabex", "Diaformin"], ["diabetes"]), N("gliclazide", ["Diamicron"], ["diabetes"]), N("sitagliptin", ["Januvia"], ["diabetes"]),
+  N("empagliflozin", ["Jardiance"], ["diabetes"]), N("dapagliflozin", ["Forxiga"], ["diabetes"]),
+  N("insulin", ["Lantus", "Optisulin", "NovoRapid", "Humalog", "Toujeo", "Ryzodeg"], ["diabetes"]),
+  // Stomach and bowels
+  N("pantoprazole", ["Somac"], ["stomach"]), N("esomeprazole", ["Nexium"], ["stomach"]), N("omeprazole", ["Losec"], ["stomach"]),
+  N("rabeprazole", ["Pariet"], ["stomach"]), N("famotidine", ["Pepcid"], ["stomach"]), N("ondansetron", ["Zofran"], ["stomach"]),
+  N("metoclopramide", ["Maxolon"], ["stomach"]), N("loperamide", ["Imodium"], ["stomach"]), N("docusate", ["Coloxyl"], ["stomach"]),
+  N("macrogol", ["Movicol", "OsmoLax"], ["stomach"]), N("lactulose", ["Duphalac"], ["stomach"]),
+  // Breathing and allergy
+  N("budesonide inhaler", ["Pulmicort"], ["breathing"]), N("fluticasone inhaler", ["Flixotide"], ["breathing"]),
+  N("montelukast", ["Singulair"], ["breathing", "allergy"]), N("fluticasone nasal spray", ["Flixonase"], ["allergy"]),
+  N("mometasone nasal spray", ["Nasonex"], ["allergy"]), N("budesonide nasal spray", ["Rhinocort"], ["allergy"]),
+  // Thyroid, hormones, bones
+  N("levothyroxine", ["Oroxine", "Eutroxsig"], ["other"]), N("carbimazole", ["Neo-Mercazole"], ["other"]),
+  N("prednisolone", ["Panafcortelone", "Solone"], ["other"]), N("estradiol (HRT)", ["Estrogel", "Estradot", "Climara"], ["other"]),
+  N("contraceptive pill", [], ["other"]), N("alendronate", ["Fosamax"], ["other"]), N("risedronate", ["Actonel"], ["other"]),
+  N("denosumab", ["Prolia"], ["other"]), N("vitamin D", ["Ostelin"], ["other"]), N("calcium", ["Caltrate"], ["other"]),
+  N("iron", ["Ferro-Grad", "Maltofer", "Ferro-tab"], ["other"]), N("vitamin B12", [], ["other"]), N("fish oil", [], ["other"]),
+  // Arthritis, gout, immune
+  N("methotrexate", ["Methoblastin"], ["other"]), N("hydroxychloroquine", ["Plaquenil"], ["other"]), N("allopurinol", ["Zyloprim", "Progout"], ["other"]),
+  N("colchicine", ["Colgout"], ["other"]), N("adalimumab", ["Humira"], ["other"]), N("etanercept", ["Enbrel"], ["other"]),
+  // Prostate, bladder, men's health
+  N("finasteride", ["Proscar"], ["prostate"]), N("dutasteride", ["Avodart"], ["prostate"]), N("mirabegron", ["Betmiga"], ["bladder"]),
+  N("sildenafil", ["Viagra"], ["other"]), N("tadalafil", ["Cialis"], ["prostate", "other"]),
+  // Memory, sleep, smoking
+  N("donepezil", ["Aricept"], ["other"]), N("memantine", ["Ebixa"], ["other"]), N("rivastigmine", ["Exelon"], ["other"]),
+  N("melatonin", ["Circadin"], ["sleep"]), N("nicotine patches or gum", ["Nicorette", "Nicabate", "QuitX"], ["smoking"]),
+  // Antibiotics (short courses)
+  N("amoxicillin", ["Amoxil", "Augmentin"], ["other"]), N("cefalexin", ["Keflex"], ["other"]), N("doxycycline", ["Doryx"], ["other", "acne"]),
+  N("trimethoprim", ["Alprim"], ["other"]), N("nitrofurantoin", ["Macrodantin"], ["other"]), N("metronidazole", ["Flagyl"], ["other"]),
 ];
 
 export const MEDICINES = LIST.map((m, i) => ({ id: `m${i}`, ...m, c: T(m.c) }));

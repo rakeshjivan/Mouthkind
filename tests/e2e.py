@@ -41,27 +41,32 @@ async def main():
         await shot("02-risk-age")
         await pick("65 to 79").click(); await pg.wait_for_timeout(350)
         await pick("Female").click(); await pg.wait_for_timeout(350)
-        await pick("5 to 9").click(); await pg.wait_for_timeout(350)
-        # Medicine look-up: brand names find the medicine and tick its group
-        await dlg.get_by_role("searchbox").fill("ozempic"); await pg.wait_for_timeout(150)
-        await dlg.locator(".medlook-hits button").first.click()
-        await dlg.get_by_role("searchbox").fill("Vesic"); await pg.wait_for_timeout(150)
-        await dlg.locator(".medlook-hits button").first.click()
-        await dlg.get_by_role("searchbox").fill("Grandma's tonic"); await pg.wait_for_timeout(150)
-        await dlg.get_by_role("button", name="Add “Grandma's tonic”").click()
-        await shot("03-risk-meds")
-        assert await dlg.locator(".medlook-list li").count() == 3
+        # What medicines are for, then names (optional)
+        await shot("03-risk-medfor")
+        await pick("Bladder urgency or leaking").click()
+        await pick("Weight loss").click()
+        await pick("Strong or long-term pain").click()
         await btn("Next").click(); await pg.wait_for_timeout(250)
-        await btn("Next").click(); await pg.wait_for_timeout(250)
-        assert await pg.locator(".pick-row.on", has_text="Bladder tablets").count() == 1
-        assert await pg.locator(".pick-row.on", has_text="GLP-1").count() == 1
-        await pick("Fluid tablets").click()
-        await shot("03a-risk-groups")
-        # Go back, see the earlier answer kept, and move forward again without re-answering
+        box = dlg.get_by_role("searchbox")
+        await box.fill("ozempic"); await pg.wait_for_timeout(150)
+        await dlg.locator(".medlook-hits button").first.click()
+        await box.fill("Vesic"); await pg.wait_for_timeout(150)
+        await dlg.locator(".medlook-hits button").first.click()
+        await box.fill("Nurofen"); await pg.wait_for_timeout(150)
+        await dlg.get_by_role("button", name="Add", exact=True).click()
+        await box.fill("Grandma's tonic"); await pg.wait_for_timeout(150)
+        await dlg.get_by_role("button", name="Add", exact=True).click(); await pg.wait_for_timeout(150)
+        assert await dlg.locator(".medlook-list li").count() == 4
+        assert await dlg.locator(".medlook-list li.safe", has_text="Nurofen").count() == 1
+        assert await dlg.locator(".medlook-list li.unknown", has_text="Grandma").count() == 1
+        await shot("03a-risk-names")
+        # Back keeps the list
         await pg.locator(".sheet-foot button", has_text="Back").click(); await pg.wait_for_timeout(250)
+        assert await pg.locator(".pick-row.on", has_text="Weight loss").count() == 1
         await btn("Next").click(); await pg.wait_for_timeout(250)
-        assert await pg.locator(".pick-row.on", has_text="Fluid tablets").count() == 1
+        assert await dlg.locator(".medlook-list li").count() == 4
         await btn("Next").click(); await pg.wait_for_timeout(250)
+        assert await dlg.get_by_text("How many different medicines").count() == 0
         await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("I use a CPAP machine").click(); await btn("Next").click(); await pg.wait_for_timeout(250)

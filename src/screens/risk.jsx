@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { Breakdown, Pick, RiskMeter, TickRows } from "../components/kit.jsx";
 import { RISK_BANDS, RISK_VERSION, riskAdvice, riskBreakdown, scoreRisk, visibleRiskQuestions } from "../data/risk.js";
-import { groupsFor, medicineById } from "../data/medicines.js";
+import { medicineById } from "../data/medicines.js";
 import { MedLookup } from "../components/medLookup.jsx";
 import { ProductImage } from "../components/productImage.jsx";
 import { PRODUCTS } from "../data/products.js";
@@ -20,20 +20,6 @@ export function dryModel(fromProfile = {}) {
     },
     Result: (p) => <RiskResult {...p} />,
   };
-}
-
-/** Keep the medicine groups in step with the looked-up medicines: add a group when a medicine is added,
- *  drop it when the last medicine in that group is removed. */
-function syncGroups(ans, list) {
-  const before = new Set(groupsFor(ans.medList)), after = new Set(groupsFor(list));
-  const out = { ...ans, medList: list };
-  for (const g of new Set([...before, ...after])) {
-    const [q, v] = g.split(".");
-    const cur = out[q] || [];
-    if (after.has(g) && !cur.includes(v)) out[q] = [...cur, v];
-    if (!after.has(g) && before.has(g)) out[q] = cur.filter((x) => x !== v);
-  }
-  return out;
 }
 
 /** A risk questionnaire, one question per screen. Starts from the last answers when updating.
@@ -62,7 +48,7 @@ export function RiskFlow({ last, onClose, onSave, onCare, model = dryModel() }) 
         {q.type === "lookup" ? (
           <button className="btn primary big" onClick={() => next()}>{picked.length ? "Next" : "Skip"}</button>
         ) : q.type === "many" ? (
-          <button className="btn primary big" onClick={() => next()}>{picked.length ? (lastQ ? "See my result" : "Next") : q.none}</button>
+          <button className="btn primary big" onClick={() => { if (picked.length) return next(); const a = { ...ans, [q.id]: [] }; setAns(a); next(a); }}>{picked.length ? (lastQ ? "See my result" : "Next") : q.none}</button>
         ) : picked != null ? (
           <button className="btn primary big" onClick={() => next()}>{lastQ ? "See my result" : "Next"}</button>
         ) : null}
@@ -71,7 +57,7 @@ export function RiskFlow({ last, onClose, onSave, onCare, model = dryModel() }) 
       <h2 className="q">{q.text}</h2>
       {q.hint && <p className="lede tight">{q.hint}</p>}
       {q.type === "lookup" ? (
-        <MedLookup value={picked} onChange={(list) => setAns(syncGroups(ans, list))} />
+        <MedLookup value={picked} onChange={(list) => setAns({ ...ans, medList: list })} />
       ) : q.type === "one" ? (
         <Pick options={q.options} value={picked}
           onPick={(v) => { const a = { ...ans, [q.id]: v }; setAns(a); setTimeout(() => next(a), 180); }} />
@@ -151,6 +137,9 @@ export function RiskResult({ entry, onClose, onCare, onRedo }) {
           </section>
         );
       })()}
+      {entry.answers.medFor?.length > 0 && !entry.answers.medList?.length && (
+        <p className="soft-note">Your medicine groups are worked out from what you take medicines for. Adding the names gives a more accurate result.</p>
+      )}
       {entry.answers.medList?.length > 0 && (
         <p className="soft-note">Your medicines: {entry.answers.medList.map((x) => x.brand || medicineById(x.id)?.g || x.name).filter(Boolean).join(", ")}.</p>
       )}

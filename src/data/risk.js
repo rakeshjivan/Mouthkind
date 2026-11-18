@@ -1,3 +1,4 @@
+import { medicineById } from "./medicines.js";
 // ─── Dry Mouth Risk Score ──────────────────────────────────────────────────
 // A transparent points checklist of known risk factors for dry mouth
 // (xerostomia) and low saliva flow (hyposalivation).
@@ -25,6 +26,67 @@ export const RISK_VERSION = 2;
 
 // ── Questions ───────────────────────────────────────────────────────────────
 // "one": pick one option. "many": tick any. Every option carries its points.
+// What people take medicines for, in their words. Each maps to the medicine group most
+// medicines for that purpose fall in (`g`), used when no medicine names are given for it.
+// null = most medicines for this purpose don't dry the mouth.
+export const MED_PURPOSES = [
+  { v: "mood", label: "Depression, anxiety or low mood", g: "antidep" },
+  { v: "mental", label: "Bipolar, schizophrenia or psychosis", g: "antipsych" },
+  { v: "sleep", label: "Sleep", g: "sleep" },
+  { v: "pain", label: "Strong or long-term pain", hint: "Not just paracetamol or ibuprofen now and then", g: "opioid" },
+  { v: "nerve", label: "Epilepsy or nerve pain", g: "seizure" },
+  { v: "bp", label: "Blood pressure, heart or fluid", g: "bp" },
+  { v: "bladder", label: "Bladder urgency or leaking", g: "bladder" },
+  { v: "prostate", label: "Prostate", g: "prostate" },
+  { v: "breathing", label: "Asthma or COPD", g: "inhaler" },
+  { v: "allergy", label: "Allergies or hay fever, most days", g: "allergy" },
+  { v: "weight", label: "Weight loss", hint: "e.g. Ozempic, Wegovy, Mounjaro, Duromine", g: "glp1" },
+  { v: "diabetes", label: "Diabetes", g: null },
+  { v: "stomach", label: "Nausea, travel sickness or stomach cramps", g: "gut" },
+  { v: "adhd", label: "ADHD", g: "stimulant" },
+  { v: "parkinsons", label: "Parkinson's", g: "parkinson" },
+  { v: "migraine", label: "Migraine", g: "migraine" },
+  { v: "muscle", label: "Muscle spasm", g: "relaxant" },
+  { v: "acne", label: "Acne (isotretinoin)", g: "acne" },
+  { v: "smoking", label: "Quitting smoking", g: "smoking" },
+  { v: "other", label: "Something else", g: null },
+];
+
+// The count question is only asked when no medicine names were given.
+function needsCount(a) {
+  const f = a.medFor || [];
+  return f.length > 0 && !(a.medList || []).length;
+}
+
+// Medicine count → the answer on the count question.
+const countBand = (n) => (n <= 0 ? "0" : n <= 2 ? "1" : n <= 4 ? "3" : n <= 9 ? "5" : "10");
+
+/**
+ * Work out the medicine answers from what people take medicines for and the names they gave:
+ * - a purpose with a named medicine → that medicine's own group (or none, if it doesn't dry the mouth)
+ * - a purpose with no named medicine → the purpose's usual group
+ * - the count → the number of names (at least one per purpose ticked), or the count question if no names
+ * Answers saved before this screen existed (medTypes ticked directly) are left as they were.
+ */
+export function deriveMeds(a, lookup) {
+  if (!a.medFor) return a;
+  const out = { ...a };
+  const f = a.medFor.filter((v) => MED_PURPOSES.some((p) => p.v === v));
+  const list = (a.medList || []).map((x) => (x.id && lookup ? lookup(x.id) : null));
+  const groups = new Set(), extra = {};
+  for (const m of list) if (m?.c) { const [q, v] = m.c.split("."); (q === "medTypes" ? groups : (extra[q] ??= new Set())).add(v); }
+  for (const v of f) {
+    const named = list.some((m) => m?.p?.includes(v));
+    const g = MED_PURPOSES.find((p) => p.v === v).g;
+    if (!named && g) groups.add(g);
+  }
+  out.medTypes = [...groups];
+  for (const [q, set] of Object.entries(extra)) out[q] = [...new Set([...(a[q] || []), ...set])];
+  const n = (a.medList || []).length;
+  out.meds = n ? countBand(Math.max(n, f.filter((v) => v !== "other").length)) : f.length ? a.meds : "0";
+  return out;
+}
+
 export const RISK_QUESTIONS = [
   {
     id: "age", type: "one", section: "About you", text: "How old are you?",
@@ -44,7 +106,18 @@ export const RISK_QUESTIONS = [
     ],
   },
   {
-    id: "meds", type: "one", section: "Medicines", text: "How many different medicines do you take regularly?",
+    id: "medFor", type: "many", section: "Medicines", text: "What do you take medicines for?",
+    hint: "Tick everything you take a medicine for most days — tablets, inhalers, injections or patches.",
+    none: "I don't take regular medicines",
+    options: MED_PURPOSES.map(({ v, label, hint }) => ({ v, label, hint, pts: 0 })),
+  },
+  {
+    id: "medList", type: "lookup", section: "Medicines", text: "Add your medicine names",
+    hint: "Optional, but it makes your result more accurate. Copy them from your pharmacy labels — brand or generic names both work.",
+    when: (a) => (a.medFor || []).length > 0,
+  },
+  {
+    id: "meds", type: "one", section: "Medicines", text: "How many different medicines do you take regularly?", when: needsCount,
     hint: "Count tablets, inhalers, patches and injections from your doctor, and anything from the pharmacy you take most days.",
     options: [
       { v: "0", label: "None", pts: 0 },
@@ -54,13 +127,9 @@ export const RISK_QUESTIONS = [
       { v: "10", label: "10 or more", as: "10 or more regular medicines", pts: 20, why: "Ten or more medicines makes a dry mouth very likely.", refs: ["wolff2017", "villa2016"] },
     ],
   },
-  {
-    id: "medList", type: "lookup", section: "Medicines", text: "Which medicines do you take?",
-    hint: "Type a medicine or brand name. We'll sort them into the groups below — or skip this and tick the groups yourself.",
-  },
   // The medicine groups share one answer (medTypes), shown over two screens.
   {
-    id: "medTypes", key: "medMind", type: "many", section: "Medicines", text: "Do you take any of these for mood, sleep, pain or nerves?",
+    id: "medTypes", key: "medMind", hidden: true, type: "many", section: "Medicines", text: "Do you take any of these for mood, sleep, pain or nerves?",
     hint: "Groups that match the medicines you added are already ticked.", none: "None of these, or not sure",
     options: [
       { v: "tca", label: "Older antidepressants, or amitriptyline for pain or sleep", hint: "e.g. amitriptyline (Endep), nortriptyline, doxepin", pts: 8, why: "Tricyclic medicines strongly block the nerves that drive saliva.", refs: ["wolff2017"] },
@@ -78,7 +147,7 @@ export const RISK_QUESTIONS = [
     ],
   },
   {
-    id: "medTypes", key: "medBody", type: "many", section: "Medicines", text: "And any of these?",
+    id: "medTypes", key: "medBody", hidden: true, type: "many", section: "Medicines", text: "And any of these?",
     hint: "Groups that match the medicines you added are already ticked.", none: "None of these, or not sure",
     options: [
       { v: "bladder", label: "Bladder tablets for urgency or leaking", hint: "e.g. oxybutynin, solifenacin (Vesicare), tolterodine", pts: 10, why: "Bladder medicines that block acetylcholine cause dry mouth in nearly half of the people who take them.", refs: ["usmani2019", "wolff2017"] },
@@ -142,7 +211,7 @@ export const RISK_QUESTIONS = [
     options: [
       { v: "smoke", label: "I smoke", as: "Smoking", pts: 5, why: "Smoking is linked with a drier mouth and less saliva.", refs: [], limited: true },
       { v: "vape", label: "I vape", as: "Vaping", pts: 4, why: "Vaping liquids draw moisture from the mouth.", refs: [], limited: true },
-      { v: "cannabis", label: "I use cannabis", as: "Cannabis use", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
+      { v: "cannabis", label: "I use cannabis (not prescribed)", as: "Cannabis use", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
       { v: "alcohol", label: "I have more than 2 alcoholic drinks most days", as: "More than 2 alcoholic drinks most days", pts: 3, why: "Alcohol dries the mouth.", refs: [], limited: true },
       { v: "caffeine", label: "I have more than 3 coffees, teas or energy drinks a day", as: "More than 3 caffeinated drinks a day", pts: 2, why: "Caffeine can add to a dry mouth.", refs: [], limited: true },
     ],
@@ -168,6 +237,7 @@ export const RISK_BANDS = [
 
 /** Answers saved before pregnancy moved into the health list. */
 function migrate(a) {
+  a = deriveMeds(a, medicineById);
   if (!a.pregnant || a.pregnant === "no") return a;
   const v = a.pregnant === "sick" ? "pregnantSick" : "pregnant";
   const { pregnant, ...rest } = a;
@@ -175,14 +245,16 @@ function migrate(a) {
 }
 
 /** Questions to show, given the answers so far. */
-export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.when || q.when(answers));
+export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.hidden && (!q.when || q.when(answers)));
 
 /** Score a set of answers: { score 0–100, band, factors (largest first), major } */
 export function scoreRisk(answers = {}) {
   answers = migrate(answers);
   const factors = [];
-  for (const q of visibleRiskQuestions(answers)) {
-    if (!q.options) continue; // the medicine look-up feeds the medicine groups
+  // Every question with points counts, including the medicine groups worked out from the
+  // medicine screens and a count taken from the names given.
+  for (const q of RISK_QUESTIONS) {
+    if (!q.options) continue;
     const a = answers[q.id];
     const picked = q.type === "one" ? q.options.filter((o) => o.v === a) : q.options.filter((o) => (a || []).includes(o.v));
     for (const o of picked) if (o.pts > 0) factors.push({ q: q.id, v: o.v, label: o.as || o.label, pts: o.pts, why: o.why, refs: o.refs || [], major: !!o.major, limited: !!o.limited, acid: !!o.acid });

@@ -1,19 +1,53 @@
 // Medicine look-up, profile answers and the new health questions. Run with: npm test
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MEDICINES, groupsFor, searchMedicines } from "../src/data/medicines.js";
-import { RISK_QUESTIONS, riskAdvice, scoreRisk, visibleRiskQuestions } from "../src/data/risk.js";
+import { MEDICINES, groupsFor, medicineById, searchMedicines } from "../src/data/medicines.js";
+import { MED_PURPOSES, RISK_QUESTIONS, deriveMeds, riskAdvice, scoreRisk, visibleRiskQuestions } from "../src/data/risk.js";
 import { ageBand, ageFrom, profileAnswers } from "../src/data/person.js";
 import { CARE_TOPICS, careContext } from "../src/data/care.js";
 import { REFS } from "../src/data/references.js";
 
 const options = (qid) => RISK_QUESTIONS.filter((q) => q.id === qid && q.options).flatMap((q) => q.options.map((o) => o.v));
 
-test("every medicine maps to a real group in the risk check", () => {
+test("every medicine maps to a real group (or none) and real purposes", () => {
+  const purposes = MED_PURPOSES.map((p) => p.v);
   for (const m of MEDICINES) {
-    const [q, v] = m.c.split(".");
-    assert.ok(options(q).includes(v), `${m.g} → ${m.c}`);
+    if (m.c) { const [q, v] = m.c.split("."); assert.ok(options(q).includes(v), `${m.g} → ${m.c}`); }
+    assert.ok(m.p.length && m.p.every((p) => purposes.includes(p)), `${m.g} purposes ${m.p}`);
   }
+  for (const p of MED_PURPOSES) if (p.g) assert.ok(options("medTypes").includes(p.g), `${p.v} → ${p.g}`);
+});
+
+test("everyday medicines are found and don't dry the mouth", () => {
+  for (const name of ["ibuprofen", "Nurofen", "Panadol", "Lipitor", "metformin", "Somac"]) {
+    const h = searchMedicines(name)[0];
+    assert.ok(h, name); assert.equal(h.m.c, null, name);
+  }
+});
+
+test("purposes alone give their usual group, and the count is asked", () => {
+  const a = { medFor: ["bladder", "diabetes"] };
+  assert.ok(visibleRiskQuestions(a).some((q) => q.id === "meds"));
+  const d = deriveMeds(a, medicineById);
+  assert.deepEqual(d.medTypes, ["bladder"]);
+  const r = scoreRisk({ ...a, meds: "3" });
+  assert.ok(r.factors.some((f) => f.v === "bladder") && r.factors.some((f) => f.q === "meds" && f.pts === 7));
+});
+
+test("named medicines replace the guess and set the count", () => {
+  const id = (n) => searchMedicines(n)[0].m.id;
+  const a = { medFor: ["pain", "bladder", "bp"], medList: [{ id: id("Nurofen") }, { id: id("Betmiga") }, { id: id("amlodipine") }] };
+  assert.ok(!visibleRiskQuestions(a).some((q) => q.id === "meds"));
+  const d = deriveMeds(a, medicineById);
+  assert.deepEqual(d.medTypes, []);          // ibuprofen, mirabegron, amlodipine don't dry the mouth
+  assert.equal(d.meds, "3");                 // 3 medicines
+  const b = { medFor: ["bladder", "mood"], medList: [{ id: id("Vesicare") }] };
+  assert.deepEqual(deriveMeds(b, medicineById).medTypes.sort(), ["antidep", "bladder"]); // mood has no name → usual group
+});
+
+test("no regular medicines scores nothing for medicines", () => {
+  const r = scoreRisk({ medFor: [] });
+  assert.ok(!r.factors.some((f) => f.q === "meds" || f.q === "medTypes"));
 });
 
 test("brand and generic names are both found, best match first", () => {

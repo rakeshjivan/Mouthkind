@@ -1028,3 +1028,15 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 /* Size the greeting to the length of the name so it fits on one line at any width. */
 .hello-line { --chars: 14; font-size: clamp(17px, calc((min(100vw, 860px) - 44px) / (var(--chars) * 0.6)), calc(34px * var(--s))); }
 .brand-head .display.hello-line { max-width: none; font-size: clamp(17px, calc((min(100vw, 860px) - 44px) / (var(--chars) * 0.6)), calc(36px * var(--s))); }
+
+/* Medicine search: Add button and what each medicine means */
+.medlook-row { display: flex; gap: 8px; align-items: stretch; }
+.medlook-row .medlook-box { flex: 1; min-width: 0; }
+.medlook-add { flex: none; min-height: 56px; padding: 0 18px; }
+.medlook-add:disabled { opacity: .45; }
+.medlook-hits em.safe, .medlook-list em.safe { color: var(--good); display: flex; align-items: center; gap: 5px; }
+.medlook-hits em.dries, .medlook-list em.dries { color: var(--accent); }
+.medlook-list li.safe { background: color-mix(in srgb, var(--good) 9%, var(--card)); }
+.medlook-list li.unknown { background: var(--card); border: 1px dashed var(--line); }
+.medlook-count { margin: 16px 2px 0; font-weight: 600; color: var(--ink2); }
+.medlook-count + .medlook-list { margin-top: 8px; }
