@@ -4,6 +4,9 @@ from playwright.async_api import async_playwright
 
 BASE = os.environ.get("BASE_URL", "http://localhost:4173/")
 OUT = os.environ.get("SHOTS", "shots")
+# Live and testing keep data under different keys; use the one this build uses.
+import re as _re
+PFX = _re.search(r'PREFIX = "([^"]+)"', open(os.path.join(os.path.dirname(__file__), "..", "src", "lib", "store.js")).read()).group(1)
 DAY = 86400000
 
 
@@ -23,6 +26,10 @@ async def main():
         b = await p.chromium.launch()
         ctx = await b.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2)
         pg = await ctx.new_page()
+        _ev = pg.evaluate
+        async def _evaluate(js, *args):  # scripts below are written with the testing key
+            return await _ev(js.replace("mkt:", PFX), *args)
+        pg.evaluate = _evaluate
         errs = []
         pg.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
         pg.on("pageerror", lambda e: errs.append(str(e)))

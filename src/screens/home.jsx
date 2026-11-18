@@ -107,7 +107,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
   return (
     <div className="screen home4">
       <header className="brand-head">
-        <p className="brand">Mouthkind <span className="test-badge">Testing</span></p>
+        <p className="brand">Mouthkind</p>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {who && <p className="carer-line">Looking after {who}'s mouth</p>}
         {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
