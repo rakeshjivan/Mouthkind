@@ -1067,3 +1067,7 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .home-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; margin: 4px 2px 12px; }
 .home-foot-acts { display: flex; gap: 18px; }
 .home-foot .link-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; }
+
+/* Testing release marker */
+.test-badge { display: inline-block; vertical-align: middle; margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  letter-spacing: .02em; background: var(--amberbg); color: var(--amber); }

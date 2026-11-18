@@ -78,7 +78,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
   return (
     <div className="screen home4">
       <header className="brand-head">
-        <p className="brand">Mouthkind</p>
+        <p className="brand">Mouthkind <span className="test-badge">Testing</span></p>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {due.length > 0 && <p className="due-line"><i />Due today: {due.join(" and ")}</p>}
       </header>

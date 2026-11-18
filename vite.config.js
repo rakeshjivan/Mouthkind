@@ -16,8 +16,8 @@ export default defineConfig({
       registerType: "autoUpdate", // new versions install themselves on next open
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
-        name: "Mouthkind",
-        short_name: "Mouthkind",
+        name: "Mouthkind Testing",
+        short_name: "MK Testing",
         description: "Check your risk of dry mouth from your medicines, health and habits, and track how dry your mouth is with the GC SIP-SCORE and saliva pH.",
         theme_color: "#faf7f2",
         background_color: "#faf7f2",
