@@ -39,7 +39,7 @@ export function Reminder({ every, onClose }) {
 }
 
 // ─── GC SIP-SCORE: five questions ──────────────────────────────────────────
-export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp }) {
+export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp, next }) {
   const f = freqFor(every);
   // Keep the score from before this one; the prop updates once we save.
   const [previous] = useState(prevAtOpen);
@@ -51,7 +51,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
     const b = sipBand(done.sip);
     const diff = previous ? done.sip - previous.sip : null;
     return (
-      <Sheet title="Dry mouth score" onClose={onClose} footer={<button className="btn primary big" onClick={onClose}>Done</button>}>
+      <Sheet title="Dry mouth score" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className="sip-result">
           <Gauge score={done.sip} />
           <p className="sip-num">{done.sip}<span> of 15</span></p>
@@ -98,7 +98,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
 }
 
 // ─── A saliva pH result ────────────────────────────────────────────────────
-export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp }) {
+export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp, next, onSkip }) {
   // Results from before this test; the prop updates once we save.
   const [readings] = useState(atOpen);
   const [ph, setPh] = useState(null);
@@ -110,7 +110,7 @@ export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp }) 
     const pat = phPattern([...readings, saved]);
     return (
       <Sheet title="Saliva pH" onClose={onClose}
-        footer={pat.level === "flag" || pat.level === "watch"
+        footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : pat.level === "flag" || pat.level === "watch"
           ? <><button className="btn ghost" onClick={onClose}>Done</button><button className="btn primary" onClick={onCare}>What helps</button></>
           : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className={`ph-saved ${z.tone}`}>
@@ -134,8 +134,11 @@ export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp }) 
 
   return (
     <Sheet title="Test my saliva pH" onClose={onClose}
-      footer={<button className="btn primary big" disabled={ph == null}
-        onClick={() => { const e = { id: `p_${Date.now()}`, ts: Date.now(), kind: "ph", ph }; onSave(e); setSaved(e); }}>Save result</button>}>
+      footer={<>
+        {onSkip && <button className="btn ghost" onClick={onSkip}>No strips — skip</button>}
+        <button className="btn primary big" disabled={ph == null}
+          onClick={() => { const e = { id: `p_${Date.now()}`, ts: Date.now(), kind: "ph", ph }; onSave(e); setSaved(e); }}>Save result</button>
+      </>}>
       <button className={`how-toggle${how ? " open" : ""}`} onClick={() => setHow(!how)} aria-expanded={how}>
         <span>How to test</span><Icon name="chev" className={how ? "rot" : ""} />
       </button>

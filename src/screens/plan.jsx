@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Icon, Sources } from "../components/ui.jsx";
+import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { PRODUCTS } from "../data/products.js";
 import { ProductImage } from "../components/productImage.jsx";
 import { answerQuestion, optionsFor } from "../data/engine.js";
 import { CallTeam } from "./daily.jsx";
 
 /** One question at a time, asked only when the answer changes the advice. */
-export function AskCard({ q, m, profile, setProfile, onPlan, compact, left = 0 }) {
+export function AskCard({ q, m, profile, setProfile, onPlan, compact, left = 0, flow }) {
   const [pick, setPick] = useState([]);
   const [thanks, setThanks] = useState(null);
   if (thanks && (!q || q.id !== thanks)) {
@@ -23,11 +23,11 @@ export function AskCard({ q, m, profile, setProfile, onPlan, compact, left = 0 }
     );
   }
   if (!q) return null;
-  const save = (v) => { setProfile(answerQuestion(profile, q, v, m)); setPick([]); setThanks(q.id); };
+  const save = (v) => { setProfile(answerQuestion(profile, q, v, m)); setPick([]); if (!flow) setThanks(q.id); };
   const many = q.many;
   return (
     <section className={`ask${compact ? " compact" : ""}`} aria-label="A question for you">
-      <p className="ask-k">One question{m.who ? ` about ${m.who}` : " for you"}</p>
+      {!flow && <p className="ask-k">One question{m.who ? ` about ${m.who}` : " for you"}</p>}
       <h2 className="ask-q">{q.text(m)}</h2>
       {many ? (
         <div className="chips">
@@ -107,12 +107,13 @@ export function FocusList({ plan, onOpen }) {
 }
 
 /** Advice tab: what we know, then the plan. */
-export function PlanBlock({ plan, sum, profile, open, ask }) {
+export function PlanBlock({ plan, sum, profile, open, refine }) {
   if (!plan.length && !sum.length) return null;
   return (
     <section className="plan-block" id="my-plan">
       <h2 className="list-h first">Your plan</h2>
       {sum.length > 0 && <p className="plan-sum">{sum.join(" ")}</p>}
+      {refine && <button type="button" className="refine-line" onClick={refine.go}>Refine your plan · {refine.n === 1 ? "1 quick question" : `${refine.n} quick questions`} <Icon name="chev" size={15} /></button>}
       {(() => {
         // Each product in full the first time it comes up; a short reminder after that.
         const seen = new Set();
@@ -122,8 +123,55 @@ export function PlanBlock({ plan, sum, profile, open, ask }) {
           return <PlanItem key={it.id} it={it} profile={profile} open={open} first={i === 0} shown={shown} />;
         });
       })()}
-      {ask}
       <p className="soft-note">Your plan changes as you add results and answer questions. It doesn't replace your dentist, doctor or treatment team.</p>
+    </section>
+  );
+}
+
+/** The last step of building the plan: the follow-up questions, one after another. */
+export function SetupQuestions({ q, m, left, profile, setProfile, onClose, onPlan, refining }) {
+  const [asked, setAsked] = useState(0);
+  const total = asked + left;
+  return (
+    <Sheet title={refining ? "Refine your plan" : "A few questions about you"} onClose={onClose}
+      progress={q ? { of: total, at: asked, label: `${asked + 1} of ${total}` } : null}
+      footer={q ? null : <button className="btn primary big" onClick={onPlan}>See my plan</button>}>
+      {q ? (<>
+        <p className="eyebrow-q">{refining ? "Your recent results raised a question" : "Last step · each answer tailors your plan"}</p>
+        <AskCard key={q.id} flow q={q} m={m} profile={profile} setProfile={(p) => { setProfile(p); setAsked(asked + 1); }} />
+      </>) : (
+        <div className="setup-done">
+          <span className="setup-done-icon"><Icon name="check" size={30} stroke={2.6} /></span>
+          <h2 className="q">{refining ? "Your plan is updated" : "Your plan is ready"}</h2>
+          <p className="lede">It's built from your checks and answers, and it updates as you add results.</p>
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+/** Before the plan exists: how far along, and the one next step. */
+export function SetupCard({ setup, onSetup, slim }) {
+  const n = setup.next;
+  if (!n) return null;
+  if (slim) return (
+    <button type="button" className="setup-line" onClick={onSetup}>
+      <span>Build your plan · step {setup.at + 1} of {setup.total}</span><b>{n.label} <Icon name="chev" size={15} /></b>
+    </button>
+  );
+  return (
+    <section className="setup-card" aria-label="Build your plan">
+      <p className="today-k">Build your plan · step {setup.at + 1} of {setup.total}</p>
+      <h2>{n.label}</h2>
+      <ol className="setup-steps">
+        {setup.steps.map((s) => (
+          <li key={s.id} className={s.done ? "done" : s.id === n.id ? "now" : ""}>
+            <i aria-hidden="true">{s.done && <Icon name="check" size={13} stroke={3} />}</i>{s.short}
+          </li>
+        ))}
+      </ol>
+      <button className="btn primary big" onClick={onSetup}>{setup.at ? "Continue" : "Start"}</button>
+      <p className="setup-note">Your plan appears when you've finished. About 6 minutes in all.</p>
     </section>
   );
 }

@@ -9,7 +9,7 @@ import { fmtShort } from "../lib/store.js";
 import { firstName } from "../data/person.js";
 import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
 import { dailyTriage, sameDay } from "../data/daily.js";
-import { FocusList } from "./plan.jsx";
+import { FocusList, SetupCard } from "./plan.jsx";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const phReadings = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -51,7 +51,7 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, e
   );
 }
 
-export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask }) {
+export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const decay = latestOf(entries, "decay");
@@ -89,8 +89,12 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
     : triage?.level === "today" ? { tone: "amber", icon: "phone", title: "Let your treatment team know today", sub: triage.today[0], act: "See today's check", go: () => open("dailyresult") }
     : !r ? { tone: "accent", icon: "shield", title: "Start with your dry mouth risk", sub: "2 minutes · medicines, health and habits", act: "Start", go: () => open("risk") }
     : sipNext?.due || !sip ? { tone: "accent", icon: "drop", title: "Your dry mouth check is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
-    : phNext?.due || !ph ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
+    : !phSkip && (phNext?.due || !ph) ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: "Log what I used today", go: () => open("used"), quiet: true };
+  // Until the plan is built, the build card leads — unless something urgent comes first.
+  const building = setup && !setup.built;
+  const urgent = triage?.level === "now" || triage?.level === "today" || (active && !dailyToday);
+  const buildCard = building && !urgent;
   const tx = cancer ? journey(profile).cards[0] : null;
   // After head and neck radiotherapy, the jaw opening test sits with the other checks.
   const jawCheck = (cancer && (profile.treatments || []).includes("rt_hn")) || [].concat(r ? risk.answers.cancer || [] : []).includes("rt_hn");
@@ -115,11 +119,14 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
         </div>
       )}
 
+      {buildCard ? <SetupCard setup={setup} onSetup={onSetup} /> : (
       <section className={`today t-${today.tone}`} aria-label="Today">
         <span className="today-icon" aria-hidden="true"><Icon name={today.icon} size={24} /></span>
         <div className="today-text"><p className="today-k">Today</p><h2>{today.title}</h2>{today.sub && <p>{today.sub}</p>}</div>
         {today.act && <button className={`btn ${today.tone === "red" ? "danger" : today.quiet ? "ghost" : "primary"}`} onClick={today.go}>{today.act}</button>}
       </section>
+      )}
+      {building && !buildCard && <SetupCard slim setup={setup} onSetup={onSetup} />}
 
 
 

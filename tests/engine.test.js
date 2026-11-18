@@ -181,3 +181,18 @@ test("products already in use are praised, not recommended as new", () => {
   assert.ok(kept.length >= 1);
   for (const k of kept) { assert.match(k.title, /^Keep going with/); assert.match(k.body, /^You're already doing the right thing/); assert.ok(k.pri <= 45); }
 });
+
+test("the plan is built step by step: checks first, questions last, then the plan", async () => {
+  const { setupState } = await import("../src/data/setup.js");
+  const s0 = setupState({ entries: [], profile: {}, openQs: 0 });
+  assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built);
+  const checks = [{ kind: "risk" }, { kind: "decay" }, { kind: "sip", sip: 10 }];
+  const s1 = setupState({ entries: checks, profile: {}, openQs: 2 });
+  assert.equal(s1.next.id, "ph");
+  const s2 = setupState({ entries: checks, profile: { phSkip: true }, openQs: 2 });
+  assert.equal(s2.next.id, "questions"); assert.ok(!s2.built);
+  const s3 = setupState({ entries: checks, profile: { phSkip: true }, openQs: 0 });
+  assert.ok(s3.all && s3.built && !s3.next);
+  // Once built, a new question doesn't take the plan away.
+  assert.ok(setupState({ entries: checks, profile: { phSkip: true, planBuilt: true }, openQs: 1 }).built);
+});
