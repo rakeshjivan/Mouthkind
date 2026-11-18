@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Icon, Sources } from "../components/ui.jsx";
 import { PRODUCTS } from "../data/products.js";
 import { ProductImage } from "../components/productImage.jsx";
-import { answerQuestion, optionsFor, snoozeQuestion } from "../data/engine.js";
+import { answerQuestion, optionsFor } from "../data/engine.js";
 import { CallTeam } from "./daily.jsx";
 
 /** One question at a time, asked only when the answer changes the advice. */
@@ -44,7 +44,7 @@ export function AskCard({ q, m, profile, setProfile, onPlan, compact, left = 0 }
       )}
       <details className="ask-why"><summary>Why we're asking</summary><p>{q.why}</p>{q.refs?.length > 0 && <Sources refs={q.refs} />}</details>
       <div className="ask-foot">
-        {q.noSnooze ? <span /> : <button className="link-btn" onClick={() => setProfile(snoozeQuestion(profile, q, m.now))}>Not now</button>}
+        <span />
         {many && <button className="btn primary" disabled={!pick.length} onClick={() => save(pick)}>Save</button>}
       </div>
     </section>

@@ -5,6 +5,7 @@ import { activeTreatment, chemoDay, journey, rtStage } from "../src/data/journey
 import { dailyQuestions, dailyTriage, mucositisGrade } from "../src/data/daily.js";
 import { usedInsights } from "../src/data/used.js";
 import { REFS } from "../src/data/references.js";
+import { questionsText } from "../src/data/questions.js";
 
 const NOW = new Date("2026-11-19T10:00:00").getTime();
 const D = 86400000;
@@ -92,4 +93,10 @@ test("swelling or trouble breathing is an emergency; exposed bone goes to the te
 test("radiotherapy somewhere else is an option, with its own card", () => {
   assert.ok(journey({ situation: ["cancer"], treatments: ["rt_other"] }, NOW).cards.some((c) => c.id === "rt_other"));
   assert.ok(!journey({ situation: ["cancer"], treatments: ["rt_other", "rt_hn"] }, NOW).cards.some((c) => c.id === "rt_other"));
+});
+
+test("the questions list shares as plain text, still-to-ask first", () => {
+  const t = questionsText({ firstName: "Ann", ownQuestions: ["A?", "B?", "C?"], asked: ["B?"] });
+  assert.match(t, /^Questions for my treatment team — Ann/);
+  assert.ok(t.indexOf("1. A?") < t.indexOf("2. C?") && t.indexOf("2. C?") < t.indexOf("✓ B?"));
 });

@@ -1237,3 +1237,4 @@ details.srcs .sources { margin-top: 4px; }
 .pcard-c{margin:0;font-size:.88rem;color:var(--ink2)}
 .pcard-src{margin:0;font-size:.8rem;color:var(--ink3)}
 .pprod em{font-style:normal;color:var(--ink3);font-weight:500;margin-left:4px}
+.q-share{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 8px}

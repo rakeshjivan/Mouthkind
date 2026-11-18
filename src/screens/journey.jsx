@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { hasTx, journey } from "../data/journey.js";
 import { CallTeam } from "./daily.jsx";
+import { questionsText } from "../data/questions.js";
 
 /** What to expect, now and next, for each treatment. */
 export function Journey({ profile, onClose, openTool, onEdit }) {
@@ -139,12 +140,16 @@ const SUGGESTED = [
 ];
 export function Questions({ profile, setProfile, onClose }) {
   const [text, setText] = useState("");
+  const [copied, setCopied] = useState(false);
   const qs = profile.ownQuestions || [];
   const asked = profile.asked || [];
   const save = (o) => setProfile({ ...profile, ...o });
   const add = (q) => { const t = q.trim(); if (t && !qs.includes(t)) save({ ownQuestions: [...qs, t] }); setText(""); };
   return (
-    <Sheet title="Questions for my team" onClose={onClose} footer={<button className="btn primary big" onClick={onClose}>Done</button>}>
+    <Sheet title="Questions for my team" onClose={onClose} footer={<>
+      {qs.length > 0 && <button className="btn ghost" onClick={() => share(profile)}><Icon name="doc" size={18} /> Share or email</button>}
+      <button className="btn primary big" onClick={onClose}>Done</button>
+    </>}>
       <h2 className="q">Questions for my team</h2>
       <p className="lede tight">Jot them down as they come to you, then tick them off at your appointment.</p>
       <div className="medlook-row">
@@ -167,12 +172,28 @@ export function Questions({ profile, setProfile, onClose }) {
           })}
         </ul>
       )}
+      {qs.length > 0 && (
+        <div className="q-share">
+          <button type="button" className="link-btn" onClick={() => share(profile)}>Share or email my list</button>
+          <button type="button" className="link-btn" onClick={async () => {
+            try { await navigator.clipboard.writeText(questionsText(profile)); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* no clipboard */ }
+          }}>{copied ? "Copied" : "Copy"}</button>
+        </div>
+      )}
       <h3 className="list-h">Common questions</h3>
       <div className="chips">
         {SUGGESTED.filter((s) => !qs.includes(s)).map((s) => <button key={s} type="button" className="chip" onClick={() => add(s)}><Icon name="plus" size={14} /> {s}</button>)}
       </div>
     </Sheet>
   );
+}
+
+/** Phone share sheet (Mail, Messages, Notes…) where there is one; otherwise a new email. */
+async function share(profile) {
+  const body = questionsText(profile);
+  const subject = "Questions for my treatment team";
+  if (navigator.share) { try { await navigator.share({ title: subject, text: body }); return; } catch (e) { if (e?.name === "AbortError") return; } }
+  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 /** "I had treatment today" — adds today's date to the chemotherapy dates. */
