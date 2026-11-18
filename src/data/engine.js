@@ -333,7 +333,7 @@ const RULES = [
     if (src.includes("vomit")) steps.push("After vomiting, rinse with water and wait about an hour before brushing.");
     steps.push("After brushing, morning and night, smear GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) over your teeth.");
     if (lvl === "flag") steps.push("See your dentist and show them your pH results.");
-    const because = [`Your saliva was acidic in ${m.phPat.acid} of your last ${m.phPat.n} tests.`];
+    const because = [m.phPat.n === 1 ? "Your last pH test was acidic." : `Your saliva was acidic in ${m.phPat.acid} of your last ${m.phPat.n} tests.`];
     if (src.length && !src.includes("none")) because.push(`You mentioned ${list(src.filter((s) => s !== "none").map((s) => ({ drinks: "acidic drinks", graze: "snacking through the day", reflux: "reflux", vomit: "vomiting" })[s]))}.`);
     if (sipNow(m) >= 8) because.push("A dry mouth makes acid harder to clear.");
     return { id: "acid", pri: lvl === "flag" ? 84 : 55, title: lvl === "flag" ? "Bring the acid down and protect your teeth" : "Keep an eye on your saliva pH",
@@ -594,7 +594,7 @@ export function summary(m) {
     const t = m.rise >= 2 ? `, up ${m.rise} since ${fmt(m.prevSip.ts)}` : m.rise <= -2 ? `, down ${-m.rise} since ${fmt(m.prevSip.ts)}` : "";
     s.push(`Dry mouth score ${m.sip.sip} of 15 (${sipBand(m.sip.sip).label.toLowerCase()})${t}.`);
   }
-  if (m.phPat.level === "flag" || m.phPat.level === "watch") s.push(`Saliva acidic in ${m.phPat.acid} of the last ${m.phPat.n} pH tests.`);
+  if (m.phPat.level === "flag" || m.phPat.level === "watch") s.push(m.phPat.n === 1 ? "Your last pH test was acidic." : `Saliva acidic in ${m.phPat.acid} of the last ${m.phPat.n} pH tests.`);
   else if (m.phPat.level === "ok") s.push(m.phPat.n === 1 ? "Saliva pH healthy in the last test." : "Saliva pH healthy in recent tests.");
   if (m.decay) s.push(`${m.decay.band.label} tooth decay risk.`);
   const best = m.insights.find((i) => i.change <= -2);
