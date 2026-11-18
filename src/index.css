@@ -1,28 +1,32 @@
 /* ─── Tokens ──────────────────────────────────────────────────────────────── */
 :root {
-  /* Cool mist base; rose = soreness, water-blue = dryness, everywhere in the app. */
-  --paper: #edf2f5; --card: #ffffff; --soft: #e2eaef; --tint: #deecf3;
-  --ink: #17283a; --ink2: #475a6b; --ink3: #788a99; --line: #d6e0e7; --dim: #c9d5de;
-  --accent: #1f5f86; --accent2: #174c6c; --accent-ink: #ffffff;
-  --sore: #d4506c; --sore-bg: #fbe6eb; --sore-soft: #f2b3c1;
-  --dry: #2393ae; --dry-bg: #dcf0f5; --dry-soft: #9fd6e3;
-  --good: #2e8466; --good-bg: #e2f2ea; --orange: #c75a17; --orangebg: #fdeadd;
-  --red: #b93228; --redbg: #fbe9e7; --amber: #a4630c; --amberbg: #fcf1df; --blue: #2b5c95; --bluebg: #e6eef8;
-  --shadow: 0 1px 2px rgba(23, 40, 58, .06), 0 8px 24px -12px rgba(23, 40, 58, .18);
+  /* White, airy base (after Pare PDF): near-black type, olive-green emphasis, pastel boxes. */
+  --paper: #ffffff; --card: #ffffff; --soft: #f5f6f8; --tint: #eef4e3;
+  --ink: #1b1f27; --ink2: #555c69; --ink3: #687080; --line: #e3e6eb; --dim: #d3d8df;
+  --accent: #4d6b16; --accent2: #3c5410; --accent-ink: #ffffff;
+  --sore: #b23a5a; --sore-bg: #fdf0f3; --sore-soft: #f2c6d0;
+  --dry: #1f6fa8; --dry-bg: #eef6fd; --dry-soft: #c3dcf3;
+  --good: #2e7d4f; --good-bg: #eff8f1; --orange: #b04c10; --orangebg: #fdf1e8;
+  --red: #b93228; --redbg: #fdf0ee; --amber: #8a5a0a; --amberbg: #fdf8ea; --blue: #2b5c95; --bluebg: #eef5fd;
+  --violet: #4357b8; --violetbg: #f1f3fd; --lilac: #7a4bb0;
+  --btn-bg: #e2eecf; --btn-hover: #d4e5b9; --btn-ink: #33480c; --btn-line: #c8dba8;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .04);
   --s: 1;
-  --font: "Lexend Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --display: "Bricolage Grotesque Variable", "Lexend Variable", -apple-system, "Segoe UI", sans-serif;
+  --font: "Figtree Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --display: "Figtree Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color-scheme: light;
 }
 [data-theme="dark"] {
-  --paper: #0e1620; --card: #16212c; --soft: #1d2a37; --tint: #17303f;
-  --ink: #e6edf3; --ink2: #aebfcd; --ink3: #7d91a2; --line: #253444; --dim: #2c3d4e;
-  --accent: #6aaed6; --accent2: #8cc3e3; --accent-ink: #082031;
-  --sore: #ef8199; --sore-bg: #3a1e28; --sore-soft: #7a3b4c;
-  --dry: #5bc4db; --dry-bg: #10303a; --dry-soft: #2a6475;
-  --good: #5cc79f; --good-bg: #133025; --orange: #f2955a; --orangebg: #3a2416;
-  --red: #ef7b70; --redbg: #3a1d1a; --amber: #f0b45e; --amberbg: #362a17; --blue: #8fb5ea; --bluebg: #1b2738;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -12px rgba(0, 0, 0, .6);
+  --paper: #111317; --card: #171a1f; --soft: #1e2228; --tint: #222d16;
+  --ink: #eceef2; --ink2: #b4bac5; --ink3: #8f97a4; --line: #2a2f37; --dim: #353b45;
+  --accent: #a8cd6b; --accent2: #c0dd8f; --accent-ink: #16200a;
+  --sore: #f08aa3; --sore-bg: #3a1e27; --sore-soft: #7a3b4c;
+  --dry: #7ab8ea; --dry-bg: #142636; --dry-soft: #2b5378;
+  --good: #6fcf97; --good-bg: #13291c; --orange: #f2955a; --orangebg: #3a2416;
+  --red: #ef7b70; --redbg: #3a1d1a; --amber: #f0c46a; --amberbg: #342a14; --blue: #8fb5ea; --bluebg: #1b2738;
+  --violet: #a3b1f2; --violetbg: #1d2140; --lilac: #c4a2ec;
+  --btn-bg: #2a3818; --btn-hover: #33441d; --btn-ink: #cbe5a1; --btn-line: #3d5124;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3);
   color-scheme: dark;
 }
 [data-text="l"] { --s: 1.12; }
@@ -1067,3 +1071,34 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .home-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; margin: 4px 2px 12px; }
 .home-foot-acts { display: flex; gap: 18px; }
 .home-foot .link-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; }
+
+/* ─── Pare-style look ──────────────────────────────────────────────────────
+   Boxes keep their layout; each gets a pale fill and a thin border in its own colour. */
+.display, .q, .tile-title, .tile-value, .today h2, .brand, .rblock h3, .ask-q, .focus-head h2, .pitem h3 { letter-spacing: -.02em; }
+.display { font-weight: 800; font-variation-settings: normal; }
+.brand-head .brand { color: var(--accent); font-weight: 800; }
+.tile.risk { --c: var(--violet); } .tile.decay { --c: var(--lilac); } .tile.sip { --c: var(--dry); } .tile.ph { --c: var(--amber); }
+.tile.jaw { --c: var(--sore); } .tile.advice { --c: var(--good); } .tile.tracker { --c: var(--blue); }
+.boxes .tile, .boxes .tile.advice {
+  background: color-mix(in srgb, var(--c) 5%, var(--card));
+  border: 1.5px solid color-mix(in srgb, var(--c) 30%, var(--card));
+  box-shadow: none; border-radius: 20px; }
+.boxes .tile.due { border-color: color-mix(in srgb, var(--c) 60%, var(--card)); box-shadow: none; }
+.boxes .tile:hover { border-color: color-mix(in srgb, var(--c) 55%, var(--card)); }
+.tile-icon { border-radius: 50%; background: color-mix(in srgb, var(--c) 14%, var(--card)); color: var(--c); }
+.today { background: color-mix(in srgb, var(--tc, var(--accent)) 5%, var(--card));
+  box-shadow: none; border: 1.5px solid color-mix(in srgb, var(--tc, var(--accent)) 35%, var(--card)); }
+.today.t-red { background: var(--redbg); border-color: var(--red); }
+.today-icon { border-radius: 50%; }
+.ask { border: 1.5px solid color-mix(in srgb, var(--accent) 40%, var(--card)); background: color-mix(in srgb, var(--accent) 3%, var(--card)); }
+.focus li button, .pitem, .ctopic, .grade-pill { border: 1px solid var(--line); box-shadow: none; }
+.tx-line { background: var(--tint); }
+.btn.primary { background: var(--btn-bg); color: var(--btn-ink); border: 1px solid var(--btn-line); }
+.btn.primary:hover { background: var(--btn-hover); }
+.btn.primary:disabled { opacity: .55; }
+.btn.ghost { border: 1px solid var(--line); }
+.tabbar { background: var(--card); box-shadow: 0 4px 20px -8px rgba(16, 24, 40, .12); }
+.sheet { background: var(--paper); }
+.pick-row { border-width: 1px; }
+.test-badge { background: var(--tint); color: var(--accent); }
+.panel, .rblock.plan, .entry, .plan-list li, .callout-more { border: 1px solid var(--line); box-shadow: none; }
