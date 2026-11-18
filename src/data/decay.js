@@ -186,15 +186,31 @@ const band = (id) => DECAY_BANDS.find((b) => b.id === id);
  * Dry mouth context from the person's other checks, so it isn't asked twice.
  * { dryRisk: band id, sip: latest SIP (5–15), ph: phPattern level, ageAns: dry mouth risk age answer }
  */
-export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null } = {}) {
-  const dry = dryRisk != null || sip != null;
-  return { dry, dryRisk, sip, ph, age: ageAns };
+export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false, acid = null } = {}) {
+  const dry = dryRisk != null || sip != null || rtHN || sjogren;
+  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren, acid };
 }
 
-/** Points from the other checks: saliva flow and pH. */
+/** Points from the other checks: radiotherapy, Sjögren's, saliva flow and pH. */
 function contextFactors(ctx) {
   const out = [];
-  if (ctx.sip != null && ctx.sip >= 11)
+  // Radiotherapy damages both the salivary glands and the teeth themselves: decay
+  // can start within months and spread fast (Moore 2020: 29% of patients, 37% within
+  // two years). CAMBRA puts it in the highest group whatever else applies.
+  if (ctx.rtHN)
+    out.push({ q: "ctx", v: "rt", label: "Radiotherapy to the head or neck", pts: 12, floor: "veryhigh", dryStrong: true, from: "risk",
+      why: "Radiotherapy reduces saliva and weakens the teeth themselves. Decay can start within months and spread fast.", refs: ["moore2020", "featherstone2021"] });
+  // Vomiting, morning sickness or reflux (from the dry mouth risk check): acid softens enamel,
+  // and frequent snacking to settle nausea adds acid attacks.
+  if (ctx.acid)
+    out.push({ q: "acid", v: "acid", label: ctx.acid, pts: 8, from: "risk",
+      why: "Stomach acid softens enamel, and snacking often to settle nausea adds more acid attacks.", refs: ["adaPregnancy", "pbbTeeth"] });
+  if (ctx.sjogren)
+    out.push({ q: "ctx", v: "sjogren", label: "Sjögren's", pts: 8, floor: "high", dryStrong: true, from: "risk",
+      why: "Sjögren's reduces saliva for good, and saliva is the teeth's main natural protection.", refs: ["featherstone2021"] });
+  const known = ctx.rtHN || ctx.sjogren;
+  if (known) { /* dryness already counted through the cause */ }
+  else if (ctx.sip != null && ctx.sip >= 11)
     out.push({ q: "ctx", v: "sip", label: `Dry mouth score ${ctx.sip} of 15`, pts: 8, dryStrong: true, from: "sip",
       why: "Your dry mouth check shows moderate to severe dryness. Less saliva means much less protection from decay.", refs: ["featherstone2021"] });
   else if (ctx.sip != null && ctx.sip >= 8)
@@ -239,6 +255,7 @@ export function scoreDecay(answers = {}, ctx = decayContext()) {
   let b = [...DECAY_BANDS].reverse().find((x) => score >= x.lo);
   // CAMBRA: recent decay puts a person at high risk on its own, whatever else.
   if (factors.some((f) => f.floor === "high") && b.lo < band("high").lo) b = band("high");
+  if (factors.some((f) => f.floor === "veryhigh")) b = band("veryhigh");
   // CAMBRA "extreme": high risk plus a very dry mouth.
   const dryStrong = factors.some((f) => f.dryStrong);
   if (b.id === "high" && dryStrong) b = band("veryhigh");
@@ -269,13 +286,13 @@ export function decayPlan(result, answers = {}) {
       products: ["oranurse"], refs: ["walsh2019"] });
 
   if (lvl !== "low" || has("mouth", "braces"))
-    out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus at night",
+    out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus, morning and night",
       body: lvl === "veryhigh"
-        ? "After brushing at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, use it again during the day — after breakfast or lunch."
+        ? "After brushing in the morning and at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, you can also use it after lunch."
         : has("mouth", "braces")
-          ? "After brushing at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
-          : "After brushing at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. It adds calcium, phosphate and fluoride.",
-      products: ["gc-tmp"], refs: ["featherstone2021", "agarwal2022"] });
+          ? "After brushing in the morning and at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
+          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse adds calcium and phosphate; Tooth Mousse Plus provides additional protection, fortified with 900 ppm fluoride.",
+      products: ["gc-tmp", "gc-tm"], refs: ["featherstone2021", "agarwal2022"] });
 
   if (hi)
     out.push({ id: "tm", title: "During the day: GC Tooth Mousse",
@@ -305,6 +322,7 @@ export const DECAY_GROUPS = [
   { id: "clean", label: "Cleaning", qs: ["brush", "between", "dentist"], act: true, actNote: "Twice-daily fluoride toothpaste and regular check-ups." },
   { id: "teeth", label: "Your teeth", qs: ["mouth"], act: false },
   { id: "saliva", label: "Saliva", qs: ["dry", "ctx"], act: true, actNote: "Saliva gel, water and sugar-free gum help." },
+  { id: "acid", label: "Stomach acid", qs: ["acid"], act: true, actNote: "After vomiting, rinse with water and wait about an hour before brushing." },
   { id: "habits", label: "Habits", qs: ["habits"], act: true, actNote: "Small changes here make a real difference." },
   { id: "about", label: "Age", qs: ["age"], act: false },
 ];

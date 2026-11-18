@@ -85,7 +85,7 @@ export function RiskDial({ score, tone }) {
 export function RiskMeter({ score, bands }) {
   const MAX = 60, pos = Math.min(score, MAX) / MAX * 100;
   return (
-    <div className="rmeter" role="img" aria-label={`Score ${score}, on a scale with bands ${bands.map((b) => b.label).join(", ")}`}>
+    <div className="rmeter" role="img" aria-label={`${[...bands].reverse().find((b) => score >= b.lo)?.label} risk, on a scale of ${bands.map((b) => b.label).join(", ")}`}>
       <div className="rm-track">
         {bands.map((b, i) => {
           const hi = i < bands.length - 1 ? bands[i + 1].lo : MAX;

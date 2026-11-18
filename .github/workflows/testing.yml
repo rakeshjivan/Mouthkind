@@ -1,0 +1,23 @@
+# The testing release. On every push to `testing`: run the tests, then ask the
+# website publisher on `main` to rebuild — it serves this branch under /testing/
+# and leaves the live app as it is.
+name: Testing release
+on:
+  push:
+    branches: [testing]
+permissions:
+  contents: read
+  actions: write
+jobs:
+  test-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Publish (rebuilds live from main + testing from this branch)
+        env: { GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        run: gh workflow run pages.yml --ref main --repo "${{ github.repository }}"

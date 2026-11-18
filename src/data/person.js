@@ -24,13 +24,18 @@ export function ageFrom(dob, now = new Date()) {
 /** The age band used by both risk checks. */
 export const ageBand = (age) => (age == null ? null : age < 40 ? "u40" : age < 65 ? "40" : age < 80 ? "65" : "80");
 
-/** Answers the risk checks can take from Me instead of asking: { age?, sex? } */
+// Treatments from the welcome that the dry mouth risk check asks about.
+const RISK_TX = ["rt_hn", "transplant", "rai", "immuno", "chemo"];
+
+/** Answers the risk checks can take from Me instead of asking: { age?, sex?, cancer? } */
 export function profileAnswers(profile = {}, now = new Date()) {
   const out = {};
+  // Someone in cancer care has already told us their treatments, so the check doesn't ask again.
+  if ((profile.situation || []).includes("cancer") && (profile.treatments || []).length) out.cancer = (profile.treatments || []).filter((t) => RISK_TX.includes(t));
   const band = ageBand(ageFrom(profile.dob, now));
   if (band) out.age = band;
   const g = profile.gender;
-  if (g) out.sex = g === "woman" ? "f" : g === "man" ? "m" : "x";
+  if (g) out.sex = { woman: "f", man: "m", nonbinary: "nb", different: "diff" }[g] || "x";
   return out;
 }
 

@@ -7,7 +7,7 @@ import { fmtDate } from "../lib/store.js";
 import { RiskFlow } from "./risk.jsx";
 
 /** The tooth decay risk check. `ctx` carries dry mouth and pH from the other checks. */
-export function DecayFlow({ last, ctx, onClose, onSave, onShop }) {
+export function DecayFlow({ last, ctx, onClose, onSave, onShop, next }) {
   const model = {
     title: "Tooth decay risk check",
     questions: (a) => visibleQuestions(a, ctx),
@@ -15,13 +15,13 @@ export function DecayFlow({ last, ctx, onClose, onSave, onShop }) {
       const r = scoreDecay(a, ctx);
       return { id: id || `d_${Date.now()}`, ts: Date.now(), kind: "decay", v: DECAY_VERSION, answers: a, ctx, score: r.score, band: r.band.id };
     },
-    Result: (p) => <DecayResult {...p} onShop={onShop} />,
+    Result: (p) => <DecayResult {...p} onShop={onShop} next={next} />,
   };
   return <RiskFlow last={last} onClose={onClose} onSave={onSave} model={model} />;
 }
 
 /** The result: level, what makes it up, what's already protecting, and the plan. */
-export function DecayResult({ entry, onClose, onRedo, onShop }) {
+export function DecayResult({ entry, onClose, onRedo, onShop, next }) {
   const r = scoreDecay(entry.answers, entry.ctx);
   const groups = decayBreakdown(r);
   const plan = decayPlan(r, entry.answers);
@@ -30,8 +30,8 @@ export function DecayResult({ entry, onClose, onRedo, onShop }) {
   return (
     <Sheet title="Your tooth decay risk" onClose={onClose}
       footer={<>
-        {onRedo && <button className="btn ghost" onClick={onRedo}>Change my answers</button>}
-        <button className="btn primary big" onClick={onClose}>Done</button>
+        {onRedo && <button className="btn ghost" onClick={onRedo}>{next ? "Edit answers" : "Change my answers"}</button>}
+        {next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}
       </>}>
       {r.noTeeth ? (
         <div className="risk-top good"><p className="risk-band">No natural teeth</p><p className="risk-sub">Tooth decay doesn't affect dentures or implants.</p></div>
@@ -41,7 +41,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop }) {
           <p className="risk-band">{r.band.label} risk</p>
           <p className="risk-sub">{r.band.sub}</p>
         </div>
-        <RiskMeter score={r.score} bands={DECAY_BANDS} />
+        <RiskMeter score={Math.max(r.score, r.band.lo + 1)} bands={DECAY_BANDS} />
       </>)}
       <p className="risk-date">Checked {fmtDate(entry.ts)}</p>
 
@@ -55,7 +55,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop }) {
               {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
             </div>
           ))}
-          {fromChecks.length > 0 && <p className="soft-note">Saliva results come from your dry mouth and pH checks.</p>}
+          {fromChecks.length > 0 && <p className="soft-note">Some of these come from your other checks, so you weren't asked again.</p>}
         </section>
       )}
 
@@ -66,7 +66,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop }) {
         </section>
       )}
 
-      <section className="rblock plan">
+      {!next && <section className="rblock plan">
         <h3>Your plan</h3>
         <ol className="plan-list">
           {plan.map((s) => (
@@ -80,7 +80,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop }) {
           ))}
         </ol>
         {onShop && !r.noTeeth && <button className="btn primary big" onClick={onShop}><Icon name="cart" /> See these products</button>}
-      </section>
+      </section>}
 
       <p className="disclaimer"><Icon name="info" size={16} /> Based on the CAMBRA approach to decay risk, using only questions you can answer yourself. It isn't a diagnosis — your dentist can check for decay you can't see or feel.</p>
       <Sources refs={refs} />

@@ -3,7 +3,8 @@
 // localStorage is fine for the web build; the native builds should swap
 // `driver` for Capacitor Preferences or SQLite without touching callers.
 
-const PREFIX = "mc:";
+// The testing release keeps its own data, so it can never change a live user's results.
+const PREFIX = "mkt:";
 const driver = {
   get(k) {
     try { const v = localStorage.getItem(PREFIX + k); return v == null ? null : JSON.parse(v); } catch { return null; }

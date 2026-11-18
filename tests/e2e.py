@@ -34,15 +34,28 @@ async def main():
         exact = lambda t: dlg.get_by_role("button", name=t, exact=True)
 
         await pg.goto(BASE); await pg.wait_for_timeout(400)
+        # First run: welcome
+        await shot("00-welcome")
+        wl = pg.locator(".welcome")
+        await wl.get_by_role("button", name="Myself").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
+        await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)  # about you (all optional)
+        await wl.get_by_role("button", name="Medicines that dry my mouth").click()
+        await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(300)
+        assert await pg.locator(".setup-card").count() == 1
+        # The rest of this test checks each screen on its own, so mark the plan as built.
+        await pg.evaluate("() => { const p = JSON.parse(localStorage.getItem('mkt:profile')); p.planBuilt = true; localStorage.setItem('mkt:profile', JSON.stringify(p)); }")
+        await pg.reload(); await pg.wait_for_timeout(400)
+        assert await pg.locator(".today").count() == 1
         await shot("01-home-empty", True)
 
         # Risk check
         await pg.click(".tile.risk"); await pg.wait_for_timeout(450)
-        await shot("02-risk-age")
-        await pick("65 to 79").click(); await pg.wait_for_timeout(350)
-        await pick("Female").click(); await pg.wait_for_timeout(350)
-        # What medicines are for, then names (optional)
+        # Conditions first, then medicines for them
+        await shot("02-risk-conditions")
+        await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await shot("03-risk-medfor")
+        # The condition ticked comes first on the medicine screen
+        assert "Diabetes" in await dlg.locator(".pick-row").first.inner_text()
         await pick("Bladder urgency or leaking").click()
         await pick("Weight loss").click()
         await pick("Strong or long-term pain").click()
@@ -67,13 +80,15 @@ async def main():
         assert await dlg.locator(".medlook-list li").count() == 4
         await btn("Next").click(); await pg.wait_for_timeout(250)
         assert await dlg.get_by_text("How many different medicines").count() == 0
-        await pick("Diabetes").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("I use a CPAP machine").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
-        await pick("Less than 4 glasses").click(); await pg.wait_for_timeout(600)
+        await pick("Less than 4 glasses").click(); await pg.wait_for_timeout(350)
+        await pick("65 to 79").click(); await pg.wait_for_timeout(350)
+        assert await dlg.get_by_role("button", name="I use a different term").count() == 1
+        await pick("Woman or female").click(); await pg.wait_for_timeout(600)
         await shot("04-risk-result")
-        assert await dlg.get_by_text("On a GLP-1 medicine").count() == 1
+        assert await dlg.get_by_text("Added to your plan").count() == 1
         await pg.evaluate("document.querySelector('.sheet-body')?.scrollTo(0, 99999)"); await pg.wait_for_timeout(200)
         await shot("05-risk-result-end")
         await btn("Done").click(); await pg.wait_for_timeout(300)
@@ -162,6 +177,71 @@ async def main():
         await btn("Change my answers").click(); await pg.wait_for_timeout(300)
         assert await dlg.get_by_text("How old are you?").count() == 0
         assert await dlg.get_by_text("Are you…").count() == 0
+        # Cancer care: change situation, daily check with a red flag, journey, tools
+        await pg.emulate_media(color_scheme="light")
+        await pg.evaluate("""() => { const p = JSON.parse(localStorage.getItem('mkt:profile') || '{}');
+            const d = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+            Object.assign(p, { situation: ['cancer'], treatments: ['rt_hn', 'chemo'], stage: 'during', rtStart: d(17), rtWeeks: 7, chemoDates: [d(9)],
+              team: { name: 'Cancer Care', phone24: '07 5202 0000' } });
+            localStorage.setItem('mkt:profile', JSON.stringify(p)); }""")
+        await pg.reload(); await pg.wait_for_timeout(500)
+        await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
+        assert await pg.locator(".tx-line", has_text="Week 3 of 7").count() == 1
+        await pg.locator(".today").get_by_role("button", name="Check now").click(); await pg.wait_for_timeout(300)
+        for q, a in [("Mouth pain right now", "Moderate"), ("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),
+                     ("Swelling, breathing or swallowing", "No problems"), ("Bone showing in the mouth", "No"),
+                     ("Dryness", "A lot"), ("White patches or coating", "No"), ("Temperature of 38°C or more", "Yes")]:
+            await dlg.get_by_role("radiogroup", name=q).get_by_role("radio", name=a, exact=True).click()
+        await btn("Done").click(); await pg.wait_for_timeout(300)
+        assert await dlg.get_by_text("Contact your treatment team now").count() == 1
+        assert await dlg.locator("a.call-btn").get_attribute("href") == "tel:0752020000"
+        await shot("20-daily-red")
+        await dlg.get_by_role("button", name="Log what I used").click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("button", name="GC Dry Mouth Gel").click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
+        assert await pg.locator(".today.t-red").count() == 1
+        await pg.click(".tx-line"); await pg.wait_for_timeout(300)
+        await shot("21-journey")
+        await dlg.get_by_role("button", name="Jaw opening check").click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("radio", name="2", exact=True).click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
+        assert await dlg.get_by_text("may not be opening fully").count() == 1
+        await btn("Done").click(); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
+        assert await pg.get_by_text("Daily mouth check").count() >= 1
+        assert await pg.get_by_role("heading", name="Jaw opening").count() == 1
+        await shot("22-tracker-cancer", True)
+        await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(300)
+        assert await pg.get_by_text("When to get help straight away").count() == 1
+        await shot("23-advice-cancer", True)
+
+        # After the plan is built: a score that rose never pops up a question; the plan
+        # offers an optional "Refine your plan" link instead, and the answer updates the plan.
+        await pg.evaluate("""() => {
+          const now = Date.now(), D = 86400000;
+          localStorage.setItem('mkt:profile', JSON.stringify({ firstName: 'Ann', onboarded: true, situation: ['meds'], planBuilt: true,
+            fu: { allergy: { v: ['none'], ts: now }, gelTried: { v: 'helps', ts: now }, dryTime: { v: 'day', ts: now }, dentures: { v: 'full', ts: now } } }));
+          localStorage.setItem('mkt:prefs', JSON.stringify({ theme: 'auto', text: 'm', sipEvery: 14 }));
+          localStorage.setItem('mkt:entries', JSON.stringify([
+            { id: 'r1', kind: 'risk', ts: now - 30*D, v: 2, answers: { conditions: [], medFor: ['bladder'], meds: '3', cancer: [], breathing: [], habits: [], water: 'mid', age: '65', sex: 'f' } },
+            { id: 'k1', kind: 'decay', ts: now - 30*D, answers: { teeth: 'none' }, ctx: {} },
+            { id: 's1', kind: 'sip', sip: 9, ts: now - 20*D }, { id: 's2', kind: 'sip', sip: 12, ts: now - 3600000 },
+            { id: 'p1', kind: 'ph', ph: 7.0, ts: now - 3600000 } ]));
+        }""")
+        await pg.reload(); await pg.wait_for_timeout(500)
+        assert await pg.locator(".ask").count() == 0 and await pg.locator(".setup-card").count() == 0
+        await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(400)
+        refine = pg.locator(".refine-line")
+        assert "1 quick question" in await refine.inner_text()
+        await shot("24-refine-link")
+        await refine.click(); await pg.wait_for_timeout(300)
+        ask = dlg.locator(".ask")
+        assert "went up from 9 to 12" in await ask.inner_text()
+        await ask.get_by_role("button", name="A new or changed medicine").click()
+        await ask.get_by_role("button", name="Save").click(); await pg.wait_for_timeout(300)
+        assert await dlg.get_by_text("Your plan is updated").count() == 1
+        await btn("See my plan").click(); await pg.wait_for_timeout(400)
+        assert await pg.locator(".refine-line").count() == 0
+        assert "9 to 12" in await pg.locator(".pitem").first.inner_text()
+        await shot("26-plan", True)
         print("errors:", errs)
         assert not errs, errs
         await b.close()
