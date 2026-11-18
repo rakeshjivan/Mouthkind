@@ -1,4 +1,5 @@
-# Publishes the website to GitHub Pages on every push to main.
+# Publishes the website to GitHub Pages on every push to main, and the testing
+# release (from the `testing` branch) under /testing/ alongside it.
 # Installed copies (phone, Mac) pick up each change next time they open.
 name: Deploy website
 on:
@@ -24,6 +25,24 @@ jobs:
         env:
           # Root of a custom domain if APP_BASE_PATH is set to "/", otherwise /<repo-name>/
           BASE_PATH: ${{ vars.APP_BASE_PATH || format('/{0}/', github.event.repository.name) }}
+      # The testing release: built from the `testing` branch and served under /testing/.
+      # The live app above is built from `main` and is not affected.
+      - name: Does a testing branch exist?
+        id: t
+        run: echo "found=$(git ls-remote --heads origin testing | wc -l)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.t.outputs.found != '0'
+        with: { ref: testing, path: testing-src }
+      - name: Build the testing release
+        if: steps.t.outputs.found != '0'
+        working-directory: testing-src
+        env:
+          BASE_PATH: ${{ format('{0}testing/', vars.APP_BASE_PATH || format('/{0}/', github.event.repository.name)) }}
+        run: |
+          npm ci
+          npm test
+          npm run build
+          mkdir -p ../dist/testing && cp -R dist/. ../dist/testing/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
