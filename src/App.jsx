@@ -8,6 +8,7 @@ import { phPattern } from "./data/ph.js";
 import { scoreRisk } from "./data/risk.js";
 import { RiskFlow, RiskResult, dryModel } from "./screens/risk.jsx";
 import { profileAnswers } from "./data/person.js";
+import { activeTreatment, inCancerCare } from "./data/journey.js";
 import { DecayFlow, DecayResult } from "./screens/decay.jsx";
 import { decayContext, scoreDecay } from "./data/decay.js";
 import { FrequencyPicker, PhFlow, Reminder, SipFlow } from "./screens/extras.jsx";
@@ -75,7 +76,8 @@ export default function App() {
   const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: fromProfile.age || risk?.answers?.age || null });
   const decay = latestOf(entries, "decay");
   const decayR = decay && scoreDecay(decay.answers, decay.ctx);
-  const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null });
+  const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null,
+    cancer: inCancerCare(profile), tx: profile.treatments || [], active: activeTreatment(profile) });
   const daily = latestOf(entries, "daily");
   const lastUsed = latestOf(entries, "used");
   const showWelcome = !profile.onboarded && !entries.length;

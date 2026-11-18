@@ -19,7 +19,7 @@ export function Journey({ profile, onClose, openTool, onEdit }) {
           <ul className="tip-list">{c.items.map((x) => <li key={x.t}>{x.t}</li>)}</ul>
           {c.next && <p className="jcard-next"><b>Coming up:</b> {c.next}</p>}
           {c.always?.map((x) => <p key={x.t} className="jcard-always"><Icon name="alert" size={16} /> {x.t}</p>)}
-          <Sources refs={[...new Set([...c.items, ...(c.always || [])].flatMap((x) => x.refs || []))]} />
+          <details className="srcs"><summary>Sources</summary><Sources refs={[...new Set([...c.items, ...(c.always || [])].flatMap((x) => x.refs || []))]} /></details>
         </section>
       ))}
       <div className="jtools">

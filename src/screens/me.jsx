@@ -3,6 +3,8 @@ import { Icon } from "../components/ui.jsx";
 import { freqFor } from "../data/schedule.js";
 import { REGIONS } from "../data/clinical.js";
 import { GENDERS, ageFrom } from "../data/person.js";
+import { SITUATIONS } from "./onboarding.jsx";
+import { TREATMENTS, hasTx } from "../data/journey.js";
 
 export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
   const [sure, setSure] = useState(false);
@@ -33,6 +35,33 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
         <div className="field"><span>Where you live</span>
           <div className="seg full">{Object.entries(REGIONS).map(([k, r]) => <button key={k} className={profile.region === k ? "on" : ""} onClick={() => set({ region: k })}>{r.name}</button>)}</div>
         </div>
+      </section>
+
+      <section className="panel">
+        <h2 className="panel-title">My situation</h2>
+        <div className="set-row"><span><strong>{profile.carer ? `Caring for ${profile.carerFor || "someone"}` : "For myself"}</strong>
+          <em>{(profile.situation || []).map((v) => SITUATIONS.find((x) => x.v === v)?.label).filter(Boolean).join(" · ") || "Not set"}</em></span>
+          <button className="btn ghost" onClick={() => open("situation")}>Change</button></div>
+        {(profile.situation || []).includes("cancer") && (<>
+          <div className="set-row"><span><strong>Treatments</strong>
+            <em>{(profile.treatments || []).map((v) => TREATMENTS.find((x) => x.v === v)?.label).filter(Boolean).join(" · ") || "Not set"}</em></span></div>
+          {hasTx(profile, "rt_hn") && (
+            <div className="field-row">
+              <label className="field"><span>Radiotherapy start</span><input type="date" value={profile.rtStart || ""} onChange={(e) => set({ rtStart: e.target.value })} /></label>
+              <label className="field"><span>Weeks</span><select value={profile.rtWeeks || 7} onChange={(e) => set({ rtWeeks: Number(e.target.value) })}>
+                {[1, 2, 3, 4, 5, 6, 7].map((w) => <option key={w} value={w}>{w}</option>)}</select></label>
+            </div>
+          )}
+          {(hasTx(profile, "chemo") || hasTx(profile, "transplant")) && (
+            <div className="set-row"><span><strong>Chemotherapy dates</strong><em>{(profile.chemoDates || []).slice(-3).join(", ") || "None added"}</em></span>
+              <button className="btn ghost" onClick={() => open("chemoday")}><Icon name="plus" size={18} /> Add</button></div>
+          )}
+          <label className="field"><span>Treatment team</span><input value={profile.team?.name || ""} onChange={(e) => set({ team: { ...profile.team, name: e.target.value } })} /></label>
+          <label className="field"><span>Team's 24-hour number</span><input type="tel" inputMode="tel" value={profile.team?.phone24 || ""} onChange={(e) => set({ team: { ...profile.team, phone24: e.target.value } })} /></label>
+          <div className="set-row"><span><strong>Tools</strong><em>Jaw check, radiotherapy card, questions</em></span>
+            <button className="btn ghost" onClick={() => open("journey")}>Open</button></div>
+        </>)}
+        <label className="field"><span>Dentist's phone</span><input type="tel" inputMode="tel" value={profile.dentist?.phone || ""} onChange={(e) => set({ dentist: { ...profile.dentist, phone: e.target.value } })} /></label>
       </section>
 
       <section className="panel">

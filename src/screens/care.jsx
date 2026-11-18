@@ -34,7 +34,7 @@ export function Care({ ctx, focus }) {
                 ))}
               </div>
             )}
-            <Sources refs={t.refs} />
+            {t.refs?.length > 0 && <details className="srcs"><summary>Sources</summary><Sources refs={t.refs} /></details>}
           </div>
         )}
       </section>

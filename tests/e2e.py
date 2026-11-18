@@ -34,6 +34,13 @@ async def main():
         exact = lambda t: dlg.get_by_role("button", name=t, exact=True)
 
         await pg.goto(BASE); await pg.wait_for_timeout(400)
+        # First run: welcome
+        await shot("00-welcome")
+        wl = pg.locator(".welcome")
+        await wl.get_by_role("button", name="Myself").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
+        await wl.get_by_role("button", name="Medicines that dry my mouth").click()
+        await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(300)
+        assert await pg.locator(".today").count() == 1
         await shot("01-home-empty", True)
 
         # Risk check
@@ -162,6 +169,40 @@ async def main():
         await btn("Change my answers").click(); await pg.wait_for_timeout(300)
         assert await dlg.get_by_text("How old are you?").count() == 0
         assert await dlg.get_by_text("Are you…").count() == 0
+        # Cancer care: change situation, daily check with a red flag, journey, tools
+        await pg.emulate_media(color_scheme="light")
+        await pg.evaluate("""() => { const p = JSON.parse(localStorage.getItem('mkt:profile') || '{}');
+            const d = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+            Object.assign(p, { situation: ['cancer'], treatments: ['rt_hn', 'chemo'], stage: 'during', rtStart: d(17), rtWeeks: 7, chemoDates: [d(9)],
+              team: { name: 'Cancer Care', phone24: '07 5202 0000' } });
+            localStorage.setItem('mkt:profile', JSON.stringify(p)); }""")
+        await pg.reload(); await pg.wait_for_timeout(500)
+        await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
+        assert await pg.locator(".txcard", has_text="Week 3 of 7").count() == 1
+        await pg.locator(".today").get_by_role("button", name="Check now").click(); await pg.wait_for_timeout(300)
+        for q, a in [("Mouth pain right now", "Moderate"), ("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),
+                     ("Dryness", "A lot"), ("White patches or coating", "No"), ("Temperature of 38°C or more", "Yes")]:
+            await dlg.get_by_role("radiogroup", name=q).get_by_role("radio", name=a, exact=True).click()
+        await btn("Done").click(); await pg.wait_for_timeout(300)
+        assert await dlg.get_by_text("Contact your treatment team now").count() == 1
+        assert await dlg.locator("a.call-btn").get_attribute("href") == "tel:0752020000"
+        await shot("20-daily-red")
+        await dlg.get_by_role("button", name="Log what I used").click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("button", name="GC Dry Mouth Gel").click(); await btn("Save").click(); await pg.wait_for_timeout(200)
+        assert await pg.locator(".today.t-red").count() == 1
+        await pg.click(".txcard"); await pg.wait_for_timeout(300)
+        await shot("21-journey")
+        await dlg.get_by_role("button", name="Jaw opening check").click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("radio", name="2", exact=True).click(); await btn("Save").click(); await pg.wait_for_timeout(200)
+        assert await dlg.get_by_text("may not be opening fully").count() == 1
+        await btn("Done").click(); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
+        assert await pg.get_by_text("Daily mouth check").count() >= 1
+        assert await pg.get_by_role("heading", name="Jaw opening").count() == 1
+        await shot("22-tracker-cancer", True)
+        await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(300)
+        assert await pg.get_by_text("When to get help straight away").count() == 1
+        await shot("23-advice-cancer", True)
         print("errors:", errs)
         assert not errs, errs
         await b.close()

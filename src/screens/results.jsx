@@ -1,3 +1,5 @@
+import { USED, usedDays, usedInsights } from "../data/used.js";
+import { GRADES } from "../data/daily.js";
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
 import { DotSeries, PhTimeline } from "../components/kit.jsx";
@@ -10,6 +12,42 @@ import { fmtDate, fmtShort, fmtTime } from "../lib/store.js";
 
 const by = (kind) => (e) => e.kind === kind;
 
+const DAY = 86400000;
+
+/** What was used on which days, over the last 6 weeks, plus any before/after pattern in the SIP score. */
+function UsedPanel({ entries, open }) {
+  const days = usedDays(entries);
+  const items = USED.filter((u) => days[u.v]?.length);
+  const ins = usedInsights(entries);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const cols = Array.from({ length: 42 }, (_, i) => +today - (41 - i) * DAY);
+  return (
+    <section className="panel">
+      <div className="panel-h"><h2>What I used</h2><button className="link-btn" onClick={() => open("used")}>Log today</button></div>
+      {ins.map((x) => (
+        <p key={x.v} className={`insight ${x.change < 0 ? "better" : x.change > 0 ? "worse" : ""}`}>
+          Since starting <b>{x.label}</b> on {fmtShort(x.first)}, your dry mouth score has {x.change < 0 ? "dropped" : x.change > 0 ? "risen" : "stayed"} {x.change ? `from ${x.before} to ${x.after}` : `at about ${x.after}`} on average.
+        </p>
+      ))}
+      {ins.length > 0 && <p className="panel-foot">A pattern in your own results, not proof — other things change at the same time.</p>}
+      {items.length ? (
+        <div className="used-grid" role="img" aria-label={items.map((u) => `${u.label}: ${days[u.v].length} days`).join("; ")}>
+          {items.map((u) => {
+            const set = new Set(days[u.v].map((t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return +d; }));
+            return (
+              <div key={u.v} className="used-row">
+                <span>{u.label}</span>
+                <span className="used-days">{cols.map((c) => <i key={c} className={set.has(c) ? "on" : ""} />)}</span>
+              </div>
+            );
+          })}
+          <p className="panel-foot">Last 6 weeks.</p>
+        </div>
+      ) : <p className="soft-note">Log what you use — gel, Tooth Mousse, rinses — and after a few weeks this shows whether your dry mouth score changed.</p>}
+    </section>
+  );
+}
+
 export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
   const [openId, setOpenId] = useState(null);
   const sips = entries.filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => a.ts - b.ts);
@@ -17,8 +55,11 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
   const risks = entries.filter(by("risk")).sort((a, b) => a.ts - b.ts);
   const decays = entries.filter(by("decay")).sort((a, b) => a.ts - b.ts);
   const all = [...entries].filter((e) => e.kind === "risk" || e.kind === "decay" || e.sip != null || e.ph != null).sort((a, b) => b.ts - a.ts);
+  const dailies = entries.filter(by("daily")).sort((a, b) => a.ts - b.ts);
+  const jaws = entries.filter(by("jaw")).sort((a, b) => a.ts - b.ts);
+  const anyUsed = entries.some(by("used"));
 
-  if (!all.length) return (
+  if (!all.length && !dailies.length && !anyUsed && !jaws.length) return (
     <div className="screen">
       <header className="hero"><h1 className="display">My mouth tracker</h1></header>
       <section className="empty-card"><p>Your risk checks, dry mouth scores and pH results will appear here, with charts once you have a few.</p>
@@ -30,6 +71,15 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
     <div className="screen">
       <header className="hero"><h1 className="display">My mouth tracker</h1>
         <p className="lede">Everything you've recorded, to look back on or show your dentist.</p></header>
+
+      {dailies.length > 0 && (
+        <section className="panel">
+          <div className="panel-h"><h2>Daily mouth check</h2><button className="link-btn" onClick={() => open("daily")}>Check today</button></div>
+          <p className="big-read"><strong>{GRADES[dailies.at(-1).grade ?? 0].label}</strong></p><p className="panel-foot">Last checked {fmtShort(dailies.at(-1).ts)}</p>
+          {dailies.length > 1 && <DotSeries points={dailies.slice(-21).map((d) => ({ v: d.pain ?? 0, label: fmtShort(d.ts) }))} min={0} max={10} tone="red" fmt={(v) => v} />}
+          <p className="panel-foot">Mouth pain, 0 (none) to 10. Mouth sores graded on the WHO scale from your answers.</p>
+        </section>
+      )}
 
       <section className="panel">
         <div className="panel-h"><h2>Dry mouth score</h2><button className="link-btn" onClick={() => open("sip")}>Check now</button></div>
@@ -47,6 +97,17 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
           <p className="panel-foot">{phs.filter((p) => isAcidic(p.ph)).length} of {phs.length} results acidic (6.6 or lower).{phPattern(phs).level === "flag" ? " Your recent results are consistently acidic — show your dentist." : ""}</p>
         </>) : <p className="soft-note">No results yet.</p>}
       </section>
+
+      <UsedPanel entries={entries} open={open} />
+
+      {jaws.length > 0 && (
+        <section className="panel">
+          <div className="panel-h"><h2>Jaw opening</h2><button className="link-btn" onClick={() => open("jaw")}>Check now</button></div>
+          <p className="big-read"><strong>{jaws.at(-1).fingers === 3 ? "3 or more" : jaws.at(-1).fingers} finger{jaws.at(-1).fingers === 1 ? "" : "s"}</strong></p><p className="panel-foot">Last checked {fmtShort(jaws.at(-1).ts)}</p>
+          {jaws.length > 1 && <DotSeries points={jaws.slice(-12).map((j) => ({ v: j.fingers, label: fmtShort(j.ts) }))} min={1} max={3} tone="accent" />}
+          <p className="panel-foot">Fewer than 3 fingers can be an early sign of a stiff jaw — tell your team.</p>
+        </section>
+      )}
 
       {risks.length > 0 && (
         <section className="panel">

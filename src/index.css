@@ -1159,3 +1159,17 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .q-tick { flex: none; width: 32px; height: 32px; border-radius: 10px; border: 2px solid var(--line); background: var(--card); color: var(--accent-ink); display: grid; place-items: center; cursor: pointer; }
 .q-list li.asked .q-tick { background: var(--good); border-color: var(--good); }
 .chips .chip { text-align: left; }
+/* Tracker: what I used */
+.insight { margin: 0 0 10px; padding: 12px 14px; border-radius: 14px; background: var(--tint); line-height: 1.4; }
+.insight.better { background: var(--good-bg); } .insight.worse { background: var(--amberbg); }
+.used-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.used-row { display: grid; grid-template-columns: minmax(0, 9.5em) 1fr; gap: 10px; align-items: center; font-size: calc(14px * var(--s)); }
+.used-row > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.used-days { display: grid; grid-template-columns: repeat(42, 1fr); gap: 2px; }
+.used-days i { aspect-ratio: 1 / 2.2; border-radius: 2px; background: var(--soft); }
+.used-days i.on { background: var(--good); }
+.c-line.red { stroke: var(--red); } .c-pt.red { fill: var(--red); }
+/* Sources behind a tap */
+details.srcs { margin-top: 8px; }
+details.srcs summary { cursor: pointer; color: var(--ink3); font-size: calc(14px * var(--s)); font-weight: 600; min-height: 32px; display: inline-flex; align-items: center; }
+details.srcs .sources { margin-top: 4px; }

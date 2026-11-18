@@ -89,7 +89,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
     : !r ? { tone: "accent", icon: "shield", title: "Start with your dry mouth risk", sub: "2 minutes · medicines, health and habits", act: "Start", go: () => open("risk") }
     : sipNext?.due || !sip ? { tone: "accent", icon: "drop", title: "Your dry mouth check is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
     : phNext?.due || !ph ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
-    : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: null };
+    : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: "Log what I used today", go: () => open("used"), quiet: true };
   const tx = cancer ? journey(profile).cards[0] : null;
   const trend = recent.length < 2 ? null : change >= 2 ? { label: "Getting drier", tone: "orange" } : change <= -2 ? { label: "Improving", tone: "good" } : { label: "Steady", tone: null };
 
@@ -104,7 +104,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
       <section className={`today t-${today.tone}`} aria-label="Today">
         <span className="today-icon" aria-hidden="true"><Icon name={today.icon} size={24} /></span>
         <div className="today-text"><p className="today-k">Today</p><h2>{today.title}</h2>{today.sub && <p>{today.sub}</p>}</div>
-        {today.act && <button className={`btn ${today.tone === "red" ? "danger" : "primary"}`} onClick={today.go}>{today.act}</button>}
+        {today.act && <button className={`btn ${today.tone === "red" ? "danger" : today.quiet ? "ghost" : "primary"}`} onClick={today.go}>{today.act}</button>}
       </section>
 
       {tx && (
