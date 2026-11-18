@@ -81,7 +81,7 @@ export const CARE_TOPICS = [
       "Tell every dentist you've had radiotherapy before any tooth is taken out. The jaw can heal poorly there. Show them your dental alert card.",
       "Check how wide you can open once a month. If it's getting harder, tell your team early.",
     ],
-    products: ["neutrafluor", "gc-tmp"], refs: ["peterson2024", "nciPdqHp", "featherstone2021"],
+    products: ["neutrafluor", "gc-tmp", "gc-tm"], refs: ["peterson2024", "nciPdqHp", "featherstone2021"],
   },
 
   // ── Everyone ──
@@ -143,7 +143,7 @@ export const CARE_TOPICS = [
     forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8 || c.risk === "high" || c.risk === "veryhigh" || ["moderate", "high", "veryhigh"].includes(c.decay),
     steps: [
       "Ask your dentist if you need a high-fluoride toothpaste (5,000 ppm).",
-      "After brushing in the morning and at night, smear a pea-sized amount of GC Tooth Mousse Plus over your teeth. Don't rinse, eat or drink for 30 minutes.",
+      "After brushing in the morning and at night, smear a pea-sized amount of GC Tooth Mousse Plus over your teeth. Don't rinse, eat or drink for 30 minutes. It provides additional protection, fortified with 900 ppm fluoride.",
       "GC Tooth Mousse has calcium and phosphate without fluoride. It suits daytime use, or children.",
       "Not if you're allergic to milk protein. Tooth Mousse Plus isn't for children 6 or under.",
       "Ask for fluoride varnish at your check-ups.",
@@ -170,11 +170,11 @@ export const CARE_TOPICS = [
     steps: [
       "Rinse your mouth with plain water straight away.",
       "Wait about an hour before brushing. Brushing softened enamel wears it away.",
-      "Meanwhile, smear fluoride toothpaste or GC Tooth Mousse on your teeth with a clean finger.",
+      "Meanwhile, smear fluoride toothpaste, GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) on your teeth with a clean finger.",
       "Chew sugar-free gum to wash the acid away.",
       "If it keeps happening, see your GP, and tell your dentist.",
     ],
-    products: ["gc-tm"], refs: ["adaPregnancy", "pbbTeeth"],
+    products: ["gc-tm", "gc-tmp"], refs: ["adaPregnancy", "pbbTeeth"],
   },
   {
     id: "pregnancy", icon: "user", title: "Your mouth in pregnancy",

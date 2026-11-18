@@ -286,8 +286,8 @@ export function decayPlan(result, answers = {}) {
         ? "After brushing in the morning and at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, you can also use it after lunch."
         : has("mouth", "braces")
           ? "After brushing in the morning and at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
-          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. It adds calcium, phosphate and fluoride.",
-      products: ["gc-tmp"], refs: ["featherstone2021", "agarwal2022"] });
+          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse adds calcium and phosphate; Tooth Mousse Plus provides additional protection, fortified with 900 ppm fluoride.",
+      products: ["gc-tmp", "gc-tm"], refs: ["featherstone2021", "agarwal2022"] });
 
   if (hi)
     out.push({ id: "tm", title: "During the day: GC Tooth Mousse",

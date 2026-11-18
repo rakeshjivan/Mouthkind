@@ -28,7 +28,7 @@ export const PRODUCTS = [
   // Protect teeth
   {
     id: "gc-tmp", gc: true, name: "GC Tooth Mousse Plus", job: "protect",
-    form: "Crème with CPP-ACP and fluoride", regions: { AU: "yes", NZ: "yes" },
+    form: "Crème with CPP-ACP, fortified with 900 ppm fluoride", regions: { AU: "yes", NZ: "yes" },
     why: "Adds calcium and phosphate (CPP-ACP) plus fluoride. With a dry mouth, saliva no longer supplies these, so teeth lose mineral faster.",
     use: "After brushing in the morning and at night, smear a pea-sized amount over the teeth. Don't rinse, eat or drink for 30 minutes.",
     cautions: ["Not if you are allergic to milk protein (casein).", "Not for children 6 or under."],
@@ -37,7 +37,8 @@ export const PRODUCTS = [
     flavours: "Mint, strawberry, vanilla",
     benefits: [
       "Rapidly helps neutralise acids in the mouth.",
-      "Delivers a high level of calcium and phosphate (CPP-ACP) to the teeth, plus fluoride.",
+      "Delivers a high level of calcium and phosphate (CPP-ACP) to the teeth.",
+      "Provides additional protection: fortified with 900 ppm fluoride.",
       "Lubricates a dry mouth.",
       "Comes in a range of flavours.",
       "Can be mixed with GC Dry Mouth Gel.",

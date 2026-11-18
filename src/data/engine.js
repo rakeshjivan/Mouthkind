@@ -331,7 +331,7 @@ const RULES = [
     if (src.includes("graze")) steps.push("Keep snacks and sweet drinks to mealtimes — every one starts a new acid attack.");
     if (src.includes("reflux")) steps.push("Ask your GP about treating the reflux. After heartburn, rinse with water and wait an hour to brush.");
     if (src.includes("vomit")) steps.push("After vomiting, rinse with water and wait about an hour before brushing.");
-    steps.push("Smear GC Tooth Mousse Plus over your teeth after brushing, morning and night.");
+    steps.push("After brushing, morning and night, smear GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) over your teeth.");
     if (lvl === "flag") steps.push("See your dentist and show them your pH results.");
     const because = [`Your saliva was acidic in ${m.phPat.acid} of your last ${m.phPat.n} tests.`];
     if (src.length && !src.includes("none")) because.push(`You mentioned ${list(src.filter((s) => s !== "none").map((s) => ({ drinks: "acidic drinks", graze: "snacking through the day", reflux: "reflux", vomit: "vomiting" })[s]))}.`);
@@ -345,7 +345,7 @@ const RULES = [
     const f = [].concat(answered(m, "rtFluoride") || []);
     if (f.includes("hf") || f.includes("tray")) return { id: "rtFluoride", pri: 30, title: "Keep up your daily fluoride, for life", body: "You're doing the most important thing. See your dentist every 3 to 6 months.", because: ["You've had radiotherapy to the head or neck."], refs: ["peterson2024"] };
     return { id: "rtFluoride", pri: 83, title: "Use high-strength fluoride every day, for life",
-      body: "Brush with a high-fluoride toothpaste (5,000 ppm) twice a day — spit, don't rinse — or use the fluoride trays your dentist makes. Add GC Tooth Mousse Plus after brushing, morning and night.",
+      body: "Brush with a high-fluoride toothpaste (5,000 ppm) twice a day — spit, don't rinse. After brushing, morning and night, add GC Tooth Mousse Plus (fortified with 900 ppm fluoride) or GC Tooth Mousse.",
       because: ["You've had radiotherapy to the head or neck. Teeth can decay very fast afterwards.",
         ...(f.includes("ff") ? ["Your toothpaste has no fluoride."] : f.includes("plain") ? ["You're using an ordinary-strength fluoride toothpaste."] : f.includes("none") ? ["You're not using any fluoride yet."] : [])],
       refs: ["peterson2024", "featherstone2021"], products: ["neutrafluor", "gc-tmp"] };
@@ -563,6 +563,13 @@ export function buildPlan(m) {
   for (const it of checkAdvice(m)) {
     if (seen.has(it.id) || (COVERED[it.id] || []).some((x) => seen.has(x))) continue;
     seen.add(it.id); out.push({ refs: [], products: [], ...it });
+  }
+  // Tooth Mousse and Tooth Mousse Plus go together: show both wherever one is suggested.
+  for (const it of out) {
+    if (it.id === "decay.tm") continue;
+    const p = it.products || [];
+    if (p.includes("gc-tm") && !p.includes("gc-tmp")) it.products = [...p, "gc-tmp"];
+    else if (p.includes("gc-tmp") && !p.includes("gc-tm")) it.products = [...p, "gc-tm"];
   }
   const using = inUse(m);
   for (let i = 0; i < out.length; i++) out[i] = encourage(safe(out[i], m), using);

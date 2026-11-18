@@ -353,7 +353,7 @@ export function riskAdvice(result, answers = {}) {
   if (medPts >= 8)
     out.push({ id: "meds", title: "Ask for a medicine review", body: "Your pharmacist or GP may be able to change the dose, timing or type of a medicine that dries the mouth. Never stop a medicine without asking first.", refs: ["wolff2017"] });
   if (result.band.lo >= 10)
-    out.push({ id: "teeth", title: "Protect your teeth", body: "Saliva protects teeth from decay. Use a fluoride toothpaste twice a day, spit and don't rinse, and ask your dentist whether you need a high-fluoride toothpaste. GC Tooth Mousse Plus after brushing adds calcium, phosphate and fluoride.", refs: ["agarwal2022"], products: ["gc-tmp"] });
+    out.push({ id: "teeth", title: "Protect your teeth", body: "Saliva protects teeth from decay. Use a fluoride toothpaste twice a day, spit and don't rinse, and ask your dentist whether you need a high-fluoride toothpaste. After brushing, GC Tooth Mousse adds calcium and phosphate. GC Tooth Mousse Plus provides additional protection, fortified with 900 ppm fluoride.", refs: ["agarwal2022"], products: ["gc-tm", "gc-tmp"] });
   if (result.band.lo >= 25 || result.major)
     out.push({ id: "moist", title: "Keep your mouth moist", body: "Sip water often, and use a saliva gel such as GC Dry Mouth Gel before meals and at bedtime. Sugar-free gum can help your own saliva flow.", refs: ["mercadante2021", "nuchit2020"], products: ["gc-dmg"] });
   if (has("breathing", "cpap"))
@@ -367,7 +367,7 @@ export function riskAdvice(result, answers = {}) {
   if (has("conditions", "pregnant") || has("conditions", "pregnantSick"))
     out.push({ id: "pregnant", title: "Looking after your mouth in pregnancy", body: "Tell your dentist you're pregnant — check-ups and most treatment are safe, and the second trimester is often the most comfortable time. Gums often swell and bleed more in pregnancy: keep brushing gently twice a day and clean between your teeth. Keep sweet snacks to mealtimes.", refs: ["adaPregnancy", "pbbTeeth"] });
   if (result.factors.some((f) => f.acid) || has("medTypes", "glp1"))
-    out.push({ id: "acid", title: "After vomiting or reflux, don't brush straight away", body: "Rinse with water, then wait about an hour before brushing — acid softens enamel and brushing straight away wears it. In the meantime, smear on fluoride toothpaste or GC Tooth Mousse with a clean finger, or chew sugar-free gum.", refs: ["adaPregnancy", "pbbTeeth"], products: ["gc-tm"] });
+    out.push({ id: "acid", title: "After vomiting or reflux, don't brush straight away", body: "Rinse with water, then wait about an hour before brushing — acid softens enamel and brushing straight away wears it. In the meantime, smear on fluoride toothpaste, GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) with a clean finger, or chew sugar-free gum.", refs: ["adaPregnancy", "pbbTeeth"], products: ["gc-tm", "gc-tmp"] });
   if (has("medTypes", "glp1"))
     out.push({ id: "glp1", title: "On a GLP-1 medicine", body: "Nausea, reflux and simply drinking less are common on these medicines, and all three dry the mouth. Keep sipping water through the day and mention dry mouth to your prescriber.", refs: ["massarotto2026", "alzawawi2026"] });
   if (has("cancer", "immuno"))
