@@ -30,7 +30,7 @@ export const PRODUCTS = [
     id: "gc-tmp", gc: true, name: "GC Tooth Mousse Plus", job: "protect",
     form: "Crème with CPP-ACP and fluoride", regions: { AU: "yes", NZ: "yes" },
     why: "Adds calcium and phosphate (CPP-ACP) plus fluoride. With a dry mouth, saliva no longer supplies these, so teeth lose mineral faster.",
-    use: "After brushing at night, smear a pea-sized amount over the teeth. Don't rinse, eat or drink for 30 minutes.",
+    use: "After brushing in the morning and at night, smear a pea-sized amount over the teeth. Don't rinse, eat or drink for 30 minutes.",
     cautions: ["Not if you are allergic to milk protein (casein).", "Not for children 6 or under."],
     evidence: "In a 24-person trial during head and neck radiotherapy, adding CPP-ACP crème to fluoride cut new decay on tooth crowns by about half. Use it with fluoride toothpaste, not instead of it.",
     refs: ["sim2019", "agarwal2022"],

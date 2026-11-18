@@ -76,7 +76,7 @@ export const CARE_TOPICS = [
     forYou: (c) => !!c.cancer && tx(c, "rt_hn"),
     steps: [
       "Use fluoride every day for life: a high-fluoride toothpaste, or fluoride trays if your dentist made you some.",
-      "Add GC Tooth Mousse Plus at night. A dry mouth can decay very fast.",
+      "Add GC Tooth Mousse Plus after brushing, morning and night. A dry mouth can decay very fast.",
       "See your dentist every 3 to 6 months.",
       "Tell every dentist you've had radiotherapy before any tooth is taken out. The jaw can heal poorly there. Show them your dental alert card.",
       "Check how wide you can open once a month. If it's getting harder, tell your team early.",
@@ -143,7 +143,7 @@ export const CARE_TOPICS = [
     forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8 || c.risk === "high" || c.risk === "veryhigh" || ["moderate", "high", "veryhigh"].includes(c.decay),
     steps: [
       "Ask your dentist if you need a high-fluoride toothpaste (5,000 ppm).",
-      "After brushing at night, smear a pea-sized amount of GC Tooth Mousse Plus over your teeth. Don't rinse, eat or drink for 30 minutes.",
+      "After brushing in the morning and at night, smear a pea-sized amount of GC Tooth Mousse Plus over your teeth. Don't rinse, eat or drink for 30 minutes.",
       "GC Tooth Mousse has calcium and phosphate without fluoride. It suits daytime use, or children.",
       "Not if you're allergic to milk protein. Tooth Mousse Plus isn't for children 6 or under.",
       "Ask for fluoride varnish at your check-ups.",

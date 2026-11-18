@@ -281,12 +281,12 @@ export function decayPlan(result, answers = {}) {
       products: ["oranurse"], refs: ["walsh2019"] });
 
   if (lvl !== "low" || has("mouth", "braces"))
-    out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus at night",
+    out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus, morning and night",
       body: lvl === "veryhigh"
-        ? "After brushing at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, use it again during the day — after breakfast or lunch."
+        ? "After brushing in the morning and at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, you can also use it after lunch."
         : has("mouth", "braces")
-          ? "After brushing at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
-          : "After brushing at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. It adds calcium, phosphate and fluoride.",
+          ? "After brushing in the morning and at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
+          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. It adds calcium, phosphate and fluoride.",
       products: ["gc-tmp"], refs: ["featherstone2021", "agarwal2022"] });
 
   if (hi)
