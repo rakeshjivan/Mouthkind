@@ -210,5 +210,6 @@ export const REFS = {
   nazir2026: { short: "Nazir 2026", title: "Stress and resilience during pregnancy: relationship with perceived oral health (dry mouth reported by 57%)", where: "BMC Oral Health 2026;26", url: "https://doi.org/10.1186/s12903-026-09286-3" },
   adaPregnancy: { short: "ADA: Pregnancy", title: "Pregnancy and your teeth", where: "Australian Dental Association", url: "https://teeth.org.au/pregnancy" },
   pbbTeeth: { short: "Pregnancy, Birth and Baby", title: "Looking after your teeth during pregnancy", where: "Pregnancy, Birth and Baby (Australian Government)", url: "https://www.pregnancybirthbaby.org.au/pregnancy/nutrition-and-lifestyle/looking-after-your-teeth-during-pregnancy" },
+  choo2022: { short: "Choo 2022", title: "A retrospective study of drugs associated with xerostomia from the Australian Database of Adverse Event Notifications", where: "Int J Pharm Pract 2022;30:548–53", url: "https://doi.org/10.1093/ijpp/riac051" },
   gcSalivaCheck: { short: "GC Saliva-Check BUFFER", title: "Saliva-Check BUFFER: resting saliva pH and testing instructions", where: "GC product brochure", url: "https://henryschein.com.au/Documents/brochure%20saliva%20check%20buffer.pdf" },
 };

@@ -15,6 +15,7 @@ const groupLabel = (c) => {
 function Note({ m }) {
   if (!m) return <em className="unknown">We don't know this one — your pharmacist can check whether it dries the mouth</em>;
   if (!m.c) return <em className="safe"><Icon name="check" size={14} stroke={2.6} /> Not known to dry the mouth</em>;
+  if (m.c === "rep") return <em className="rep">Sometimes reported to dry the mouth</em>;
   return <em className="dries">Can dry the mouth · {groupLabel(m.c)}</em>;
 }
 
@@ -60,7 +61,7 @@ export function MedLookup({ value = [], onChange }) {
             const m = x.id && medicineById(x.id);
             const name = m ? x.brand || m.g : x.name;
             return (
-              <li key={(x.id || x.name) + i} className={m ? (m.c ? "dries" : "safe") : "unknown"}>
+              <li key={(x.id || x.name) + i} className={m ? (m.c === "rep" ? "rep" : m.c ? "dries" : "safe") : "unknown"}>
                 <span><strong>{name}</strong>{m && x.brand && <span> ({m.g})</span>}<Note m={m} /></span>
                 <button type="button" className="icon-btn" onClick={() => remove(i)} aria-label={`Remove ${name}`}><Icon name="x" size={18} /></button>
               </li>

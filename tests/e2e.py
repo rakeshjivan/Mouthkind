@@ -57,7 +57,7 @@ async def main():
         await box.fill("Grandma's tonic"); await pg.wait_for_timeout(150)
         await dlg.get_by_role("button", name="Add", exact=True).click(); await pg.wait_for_timeout(150)
         assert await dlg.locator(".medlook-list li").count() == 4
-        assert await dlg.locator(".medlook-list li.safe", has_text="Nurofen").count() == 1
+        assert await dlg.locator(".medlook-list li.rep", has_text="Nurofen").count() == 1
         assert await dlg.locator(".medlook-list li.unknown", has_text="Grandma").count() == 1
         await shot("03a-risk-names")
         # Back keeps the list

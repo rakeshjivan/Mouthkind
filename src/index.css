@@ -1040,3 +1040,5 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .medlook-list li.unknown { background: var(--card); border: 1px dashed var(--line); }
 .medlook-count { margin: 16px 2px 0; font-weight: 600; color: var(--ink2); }
 .medlook-count + .medlook-list { margin-top: 8px; }
+.medlook-hits em.rep, .medlook-list em.rep { color: var(--amber, #a8660f); }
+.medlook-list li.rep { background: color-mix(in srgb, var(--amber, #c98a1a) 10%, var(--card)); }

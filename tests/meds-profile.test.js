@@ -12,17 +12,26 @@ const options = (qid) => RISK_QUESTIONS.filter((q) => q.id === qid && q.options)
 test("every medicine maps to a real group (or none) and real purposes", () => {
   const purposes = MED_PURPOSES.map((p) => p.v);
   for (const m of MEDICINES) {
-    if (m.c) { const [q, v] = m.c.split("."); assert.ok(options(q).includes(v), `${m.g} → ${m.c}`); }
+    if (m.c && m.c !== "rep") { const [q, v] = m.c.split("."); assert.ok(options(q).includes(v), `${m.g} → ${m.c}`); }
     assert.ok(m.p.length && m.p.every((p) => purposes.includes(p)), `${m.g} purposes ${m.p}`);
   }
   for (const p of MED_PURPOSES) if (p.g) assert.ok(options("medTypes").includes(p.g), `${p.v} → ${p.g}`);
 });
 
-test("everyday medicines are found and don't dry the mouth", () => {
-  for (const name of ["ibuprofen", "Nurofen", "Panadol", "Lipitor", "metformin", "Somac"]) {
-    const h = searchMedicines(name)[0];
-    assert.ok(h, name); assert.equal(h.m.c, null, name);
-  }
+test("three tiers: known, sometimes reported, not known", () => {
+  const tier = (n) => searchMedicines(n)[0].m.c;
+  for (const n of ["Panadol", "Lipitor", "metformin", "Betmiga"]) assert.equal(tier(n), null, n);
+  for (const n of ["Nurofen", "Somac", "amlodipine", "Avapro"]) assert.equal(tier(n), "rep", n);
+  for (const n of ["Coversyl", "diltiazem", "Vesicare"]) assert.ok(tier(n)?.startsWith("medTypes."), n);
+});
+
+test("sometimes-reported medicines add 1 point each, up to 3", () => {
+  const id = (n) => searchMedicines(n)[0].m.id;
+  const list = ["Nurofen", "Somac", "amlodipine", "Avapro"].map((n) => ({ id: id(n) }));
+  const r = scoreRisk({ medFor: ["pain", "bp", "stomach"], medList: list });
+  const f = r.factors.find((x) => x.q === "medRep");
+  assert.equal(f.pts, 3);
+  assert.ok(!r.factors.some((x) => x.q === "medTypes")); // named medicines replace the guesses
 });
 
 test("purposes alone give their usual group, and the count is asked", () => {
@@ -39,7 +48,8 @@ test("named medicines replace the guess and set the count", () => {
   const a = { medFor: ["pain", "bladder", "bp"], medList: [{ id: id("Nurofen") }, { id: id("Betmiga") }, { id: id("amlodipine") }] };
   assert.ok(!visibleRiskQuestions(a).some((q) => q.id === "meds"));
   const d = deriveMeds(a, medicineById);
-  assert.deepEqual(d.medTypes, []);          // ibuprofen, mirabegron, amlodipine don't dry the mouth
+  assert.deepEqual(d.medTypes, []);          // none of these is on Wolff's list
+  assert.equal(d.medRep, "2");               // ibuprofen and amlodipine are sometimes reported
   assert.equal(d.meds, "3");                 // 3 medicines
   const b = { medFor: ["bladder", "mood"], medList: [{ id: id("Vesicare") }] };
   assert.deepEqual(deriveMeds(b, medicineById).medTypes.sort(), ["antidep", "bladder"]); // mood has no name → usual group

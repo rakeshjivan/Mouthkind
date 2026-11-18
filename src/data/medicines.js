@@ -4,6 +4,9 @@
 // ("medTypes.<group>", or "cancer.immuno"). Bundled with the app, so nothing
 // the person types leaves their device.
 //
+// Three tiers: a group = known to dry the mouth; "rep" = sometimes reported (Choo 2022,
+// Australian adverse event reports); null = not known to dry the mouth.
+//
 // Group membership follows the WWOM VI systematic review of medicines that
 // cause salivary gland dysfunction (Wolff 2017), plus GLP-1 medicines
 // (Massarotto 2026), isotretinoin (Alqahtani 2026) and immune checkpoint
@@ -27,7 +30,9 @@ const GROUP_PURPOSE = {
 };
 const M = (g, b, c, p) => ({ g, b, c, p: p || GROUP_PURPOSE[c] || ["other"] });
 const N = (g, b, p) => ({ g, b, c: null, p });
-const T = (c) => (!c ? null : c.includes(".") ? c : `medTypes.${c}`);
+// Sometimes reported: dry mouth reported to the TGA (Choo 2022) but not in Wolff 2017's list.
+const R = (g, b, p) => ({ g, b, c: "rep", p });
+const T = (c) => (!c || c === "rep" ? c : c.includes(".") ? c : `medTypes.${c}`);
 
 const LIST = [
   // Older (tricyclic) antidepressants
@@ -114,16 +119,16 @@ const LIST = [
 
   // ── Everyday medicines not known to dry the mouth ──
   // Pain and inflammation
-  N("paracetamol", ["Panadol", "Panamax", "Panadol Osteo"], ["pain"]), N("ibuprofen", ["Nurofen", "Brufen"], ["pain"]),
-  N("naproxen", ["Naprosyn", "Naprogesic"], ["pain"]), N("diclofenac", ["Voltaren"], ["pain"]), N("celecoxib", ["Celebrex"], ["pain"]),
-  N("meloxicam", ["Mobic"], ["pain"]), N("aspirin", ["Cartia", "Astrix", "Disprin"], ["bp", "pain"]),
+  N("paracetamol", ["Panadol", "Panamax", "Panadol Osteo"], ["pain"]), R("ibuprofen", ["Nurofen", "Brufen"], ["pain"]),
+  R("naproxen", ["Naprosyn", "Naprogesic"], ["pain"]), R("diclofenac", ["Voltaren"], ["pain"]), R("celecoxib", ["Celebrex"], ["pain"]),
+  R("meloxicam", ["Mobic"], ["pain"]), N("aspirin", ["Cartia", "Astrix", "Disprin"], ["bp", "pain"]),
   // Cholesterol, heart, blood thinners
   N("atorvastatin", ["Lipitor"], ["bp"]), N("rosuvastatin", ["Crestor"], ["bp"]), N("simvastatin", ["Zocor"], ["bp"]),
-  N("pravastatin", ["Pravachol"], ["bp"]), N("ezetimibe", ["Ezetrol"], ["bp"]), N("perindopril", ["Coversyl"], ["bp"]),
-  N("ramipril", ["Tritace"], ["bp"]), N("candesartan", ["Atacand"], ["bp"]), N("irbesartan", ["Avapro"], ["bp"]),
-  N("telmisartan", ["Micardis"], ["bp"]), N("olmesartan", ["Olmetec"], ["bp"]), N("valsartan", ["Diovan"], ["bp"]),
-  N("amlodipine", ["Norvasc"], ["bp"]), N("lercanidipine", ["Zanidip"], ["bp"]), N("felodipine", ["Plendil"], ["bp"]),
-  N("diltiazem", ["Cardizem"], ["bp"]), N("verapamil", ["Isoptin"], ["bp"]), N("apixaban", ["Eliquis"], ["bp"]),
+  N("pravastatin", ["Pravachol"], ["bp"]), N("ezetimibe", ["Ezetrol"], ["bp"]), M("perindopril", ["Coversyl"], "bp"),
+  M("ramipril", ["Tritace"], "bp"), R("candesartan", ["Atacand"], ["bp"]), R("irbesartan", ["Avapro"], ["bp"]),
+  R("telmisartan", ["Micardis"], ["bp"]), R("olmesartan", ["Olmetec"], ["bp"]), R("valsartan", ["Diovan"], ["bp"]),
+  R("amlodipine", ["Norvasc"], ["bp"]), R("lercanidipine", ["Zanidip"], ["bp"]), R("felodipine", ["Plendil"], ["bp"]),
+  M("diltiazem", ["Cardizem"], "bp"), M("verapamil", ["Isoptin"], "bp"), N("apixaban", ["Eliquis"], ["bp"]),
   N("rivaroxaban", ["Xarelto"], ["bp"]), N("dabigatran", ["Pradaxa"], ["bp"]), N("warfarin", ["Coumadin", "Marevan"], ["bp"]),
   N("clopidogrel", ["Plavix"], ["bp"]), N("ticagrelor", ["Brilinta"], ["bp"]), N("digoxin", ["Lanoxin"], ["bp"]),
   N("isosorbide mononitrate", ["Imdur"], ["bp"]), N("glyceryl trinitrate", ["Nitrolingual", "Anginine"], ["bp"]),
@@ -132,8 +137,8 @@ const LIST = [
   N("empagliflozin", ["Jardiance"], ["diabetes"]), N("dapagliflozin", ["Forxiga"], ["diabetes"]),
   N("insulin", ["Lantus", "Optisulin", "NovoRapid", "Humalog", "Toujeo", "Ryzodeg"], ["diabetes"]),
   // Stomach and bowels
-  N("pantoprazole", ["Somac"], ["stomach"]), N("esomeprazole", ["Nexium"], ["stomach"]), N("omeprazole", ["Losec"], ["stomach"]),
-  N("rabeprazole", ["Pariet"], ["stomach"]), N("famotidine", ["Pepcid"], ["stomach"]), N("ondansetron", ["Zofran"], ["stomach"]),
+  R("pantoprazole", ["Somac"], ["stomach"]), R("esomeprazole", ["Nexium"], ["stomach"]), R("omeprazole", ["Losec"], ["stomach"]),
+  R("rabeprazole", ["Pariet"], ["stomach"]), N("famotidine", ["Pepcid"], ["stomach"]), N("ondansetron", ["Zofran"], ["stomach"]),
   N("metoclopramide", ["Maxolon"], ["stomach"]), N("loperamide", ["Imodium"], ["stomach"]), N("docusate", ["Coloxyl"], ["stomach"]),
   N("macrogol", ["Movicol", "OsmoLax"], ["stomach"]), N("lactulose", ["Duphalac"], ["stomach"]),
   // Breathing and allergy
@@ -184,4 +189,4 @@ export function searchMedicines(q, limit = 8) {
 export const medicineById = (id) => MEDICINES.find((m) => m.id === id);
 
 /** The groups ("question.option") covered by a set of looked-up medicines. */
-export const groupsFor = (list = []) => [...new Set(list.map((x) => (x.id ? medicineById(x.id)?.c : null)).filter(Boolean))];
+export const groupsFor = (list = []) => [...new Set(list.map((x) => (x.id ? medicineById(x.id)?.c : null)).filter((c) => c && c !== "rep"))];

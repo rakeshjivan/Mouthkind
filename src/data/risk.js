@@ -74,13 +74,15 @@ export function deriveMeds(a, lookup) {
   const f = a.medFor.filter((v) => MED_PURPOSES.some((p) => p.v === v));
   const list = (a.medList || []).map((x) => (x.id && lookup ? lookup(x.id) : null));
   const groups = new Set(), extra = {};
-  for (const m of list) if (m?.c) { const [q, v] = m.c.split("."); (q === "medTypes" ? groups : (extra[q] ??= new Set())).add(v); }
+  for (const m of list) if (m?.c && m.c !== "rep") { const [q, v] = m.c.split("."); (q === "medTypes" ? groups : (extra[q] ??= new Set())).add(v); }
   for (const v of f) {
     const named = list.some((m) => m?.p?.includes(v));
     const g = MED_PURPOSES.find((p) => p.v === v).g;
     if (!named && g) groups.add(g);
   }
   out.medTypes = [...groups];
+  const rep = list.filter((m) => m?.c === "rep").length;
+  out.medRep = rep ? String(Math.min(rep, 3)) : undefined;
   for (const [q, set] of Object.entries(extra)) out[q] = [...new Set([...(a[q] || []), ...set])];
   const n = (a.medList || []).length;
   out.meds = n ? countBand(Math.max(n, f.filter((v) => v !== "other").length)) : f.length ? a.meds : "0";
@@ -161,6 +163,15 @@ export const RISK_QUESTIONS = [
       { v: "smoking", label: "Quit-smoking tablets", hint: "e.g. varenicline (Champix), bupropion (Zyban)", pts: 2, why: "Both list dry mouth as a common side effect.", refs: ["wolff2017"] },
       { v: "allergy", label: "Non-drowsy antihistamines, most days", hint: "e.g. cetirizine, loratadine, fexofenadine", pts: 2, why: "Even non-drowsy antihistamines can dry the mouth a little.", refs: ["wolff2017"] },
       { v: "decong", label: "Cold and flu tablets or decongestants, most days", hint: "e.g. pseudoephedrine", pts: 2, why: "Decongestants dry the mouth while you take them.", refs: ["wolff2017"] },
+    ],
+  },
+  // Medicines sometimes reported to dry the mouth (from the names given; never asked).
+  {
+    id: "medRep", hidden: true, type: "one", section: "Medicines", text: "",
+    options: [
+      { v: "1", label: "1 medicine sometimes linked to dry mouth", pts: 1, why: "Dry mouth has been reported with this medicine in Australia, though less is known about how often.", refs: ["choo2022"] },
+      { v: "2", label: "2 medicines sometimes linked to dry mouth", pts: 2, why: "Dry mouth has been reported with these medicines in Australia, though less is known about how often.", refs: ["choo2022"] },
+      { v: "3", label: "3 or more medicines sometimes linked to dry mouth", pts: 3, why: "Dry mouth has been reported with these medicines in Australia, though less is known about how often.", refs: ["choo2022"] },
     ],
   },
   {
@@ -309,7 +320,7 @@ export function riskAdvice(result, answers = {}) {
 // `act`: something the person can do something about (habits, set-up, a
 // medicine review) — shown apart from things to be aware of.
 export const RISK_GROUPS = [
-  { id: "meds", label: "Medicines", qs: ["meds", "medTypes"], act: true, actNote: "Ask your pharmacist or GP for a medicine review." },
+  { id: "meds", label: "Medicines", qs: ["meds", "medTypes", "medRep"], act: true, actNote: "Ask your pharmacist or GP for a medicine review." },
   { id: "treat", label: "Cancer treatment", qs: ["cancer"], act: false },
   { id: "health", label: "Health conditions", qs: ["conditions"], act: false },
   { id: "sleep", label: "Sleep and breathing", qs: ["breathing"], act: true, actNote: "Your GP or sleep clinic can often help." },
