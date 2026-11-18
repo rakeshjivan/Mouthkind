@@ -7,6 +7,8 @@ import { CARE_TOPICS } from "../data/care.js";
 import { nextCheck } from "../data/schedule.js";
 import { fmtShort } from "../lib/store.js";
 import { firstName } from "../data/person.js";
+import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
+import { dailyTriage, sameDay } from "../data/daily.js";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const phReadings = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -73,6 +75,22 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
   // Dry mouth trend over the last four checks (SIP: higher is drier).
   const recent = sips.slice(-4).map((x) => x.sip);
   const change = recent.length > 1 ? recent.at(-1) - recent[0] : 0;
+  // The one thing to do today, most important first.
+  const cancer = inCancerCare(profile);
+  const active = activeTreatment(profile);
+  const daily = latestOf(entries, "daily");
+  const dailyToday = daily && sameDay(daily.ts, Date.now());
+  const triage = dailyToday ? dailyTriage(daily) : null;
+  const who = profile.carer && profile.carerFor ? profile.carerFor : null;
+  const today =
+    triage?.level === "now" ? { tone: "red", icon: "alert", title: "Contact your treatment team now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
+    : active && !dailyToday ? { tone: "accent", icon: "heart", title: `How's ${who ? `${who}'s` : "your"} mouth today?`, sub: "A 10-second check during treatment", act: "Check now", go: () => open("daily") }
+    : triage?.level === "today" ? { tone: "amber", icon: "phone", title: "Let your treatment team know today", sub: triage.today[0], act: "See today's check", go: () => open("dailyresult") }
+    : !r ? { tone: "accent", icon: "shield", title: "Start with your dry mouth risk", sub: "2 minutes · medicines, health and habits", act: "Start", go: () => open("risk") }
+    : sipNext?.due || !sip ? { tone: "accent", icon: "drop", title: "Your dry mouth check is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
+    : phNext?.due || !ph ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
+    : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: null };
+  const tx = cancer ? journey(profile).cards[0] : null;
   const trend = recent.length < 2 ? null : change >= 2 ? { label: "Getting drier", tone: "orange" } : change <= -2 ? { label: "Improving", tone: "good" } : { label: "Steady", tone: null };
 
   return (
@@ -80,8 +98,22 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
       <header className="brand-head">
         <p className="brand">Mouthkind <span className="test-badge">Testing</span></p>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
-        {due.length > 0 && <p className="due-line"><i />Due today: {due.join(" and ")}</p>}
+        {who && <p className="carer-line">Looking after {who}'s mouth</p>}
       </header>
+
+      <section className={`today t-${today.tone}`} aria-label="Today">
+        <span className="today-icon" aria-hidden="true"><Icon name={today.icon} size={24} /></span>
+        <div className="today-text"><p className="today-k">Today</p><h2>{today.title}</h2>{today.sub && <p>{today.sub}</p>}</div>
+        {today.act && <button className={`btn ${today.tone === "red" ? "danger" : "primary"}`} onClick={today.go}>{today.act}</button>}
+      </section>
+
+      {tx && (
+        <button type="button" className="txcard" onClick={() => open("journey")}>
+          <span className="txcard-k">{tx.title} · {tx.when}</span>
+          <strong>{tx.items[0].t}</strong>
+          <span className="txcard-more">What to expect <Icon name="chev" size={16} /></span>
+        </button>
+      )}
 
       <div className="boxes">
         <Box kind="risk" title="My dry mouth risk" icon={<Icon name="shield" size={22} />}

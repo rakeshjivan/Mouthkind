@@ -14,6 +14,9 @@ import { FrequencyPicker, PhFlow, Reminder, SipFlow } from "./screens/extras.jsx
 import { Results, Summary } from "./screens/results.jsx";
 import { Me } from "./screens/me.jsx";
 import { Backup } from "./screens/backup.jsx";
+import { Welcome } from "./screens/onboarding.jsx";
+import { DailyCheck, DailyResult, UsedLog } from "./screens/daily.jsx";
+import { ChemoToday, JawTool, Journey, Questions, RtCard } from "./screens/journey.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js";
 
 const TABS = [
@@ -73,6 +76,9 @@ export default function App() {
   const decay = latestOf(entries, "decay");
   const decayR = decay && scoreDecay(decay.answers, decay.ctx);
   const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null });
+  const daily = latestOf(entries, "daily");
+  const lastUsed = latestOf(entries, "used");
+  const showWelcome = !profile.onboarded && !entries.length;
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
 
   return (
@@ -106,6 +112,15 @@ export default function App() {
       {sheet === "ph" && <PhFlow readings={phReadings(entries)} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
       {sheet === "report" && <Summary entries={entries} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
+      {sheet === "daily" && <DailyCheck profile={profile} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} />}
+      {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onClose={close} onUsed={() => setSheet("used")} />}
+      {sheet === "used" && <UsedLog onClose={close} onSave={addEntry} last={lastUsed?.items} />}
+      {sheet === "journey" && <Journey profile={profile} onClose={close} openTool={setSheet} onEdit={() => setSheet("situation")} />}
+      {sheet === "jaw" && <JawTool entries={entries} onClose={close} onSave={addEntry} />}
+      {sheet === "rtcard" && <RtCard profile={profile} onClose={close} />}
+      {sheet === "questions" && <Questions profile={profile} setProfile={setProfile} onClose={close} />}
+      {sheet === "chemoday" && <ChemoToday profile={profile} setProfile={setProfile} onClose={() => setSheet("journey")} />}
+      {(showWelcome || sheet === "situation") && <Welcome profile={profile} onDone={(p) => { setProfile(p); close(); }} />}
     </div>
   );
 }
