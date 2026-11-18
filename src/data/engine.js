@@ -18,6 +18,7 @@ import { phPattern, isAcidic } from "./ph.js";
 import { sipBand } from "./clinical.js";
 import { medicineById } from "./medicines.js";
 import { usedInsights } from "./used.js";
+import { PRODUCTS } from "./products.js";
 import { activeTreatment, chemoDay, hasTx, inCancerCare, rtStage } from "./journey.js";
 import { GRADES, dailyTriage, mucositisGrade } from "./daily.js";
 
@@ -145,9 +146,11 @@ export const FOLLOWUPS = [
     text: (m) => T(m, "Which of these do you use every day?", "Which of these does $ use every day?"),
     why: "After radiotherapy to the head or neck, daily fluoride for life is the main protection against fast decay.",
     refs: ["peterson2024", "featherstone2021"],
+    noSnooze: true,
     options: [
-      { v: "hf", label: "High-fluoride toothpaste" }, { v: "tray", label: "Fluoride trays" },
-      { v: "tmp", label: "GC Tooth Mousse Plus" }, { v: "plain", label: "Ordinary toothpaste only" },
+      { v: "plain", label: "Fluoride toothpaste" }, { v: "hf", label: "High-fluoride toothpaste" },
+      { v: "ff", label: "Fluoride-free toothpaste" }, { v: "rinse", label: "Fluoride mouthwash" },
+      { v: "tmp", label: "GC Tooth Mousse Plus" }, { v: "none", label: "None of these" },
     ],
     when: (m) => m.rtHN && (!m.rt || m.rt.stage !== "before"),
   },
@@ -343,7 +346,8 @@ const RULES = [
     if (f.includes("hf") || f.includes("tray")) return { id: "rtFluoride", pri: 30, title: "Keep up your daily fluoride, for life", body: "You're doing the most important thing. See your dentist every 3 to 6 months.", because: ["You've had radiotherapy to the head or neck."], refs: ["peterson2024"] };
     return { id: "rtFluoride", pri: 83, title: "Use high-strength fluoride every day, for life",
       body: "Brush with a high-fluoride toothpaste (5,000 ppm) twice a day — spit, don't rinse — or use the fluoride trays your dentist makes. Add GC Tooth Mousse Plus at night.",
-      because: ["You've had radiotherapy to the head or neck. Teeth can decay very fast afterwards.", ...(f.includes("plain") ? ["You're using ordinary toothpaste only."] : [])],
+      because: ["You've had radiotherapy to the head or neck. Teeth can decay very fast afterwards.",
+        ...(f.includes("ff") ? ["Your toothpaste has no fluoride."] : f.includes("plain") ? ["You're using an ordinary-strength fluoride toothpaste."] : f.includes("none") ? ["You're not using any fluoride yet."] : [])],
       refs: ["peterson2024", "featherstone2021"], products: ["neutrafluor", "gc-tmp"] };
   },
   // Chemotherapy: the sore-mouth window, worked out from the dates.
@@ -384,8 +388,7 @@ const RULES = [
     if (m.jaw && m.jaw.fingers < 3) return { id: "jaw", pri: 79, title: "Tell your team your mouth isn't opening fully",
       body: "Stiffness is easier to improve when it's caught early. Jaw exercises help once it starts.",
       because: [`Your last finger test was ${m.jaw.fingers} finger${m.jaw.fingers === 1 ? "" : "s"}, on ${fmt(m.jaw.ts)}.`], refs: ["shao2020", "nciPdqHp"], act: { label: "Jaw exercises", open: "jaw" } };
-    if (!m.jaw || m.now - m.jaw.ts > 30 * DAY) return { id: "jaw", pri: 47, title: "Check how wide your mouth opens", body: "A 10-second finger test, once a month, picks up a stiff jaw early.",
-      because: [m.jaw ? `Your last check was on ${fmt(m.jaw.ts)}.` : "You haven't done a jaw check yet."], refs: ["nciPdqHp"], act: { label: "Check now", open: "jaw" } };
+    // The monthly check itself lives with the other checks on Home.
   },
   // A dry mouth score that went up: depends on why.
   (m) => {
@@ -518,6 +521,38 @@ function safe(it, m) {
   return { ...it, body, title, products, because };
 }
 
+// What the person already uses, from every place they've told us: the "what I used"
+// log, the tooth decay check, the fluoride question and the gel question.
+function inUse(m) {
+  const u = new Set();
+  const add = (...ids) => ids.forEach((i) => u.add(i));
+  const LOG = { "gc-dmg": ["gc-dmg"], "gc-tmp": ["gc-tmp"], "gc-tm": ["gc-tm"], hf: ["neutrafluor", "hf-paste"], gum: ["recaldent"] };
+  for (const v of m.usedNow) add(...(LOG[v] || []));
+  const pr = [].concat(m.decayAns.protect || []);
+  if (pr.includes("hf")) add("neutrafluor", "hf-paste");
+  if (pr.includes("tm")) add("gc-tmp", "gc-tm");
+  if (pr.includes("rinse")) add("f-rinse");
+  if (pr.includes("gum")) add("recaldent");
+  const rf = [].concat(answered(m, "rtFluoride") || []);
+  if (rf.includes("hf")) add("neutrafluor", "hf-paste");
+  if (rf.includes("tmp")) add("gc-tmp");
+  if (rf.includes("rinse")) add("f-rinse");
+  if (answered(m, "gelTried") === "helps") add("gc-dmg");
+  return u;
+}
+
+// Already using what the plan suggests? Say so, and encourage them to keep going.
+function encourage(it, using) {
+  if (!it.products?.length || /^Keep/.test(it.title)) return it;
+  const have = it.products.filter((p) => using.has(p));
+  if (!have.length) return it;
+  const names = have.map((id) => PRODUCTS.find((p) => p.id === id)?.name).filter(Boolean);
+  const rest = it.products.filter((p) => !using.has(p));
+  if (!rest.length) return { ...it, kept: true, pri: Math.min(it.pri, 45), title: `Keep going with ${list(names)}`,
+    body: `You're already doing the right thing. ${it.body}`, because: [`You told us you use ${list(names)}.`, ...it.because] };
+  return { ...it, body: `You're already using ${list(names)} — keep going. ${it.body}`, because: [...it.because, `You already use ${list(names)}.`] };
+}
+
 /** The plan, most important first. The first three are "your focus". */
 export function buildPlan(m) {
   const seen = new Set(), out = [];
@@ -529,7 +564,10 @@ export function buildPlan(m) {
     if (seen.has(it.id) || (COVERED[it.id] || []).some((x) => seen.has(x))) continue;
     seen.add(it.id); out.push({ refs: [], products: [], ...it });
   }
-  for (let i = 0; i < out.length; i++) out[i] = safe(out[i], m);
+  const using = inUse(m);
+  for (let i = 0; i < out.length; i++) out[i] = encourage(safe(out[i], m), using);
+  // Two items can end up praising the same thing: keep the first.
+  for (let i = out.length - 1; i >= 0; i--) if (out[i].kept && out.findIndex((x) => x.title === out[i].title) < i) out.splice(i, 1);
   // A new medicine already says "ask your pharmacist"; don't say it twice.
   const dup = out.some((i) => i.id === "riseMed") ? new Set(["medReview"]) : new Set();
   return out.filter((i) => !dup.has(i.id)).sort((a, b) => b.pri - a.pri);

@@ -29,7 +29,7 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, open }) {
                 {t.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean).map((p) => (
                   <div key={p.id} className="prod-card">
                     <div className="prod-top"><ProductImage product={p} size="sm" /><strong>{p.name}</strong></div>
-                    <span>{p.why}</span>
+                    {p.benefits ? <ul className="pcard-list">{p.benefits.map((b) => <li key={b}>{b}</li>)}</ul> : <span>{p.why}</span>}
                     <span className="prod-use"><b>How to use:</b> {p.use}</span>
                   </div>
                 ))}

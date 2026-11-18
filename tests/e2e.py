@@ -224,7 +224,7 @@ async def main():
         await shot("24-ask-home")
         await ask.get_by_role("button", name="A new or changed medicine").click()
         await ask.get_by_role("button", name="Save").click(); await pg.wait_for_timeout(300)
-        assert await pg.get_by_text("your plan has been updated").count() == 1
+        assert await pg.get_by_text("to finish your plan").count() == 1
         assert "Ask your pharmacist about the new medicine" in await pg.locator(".focus li").first.inner_text()
         await shot("25-focus", True)
         await pg.locator(".focus .link-btn").click(); await pg.wait_for_timeout(400)

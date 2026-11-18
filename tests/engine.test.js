@@ -157,3 +157,27 @@ test("the sugar question from the decay check isn't asked again", () => {
   assert.ok(!q.options.filter((o) => !o.show || o.show(m)).some((o) => o.v === "graze"));
   assert.match(buildPlan(m).find((i) => i.id === "acid").body, /mealtimes/);
 });
+
+test("after radiotherapy: fluoride options, and the plan responds to fluoride-free toothpaste", () => {
+  const q = FOLLOWUPS.find((x) => x.id === "rtFluoride");
+  assert.deepEqual(q.options.map((o) => o.label), ["Fluoride toothpaste", "High-fluoride toothpaste", "Fluoride-free toothpaste", "Fluoride mouthwash", "GC Tooth Mousse Plus", "None of these"]);
+  assert.ok(q.noSnooze);
+  const p = { situation: ["cancer"], treatments: ["rt_hn"], rtStart: iso(NOW - 200 * D) };
+  const it = buildPlan(model(answer(p, [], "rtFluoride", ["ff"]))).find((i) => i.id === "rtFluoride");
+  assert.equal(it.pri, 83);
+  assert.match(it.because[1], /no fluoride/);
+  assert.equal(buildPlan(model(answer(p, [], "rtFluoride", ["hf"]))).find((i) => i.id === "rtFluoride").pri, 30);
+});
+
+test("products already in use are praised, not recommended as new", () => {
+  const p = { situation: ["cancer"], treatments: ["rt_hn"], rtStart: iso(NOW - 200 * D) };
+  const e = [{ id: "u1", kind: "used", items: ["gc-tmp"], ts: NOW - D }, { id: "s1", kind: "sip", sip: 12, ts: NOW - D }];
+  const plan = buildPlan(model(answer(p, e, "rtFluoride", ["plain", "tmp"]), e));
+  const rt = plan.find((i) => i.id === "rtFluoride");
+  assert.match(rt.body, /already using GC Tooth Mousse Plus — keep going/);
+  const acid = [6.0, 5.8, 6.2].map((ph, i) => ({ id: `p${i}`, kind: "ph", ph, ts: NOW - (5 - i) * D }))
+    .concat([{ id: "u2", kind: "used", items: ["gc-tmp", "gc-tm"], ts: NOW - D }]);
+  const kept = buildPlan(model({}, acid)).filter((i) => i.kept);
+  assert.ok(kept.length >= 1);
+  for (const k of kept) { assert.match(k.title, /^Keep going with/); assert.match(k.body, /^You're already doing the right thing/); assert.ok(k.pri <= 45); }
+});

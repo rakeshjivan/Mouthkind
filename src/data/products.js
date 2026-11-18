@@ -16,6 +16,14 @@ export const PRODUCTS = [
     evidence: "In people after head and neck radiotherapy, two months of use improved dryness, swallowing and nutrition scores, and reduced types of Candida.",
     refs: ["nuchit2020"],
     flavours: "Mint, raspberry, lemon, orange, fruit salad",
+    // Benefits as stated in GC product information.
+    benefits: [
+      "Close to neutral pH, so it doesn't add acid to the mouth.",
+      "Lubricates and moistens the mouth for up to 4 hours.",
+      "Sugar-free.",
+      "A range of flavours, including citrus flavours that help get saliva flowing.",
+      "Can be used together with GC Tooth Mousse or Tooth Mousse Plus.",
+    ],
   },
   // Protect teeth
   {
@@ -26,14 +34,30 @@ export const PRODUCTS = [
     cautions: ["Not if you are allergic to milk protein (casein).", "Not for children 6 or under."],
     evidence: "In a 24-person trial during head and neck radiotherapy, adding CPP-ACP crème to fluoride cut new decay on tooth crowns by about half. Use it with fluoride toothpaste, not instead of it.",
     refs: ["sim2019", "agarwal2022"],
+    flavours: "Mint, strawberry, vanilla",
+    benefits: [
+      "Rapidly helps neutralise acids in the mouth.",
+      "Delivers a high level of calcium and phosphate (CPP-ACP) to the teeth, plus fluoride.",
+      "Lubricates a dry mouth.",
+      "Comes in a range of flavours.",
+      "Can be mixed with GC Dry Mouth Gel.",
+    ],
   },
   {
     id: "gc-tm", gc: true, name: "GC Tooth Mousse", job: "protect",
     form: "Crème with CPP-ACP", regions: { AU: "yes", NZ: "yes" },
     why: "Calcium and phosphate (CPP-ACP) without added fluoride — for when your dentist wants that.",
-    use: "As directed by your dentist.",
+    use: "Smear a pea-sized amount over the teeth, during the day or as your dentist directs. Don't rinse, eat or drink for 30 minutes.",
     cautions: ["Not if you are allergic to milk protein (casein)."],
     refs: ["sim2019"],
+    flavours: "Tutti-frutti, strawberry, melon, mint, vanilla",
+    benefits: [
+      "Rapidly helps neutralise acids in the mouth.",
+      "Delivers a high level of calcium and phosphate (CPP-ACP) to the teeth.",
+      "Lubricates a dry mouth.",
+      "No added fluoride, so it can go on during the day alongside a high-fluoride toothpaste.",
+      "Comes in a range of flavours, and can be mixed with GC Dry Mouth Gel.",
+    ],
   },
   {
     id: "neutrafluor", name: "Colgate NeutraFluor 5000 Sensitive", job: "protect",

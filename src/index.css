@@ -1219,3 +1219,21 @@ details.srcs .sources { margin-top: 4px; }
 .tx-line b{color:var(--accent);display:inline-flex;align-items:center;gap:2px;font-weight:700}
 .tx-line:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .home-alert{margin:14px 0}
+.pitem.kept{border-left:5px solid var(--good)}
+.pitem.kept h3::before{content:"✓ ";color:var(--good)}
+.tile.jaw { --c: var(--sore); --bg: var(--sore-bg); }
+.tile.jaw.due { box-shadow: var(--shadow), inset 0 0 0 2px var(--c); }
+/* An odd box out (the jaw check) spans the row on phones; it takes one cell on wide screens. */
+.boxes .tile.span-all { grid-column: 1 / -1; }
+@media (hover: hover) and (pointer: fine) and (min-width: 1000px) { .boxes .tile.span-all { grid-column: auto; } }
+
+.pcard{background:var(--paper);border-radius:14px;padding:12px 14px;display:grid;gap:6px}
+.pcard-top{display:flex;gap:12px;align-items:center}
+.pcard-top strong{display:block;font-size:1rem}
+.pcard-top span{display:block;color:var(--ink2);font-size:.88rem}
+.pcard-k{margin:4px 0 0;font-weight:700;font-size:.9rem}
+.pcard-list{margin:0;padding-left:18px;display:grid;gap:3px}
+.pcard-p{margin:0;font-size:.95rem;line-height:1.45}
+.pcard-c{margin:0;font-size:.88rem;color:var(--ink2)}
+.pcard-src{margin:0;font-size:.8rem;color:var(--ink3)}
+.pprod em{font-style:normal;color:var(--ink3);font-weight:500;margin-left:4px}

@@ -33,12 +33,12 @@ function Spark({ values }) {
 // SIP severity bands → the same colour words the risk box uses.
 const SIP_TONE = ["good", "amber", "orange", "red"];
 
-function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, extra }) {
+function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, extra, wide }) {
   // A tappable block, not a <button>: Safari won't stretch a button to fit its content,
   // which clipped the last line and stopped the boxes from matching in height.
   const key = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } };
   return (
-    <div role="button" tabIndex={0} className={`tile ${kind}${due ? " due" : ""}`} onClick={onClick} onKeyDown={key}>
+    <div role="button" tabIndex={0} className={`tile ${kind}${due ? " due" : ""}${wide ? " span-all" : ""}`} onClick={onClick} onKeyDown={key}>
       <span className="tile-icon" aria-hidden="true">{icon}</span>
       <strong className="tile-title">{title}</strong>
       <span className="tile-body">
@@ -92,6 +92,10 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
     : phNext?.due || !ph ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: "Log what I used today", go: () => open("used"), quiet: true };
   const tx = cancer ? journey(profile).cards[0] : null;
+  // After head and neck radiotherapy, the jaw opening test sits with the other checks.
+  const jawCheck = (cancer && (profile.treatments || []).includes("rt_hn")) || [].concat(r ? risk.answers.cancer || [] : []).includes("rt_hn");
+  const jaw = latestOf(entries, "jaw");
+  const jawDue = jawCheck && (!jaw || Date.now() - jaw.ts > 30 * 864e5);
   const trend = recent.length < 2 ? null : change >= 2 ? { label: "Getting drier", tone: "orange" } : change <= -2 ? { label: "Improving", tone: "good" } : { label: "Steady", tone: null };
 
   return (
@@ -141,6 +145,13 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
           value={ph ? `pH ${ph.ph.toFixed(1)}` : null} valueTone={ph ? phZone(ph.ph).tone : null} sub={ph ? phZone(ph.ph).label : "With a test strip"}
           status={phNext ? when(phNext) : "Not done yet"} due={!ph || phNext?.due}
           onClick={() => open("ph")} />
+        {jawCheck && (
+          <Box kind="jaw" wide title="Jaw opening" icon={<Icon name="jaw" size={22} />}
+            value={jaw ? (jaw.fingers >= 3 ? "Opening well" : "Not opening fully") : null} valueTone={jaw ? (jaw.fingers >= 3 ? "good" : "amber") : null}
+            sub={jaw ? `${jaw.fingers === 3 ? "3 or more" : jaw.fingers} finger${jaw.fingers === 1 ? "" : "s"} · ${fmtShort(jaw.ts)}` : "Finger test · 10 seconds"}
+            status={jawDue ? (jaw ? "Due this month" : "Not done yet") : "Once a month"} due={jawDue}
+            onClick={() => open("jaw")} />
+        )}
         <Box kind="advice" title="Mouth care advice" icon={<Icon name="leaf" size={22} />}
           value={null} sub={care.length ? `Start with: ${care[0].title.toLowerCase()}` : "Water, diet, teeth and more"}
           status="Open" onClick={() => go("advice")} />

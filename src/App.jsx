@@ -18,7 +18,7 @@ import { Backup } from "./screens/backup.jsx";
 import { Welcome } from "./screens/onboarding.jsx";
 import { DailyCheck, DailyResult, UsedLog } from "./screens/daily.jsx";
 import { ChemoToday, JawTool, Journey, Questions, RtCard } from "./screens/journey.jsx";
-import { buildModel, buildPlan, nextQuestion, summary } from "./data/engine.js";
+import { buildModel, buildPlan, openQuestions, summary } from "./data/engine.js";
 import { AskCard } from "./screens/plan.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js";
 
@@ -91,8 +91,9 @@ export default function App() {
   const model = useMemo(() => buildModel({ profile, entries: view }), [profile, view]);
   const plan = useMemo(() => buildPlan(model), [model]);
   const sum = useMemo(() => summary(model), [model]);
-  const q = nextQuestion(model);
-  const ask = (compact) => <AskCard key={compact ? "c" : "f"} q={q} m={model} profile={profile} setProfile={setProfile} onPlan={() => go("advice", "plan")} compact={compact} />;
+  const qs = openQuestions(model);
+  const q = qs[0] || null;
+  const ask = (compact) => <AskCard key={compact ? "c" : "f"} q={q} m={model} profile={profile} setProfile={setProfile} onPlan={() => go("advice", "plan")} compact={compact} left={qs.length} />;
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
 
   return (

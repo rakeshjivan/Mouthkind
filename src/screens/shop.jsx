@@ -15,7 +15,7 @@ function ShopItem({ p }) {
         <ProductImage product={p} flavour={fl} />
         <div><h2>{p.name}</h2><p className="shop-form">{p.form}</p></div>
       </div>
-      <p>{p.why}</p>
+      {p.benefits ? <ul className="pcard-list">{p.benefits.map((b) => <li key={b}>{b}</li>)}</ul> : <p>{p.why}</p>}
       <p className="prod-use"><b>How to use:</b> {p.use}</p>
       {p.cautions?.length > 0 && <p className="shop-caution">{p.cautions.join(" ")}</p>}
       {flavours && (
