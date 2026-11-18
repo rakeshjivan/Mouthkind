@@ -2,12 +2,12 @@
 :root {
   /* Cool mist base; rose = soreness, water-blue = dryness, everywhere in the app. */
   --paper: #edf2f5; --card: #ffffff; --soft: #e2eaef; --tint: #deecf3;
-  --ink: #17283a; --ink2: #475a6b; --ink3: #788a99; --line: #d6e0e7; --dim: #c9d5de;
+  --ink: #17283a; --ink2: #475a6b; --ink3: #5d6f7e; --line: #d6e0e7; --dim: #c9d5de;
   --accent: #1f5f86; --accent2: #174c6c; --accent-ink: #ffffff;
   --sore: #d4506c; --sore-bg: #fbe6eb; --sore-soft: #f2b3c1;
-  --dry: #2393ae; --dry-bg: #dcf0f5; --dry-soft: #9fd6e3;
-  --good: #2e8466; --good-bg: #e2f2ea; --orange: #c75a17; --orangebg: #fdeadd;
-  --red: #b93228; --redbg: #fbe9e7; --amber: #a4630c; --amberbg: #fcf1df; --blue: #2b5c95; --bluebg: #e6eef8;
+  --dry: #17728a; --dry-bg: #dcf0f5; --dry-soft: #9fd6e3;
+  --good: #2e8466; --good-bg: #e2f2ea; --orange: #b04c10; --orangebg: #fdeadd;
+  --red: #b93228; --redbg: #fbe9e7; --amber: #8f5508; --amberbg: #fcf1df; --blue: #2b5c95; --bluebg: #e6eef8;
   --shadow: 0 1px 2px rgba(23, 40, 58, .06), 0 8px 24px -12px rgba(23, 40, 58, .18);
   --s: 1;
   --font: "Lexend Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
