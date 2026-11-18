@@ -101,7 +101,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo, plan }) {
             {act.map((g) => (
               <div key={g.id} className={`fgroup g-${g.id}`}>
                 <p className="fg-head"><i />{g.label}<b>+{g.pts}</b></p>
-                {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}{f.note && <em className="fg-note"> {f.note}</em>}</p>)}
+                {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
                 <p className="fg-act"><Icon name="check" size={16} stroke={2.6} /> {g.actNote}</p>
               </div>
             ))}
@@ -113,7 +113,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo, plan }) {
             {aware.map((g) => (
               <div key={g.id} className={`fgroup g-${g.id}`}>
                 <p className="fg-head"><i />{g.label}<b>+{g.pts}</b></p>
-                {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}{f.note && <em className="fg-note"> {f.note}</em>}</p>)}
+                {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
               </div>
             ))}
           </section>
