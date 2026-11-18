@@ -9,11 +9,20 @@ export const DAILY = [
   { id: "pain", text: "Mouth pain right now", options: [
     { v: 0, label: "None" }, { v: 2, label: "Mild" }, { v: 5, label: "Moderate" }, { v: 8, label: "Severe" },
   ] },
+  { id: "control", text: "Is pain relief keeping it bearable?", when: (p, a) => a.pain === 8, options: [
+    { v: "yes", label: "Yes" }, { v: "no", label: "No" }, { v: "none", label: "Not taking any" },
+  ] },
   { id: "eat", text: "Eating and drinking", options: [
     { v: "normal", label: "As usual" }, { v: "soft", label: "Soft foods only" }, { v: "liquid", label: "Liquids only" }, { v: "none", label: "Can't eat or drink" },
   ] },
   { id: "sores", text: "Sores or ulcers", options: [
     { v: "none", label: "None" }, { v: "sore", label: "Sore or red, no ulcers" }, { v: "ulcers", label: "Ulcers" }, { v: "bleed", label: "Bleeding that won't stop" },
+  ] },
+  { id: "urgent", text: "Swelling, breathing or swallowing", options: [
+    { v: "none", label: "No problems" }, { v: "swell", label: "Face or neck swelling" }, { v: "breath", label: "Hard to breathe or swallow saliva" },
+  ] },
+  { id: "bone", text: "Bone showing in the mouth", when: (p) => (p.treatments || []).some((t) => t === "rt_hn" || t === "bone"), options: [
+    { v: "no", label: "No" }, { v: "yes", label: "Yes" }, { v: "unsure", label: "Not sure" },
   ] },
   { id: "dry", text: "Dryness", options: [
     { v: "none", label: "None" }, { v: "some", label: "Some" }, { v: "lot", label: "A lot" },
@@ -26,7 +35,7 @@ export const DAILY = [
   ] },
 ];
 
-export const dailyQuestions = (p = {}) => DAILY.filter((q) => !q.when || q.when(p));
+export const dailyQuestions = (p = {}, a = {}) => DAILY.filter((q) => !q.when || q.when(p, a));
 
 /** WHO-style oral mucositis grade, 0–4, from the person's own answers. */
 export function mucositisGrade(a) {
@@ -53,10 +62,17 @@ export const GRADES = [
  */
 export function dailyTriage(a) {
   const now = [], today = [], tips = [];
+  if (a.urgent === "breath") now.push("Trouble breathing or swallowing your own saliva is an emergency. Call 000 if you can't reach your team straight away.");
+  if (a.urgent === "swell") now.push("Swelling of the face or neck can be a spreading infection and needs to be seen today.");
   if (a.fever === "yes") now.push("A temperature of 38°C or more during chemotherapy is an emergency.");
   if (a.eat === "none") now.push("Not being able to eat or drink needs help today — you can quickly become dehydrated.");
   if (a.sores === "bleed") now.push("Bleeding in the mouth that won't stop needs to be seen.");
-  if ((a.pain ?? 0) >= 8) now.push("Severe pain that isn't controlled should be treated — you don't have to put up with it.");
+  // Severe pain is expected at times (late radiotherapy, chemotherapy days 7–14). It's an
+  // emergency when pain relief isn't keeping it bearable; otherwise the team should know today.
+  if ((a.pain ?? 0) >= 8 && a.control !== "yes") now.push("Severe pain that pain relief isn't controlling needs treating now — you don't have to put up with it.");
+  if ((a.pain ?? 0) >= 8 && a.control === "yes") today.push("Severe pain, even with pain relief — tell your team today so they can review it.");
+  if (a.bone === "yes") today.push("Bone showing in the mouth needs to be seen by your dentist or team within days. Make sure no tooth is taken out nearby until they've checked.");
+  if (a.bone === "unsure") today.push("If you can see something hard and white or yellow in the gum, show your dentist or team.");
   if (a.white === "yes") today.push("White patches can be thrush, which is easy to treat with drops or gel from your team.");
   if (a.eat === "liquid") today.push("Liquids only for more than a day or two means you may need help with nutrition.");
   if ((a.pain ?? 0) >= 5 && (a.pain ?? 0) < 8) today.push("Moderate pain — ask about pain relief to take before meals.");

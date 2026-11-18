@@ -48,7 +48,7 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, open }) {
         <p className="lede">What helps a dry or acidic mouth, and protects your teeth from decay.</p></header>
       <PlanBlock plan={plan} sum={sum} profile={profile} open={open} ask={ask} />
       {mine.length > 0 && (<>
-        <h2 className={`list-h${plan.length ? "" : " first"}`}>{plan.length ? "Topics for you" : "Most important for you"}</h2>
+        <h2 className={`list-h${plan.length ? "" : " first"}`}>{plan.length ? "Read more: topics for you" : "Most important for you"}</h2>
         {mine.map((t) => <Topic key={t.id} t={t} mineFlag />)}
       </>)}
       <h2 className="list-h">{mine.length ? "Everything else" : "Looking after your mouth"}</h2>

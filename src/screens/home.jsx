@@ -100,7 +100,16 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
         <p className="brand">Mouthkind <span className="test-badge">Testing</span></p>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {who && <p className="carer-line">Looking after {who}'s mouth</p>}
+        {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
       </header>
+
+      {pat.level === "flag" && (
+        <div className="alert-x amber home-alert">
+          <strong>Your saliva has been acidic in {pat.acid} of your last {pat.n} tests.</strong>
+          <p>Acidic saliva can put your teeth at risk, even if your mouth doesn't feel dry. Show your results to your dentist.</p>
+          <button className="btn primary" onClick={() => go("advice", "plan")}>What helps</button>
+        </div>
+      )}
 
       <section className={`today t-${today.tone}`} aria-label="Today">
         <span className="today-icon" aria-hidden="true"><Icon name={today.icon} size={24} /></span>
@@ -108,25 +117,19 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
         {today.act && <button className={`btn ${today.tone === "red" ? "danger" : today.quiet ? "ghost" : "primary"}`} onClick={today.go}>{today.act}</button>}
       </section>
 
-      {tx && (
-        <button type="button" className="txcard" onClick={() => open("journey")}>
-          <span className="txcard-k">{tx.title} · {tx.when}</span>
-          <strong>{tx.items[0].t}</strong>
-          <span className="txcard-more">What to expect <Icon name="chev" size={16} /></span>
-        </button>
-      )}
+
 
       {ask}
       <FocusList plan={plan.filter((it) => !it.id.startsWith("start"))} onOpen={() => go("advice", "plan")} />
 
       <div className="boxes">
         <Box kind="risk" title="My dry mouth risk" icon={<Icon name="shield" size={22} />}
-          value={r ? r.band.label : null} valueTone={r?.band.tone} sub={r ? `${r.score} points` : "Medicines, health and habits"}
+          value={r ? r.band.label : null} valueTone={r?.band.tone} sub={r ? `${r.factors.length} risk factor${r.factors.length === 1 ? "" : "s"}` : "Medicines, health and habits"}
           status={r ? "See details" : "Start here · 2 min"} due={!r}
           onClick={() => open(r ? "riskresult" : "risk")} />
         <Box kind="decay" title="My tooth decay risk" icon={<Icon name="tooth" size={22} />}
           value={d ? (d.noTeeth ? "No natural teeth" : d.band.label) : null} valueTone={d && !d.noTeeth ? d.band.tone : null}
-          sub={d ? (d.noTeeth ? "Denture care" : `${d.score} points`) : "Food, cleaning and your teeth"}
+          sub={d ? (d.noTeeth ? "Denture care" : `${d.factors.length} risk factor${d.factors.length === 1 ? "" : "s"}`) : "Food, cleaning and your teeth"}
           status={d ? "See my plan" : "2 min"} due={!d}
           onClick={() => open(d ? "decayresult" : "decay")} />
         <Box kind="sip" title="Dry mouth check" icon={<Icon name="drop" size={22} />}
@@ -147,13 +150,6 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
           status={empty ? "No results yet" : "See charts"} onClick={() => go("tracker")} />
       </div>
 
-      {pat.level === "flag" && (
-        <div className="alert-x red home-alert">
-          <strong>Your saliva has been acidic in {pat.acid} of your last {pat.n} tests.</strong>
-          <p>Acidic saliva puts your teeth at risk of decay, even if your mouth doesn't feel dry. See your dentist and show them your results.</p>
-          <button className="btn primary" onClick={() => go("advice", "protect")}>What helps</button>
-        </div>
-      )}
       {every && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}
 
       <p className="foot-note">Mouthkind is made by Dr Rakesh Jivan. It gives general information, not a diagnosis.</p>

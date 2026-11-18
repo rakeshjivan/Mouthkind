@@ -78,7 +78,7 @@ export const CARE_TOPICS = [
       "Use fluoride every day for life: a high-fluoride toothpaste, or fluoride trays if your dentist made you some.",
       "Add GC Tooth Mousse Plus at night. A dry mouth can decay very fast.",
       "See your dentist every 3 to 6 months.",
-      "Tell every dentist you've had radiotherapy before any tooth is taken out. The jaw can heal poorly there. Show them your radiotherapy card.",
+      "Tell every dentist you've had radiotherapy before any tooth is taken out. The jaw can heal poorly there. Show them your dental alert card.",
       "Check how wide you can open once a month. If it's getting harder, tell your team early.",
     ],
     products: ["neutrafluor", "gc-tmp"], refs: ["peterson2024", "nciPdqHp", "featherstone2021"],

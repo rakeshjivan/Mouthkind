@@ -244,7 +244,7 @@ export const RISK_SECTIONS = [...new Set(RISK_QUESTIONS.map((q) => q.section))];
 
 export const RISK_BANDS = [
   { id: "low", lo: 0, label: "Low", sub: "Few known risk factors for dry mouth.", tone: "good" },
-  { id: "moderate", lo: 10, label: "Moderate", sub: "Some risk factors. Worth knowing the early signs.", tone: "amber" },
+  { id: "moderate", lo: 12, label: "Moderate", sub: "Some risk factors. Worth knowing the early signs.", tone: "amber" },
   { id: "high", lo: 25, label: "High", sub: "Several risk factors. A dry mouth is likely at some point.", tone: "orange" },
   { id: "veryhigh", lo: 45, label: "Very high", sub: "A dry mouth is very likely. Protect your teeth now.", tone: "red" },
 ];
@@ -329,14 +329,16 @@ export function scoreRisk(answers = {}) {
     const picked = q.type === "one" ? q.options.filter((o) => o.v === a) : q.options.filter((o) => (a || []).includes(o.v));
     for (const o of picked) if (o.pts > 0) factors.push({ q: q.id, v: o.v, label: o.as || o.label, pts: o.pts, why: o.why, refs: o.refs || [], major: !!o.major, limited: !!o.limited, acid: !!o.acid });
   }
+  // Answers without a checked primary source count at half until one is found.
+  for (const f of factors) if (f.limited && f.pts > 1) { f.full = f.pts; f.pts = Math.ceil(f.pts / 2); f.note = "Counted at half: the evidence for this is less certain."; }
   combineMedicines(factors);
   countConditionsOnce(factors, answers);
   factors.sort((x, y) => y.pts - x.pts);
   const score = Math.min(100, factors.reduce((s, f) => s + f.pts, 0));
   const major = factors.some((f) => f.major);
   let band = [...RISK_BANDS].reverse().find((b) => score >= b.lo);
-  // A single near-certain cause is never "low" or "moderate".
-  if (major && band.lo < 25) band = RISK_BANDS[2];
+  // A near-certain cause (head and neck radiotherapy, Sjögren's) is always "very high".
+  if (major) band = RISK_BANDS[3];
   return { score, band, factors, major };
 }
 
@@ -386,7 +388,7 @@ export const RISK_GROUPS = [
   { id: "health", label: "Health conditions", qs: ["conditions"], act: false },
   { id: "sleep", label: "Sleep and breathing", qs: ["breathing"], act: true, actNote: "Your GP or sleep clinic can often help." },
   { id: "habits", label: "Daily habits", qs: ["habits", "water"], act: true, actNote: "Small changes here make a real difference." },
-  { id: "about", label: "Age and sex", qs: ["age", "sex"], act: false },
+  { id: "about", label: "Age and gender", qs: ["age", "sex"], act: false },
 ];
 export function riskBreakdown(result) {
   return RISK_GROUPS.map((g) => {

@@ -18,6 +18,7 @@ export const TREATMENTS = [
   { v: "transplant", label: "Bone marrow or stem cell transplant" },
   { v: "immuno", label: "Immunotherapy", hint: "e.g. Keytruda, Opdivo" },
   { v: "rai", label: "Radioactive iodine" },
+  { v: "bone", label: "Bone-strengthening injections or drips", hint: "e.g. denosumab (Xgeva, Prolia), zoledronic acid (Zometa)" },
   { v: "surgery", label: "Surgery to the mouth, jaw or throat" },
   { v: "other", label: "Another cancer treatment" },
 ];
@@ -84,6 +85,12 @@ export function journey(p, now = Date.now()) {
     { t: "Radioactive iodine can make the salivary glands sore or swollen and the mouth dry, sometimes for good.", refs: ["sunavala2022"] },
     { t: "Do your dry mouth check now and again in a few months, so you can see any change." },
   ] });
+  if (hasTx(p, "bone")) out.cards.push({ id: "bone", title: "Bone-strengthening medicines", when: "During and for years after", items: [
+    { t: "These medicines protect bones, but rarely the jaw bone can fail to heal after a tooth is taken out (osteonecrosis of the jaw).", refs: ["yarom2019"] },
+    { t: "See your dentist before starting if you can, so any problem teeth are treated first.", refs: ["yarom2019"] },
+    { t: "Tell every dentist you take them, before any extraction or implant. Show them your dental alert card.", refs: ["yarom2019"] },
+    { t: "Keep your teeth and gums healthy so extractions aren't needed: fluoride toothpaste twice a day and regular check-ups." },
+  ], always: [{ t: "Tell your dentist or team within days about bone showing in the mouth, jaw pain, swelling, a loose tooth or a numb lip or chin.", refs: ["yarom2019"] }] });
   if (!out.cards.length) out.cards.push({ id: "general", title: "During cancer treatment", when: "Now", items: [
     { t: "See your dentist before treatment starts if you can, so any problems are fixed first.", refs: ["ccaMouth2025"] },
     { t: "Brush gently twice a day with a soft brush and fluoride toothpaste, and rinse several times a day.", refs: ["ccaMouth2025"] },

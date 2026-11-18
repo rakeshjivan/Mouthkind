@@ -83,7 +83,7 @@ async def main():
         assert await dlg.get_by_role("button", name="I use a different term").count() == 1
         await pick("Woman or female").click(); await pg.wait_for_timeout(600)
         await shot("04-risk-result")
-        assert await dlg.get_by_text("On a GLP-1 medicine").count() == 1
+        assert await dlg.get_by_text("Added to your plan").count() == 1
         await pg.evaluate("document.querySelector('.sheet-body')?.scrollTo(0, 99999)"); await pg.wait_for_timeout(200)
         await shot("05-risk-result-end")
         await btn("Done").click(); await pg.wait_for_timeout(300)
@@ -181,9 +181,10 @@ async def main():
             localStorage.setItem('mkt:profile', JSON.stringify(p)); }""")
         await pg.reload(); await pg.wait_for_timeout(500)
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
-        assert await pg.locator(".txcard", has_text="Week 3 of 7").count() == 1
+        assert await pg.locator(".tx-line", has_text="Week 3 of 7").count() == 1
         await pg.locator(".today").get_by_role("button", name="Check now").click(); await pg.wait_for_timeout(300)
         for q, a in [("Mouth pain right now", "Moderate"), ("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),
+                     ("Swelling, breathing or swallowing", "No problems"), ("Bone showing in the mouth", "No"),
                      ("Dryness", "A lot"), ("White patches or coating", "No"), ("Temperature of 38°C or more", "Yes")]:
             await dlg.get_by_role("radiogroup", name=q).get_by_role("radio", name=a, exact=True).click()
         await btn("Done").click(); await pg.wait_for_timeout(300)
@@ -193,7 +194,7 @@ async def main():
         await dlg.get_by_role("button", name="Log what I used").click(); await pg.wait_for_timeout(200)
         await dlg.get_by_role("button", name="GC Dry Mouth Gel").click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
         assert await pg.locator(".today.t-red").count() == 1
-        await pg.click(".txcard"); await pg.wait_for_timeout(300)
+        await pg.click(".tx-line"); await pg.wait_for_timeout(300)
         await shot("21-journey")
         await dlg.get_by_role("button", name="Jaw opening check").click(); await pg.wait_for_timeout(200)
         await dlg.get_by_role("radio", name="2", exact=True).click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)

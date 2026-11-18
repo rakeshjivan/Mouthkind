@@ -58,7 +58,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
           )}
           <label className="field"><span>Treatment team</span><input value={profile.team?.name || ""} onChange={(e) => set({ team: { ...profile.team, name: e.target.value } })} /></label>
           <label className="field"><span>Team's 24-hour number</span><input type="tel" inputMode="tel" value={profile.team?.phone24 || ""} onChange={(e) => set({ team: { ...profile.team, phone24: e.target.value } })} /></label>
-          <div className="set-row"><span><strong>Tools</strong><em>Jaw check, radiotherapy card, questions</em></span>
+          <div className="set-row"><span><strong>Tools</strong><em>Jaw check, dental alert card, questions</em></span>
             <button className="btn ghost" onClick={() => open("journey")}>Open</button></div>
         </>)}
         <label className="field"><span>Dentist's phone</span><input type="tel" inputMode="tel" value={profile.dentist?.phone || ""} onChange={(e) => set({ dentist: { ...profile.dentist, phone: e.target.value } })} /></label>

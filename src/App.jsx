@@ -75,8 +75,12 @@ export default function App() {
   const phLevel = phPattern(phReadings(entries)).level;
   // The decay check takes dry mouth and pH from the other checks instead of asking again.
   const fromProfile = profileAnswers(profile);
-  const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: fromProfile.age || risk?.answers?.age || null });
-  const decay = latestOf(entries, "decay");
+  const riskHas = (q, v) => [].concat(risk?.answers?.[q] || []).includes(v);
+  const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: fromProfile.age || risk?.answers?.age || null,
+    rtHN: riskHas("cancer", "rt_hn") || (inCancerCare(profile) && (profile.treatments || []).includes("rt_hn")), sjogren: riskHas("conditions", "sjogren") });
+  // Radiotherapy and Sjögren's always count for decay, even on results saved before they were known.
+  const view = useMemo(() => entries.map((e) => (e.kind === "decay" ? { ...e, ctx: { ...(e.ctx || {}), rtHN: decayCtx.rtHN, sjogren: decayCtx.sjogren } } : e)), [entries, decayCtx.rtHN, decayCtx.sjogren]);
+  const decay = latestOf(view, "decay");
   const decayR = decay && scoreDecay(decay.answers, decay.ctx);
   const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null,
     cancer: inCancerCare(profile), tx: profile.treatments || [], active: activeTreatment(profile) });
@@ -84,7 +88,7 @@ export default function App() {
   const lastUsed = latestOf(entries, "used");
   const showWelcome = !profile.onboarded && !entries.length;
   // The engine: one picture of the person → the next question and the plan.
-  const model = useMemo(() => buildModel({ profile, entries }), [profile, entries]);
+  const model = useMemo(() => buildModel({ profile, entries: view }), [profile, view]);
   const plan = useMemo(() => buildPlan(model), [model]);
   const sum = useMemo(() => summary(model), [model]);
   const q = nextQuestion(model);
@@ -94,10 +98,10 @@ export default function App() {
   return (
     <div className="app">
       <main className="main" id="main">
-        {tab === "home" && <Home profile={profile} entries={entries} prefs={prefs} careCtx={careCtx} open={open} go={go} plan={plan} ask={ask(false)} />}
+        {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} careCtx={careCtx} open={open} go={go} plan={plan} ask={ask(false)} />}
         {tab === "shop" && <Shop />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} plan={plan} sum={sum} ask={ask(false)} profile={profile} open={open} />}
-        {tab === "tracker" && <Results entries={entries} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
+        {tab === "tracker" && <Results entries={view} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
 
@@ -109,8 +113,8 @@ export default function App() {
         ))}
       </nav>
 
-      {sheet === "risk" && <RiskFlow last={risk} model={dryModel(fromProfile)} onClose={close} onSave={addEntry} onCare={() => go("advice")} />}
-      {sheet === "riskresult" && risk && <RiskResult entry={risk} onClose={close} onCare={() => go("advice")} onRedo={() => setSheet("risk")} />}
+      {sheet === "risk" && <RiskFlow last={risk} model={dryModel(fromProfile)} plan={plan} onClose={close} onSave={addEntry} onCare={() => go("advice", "plan")} />}
+      {sheet === "riskresult" && risk && <RiskResult entry={risk} plan={plan} onClose={close} onCare={() => go("advice", "plan")} onRedo={() => setSheet("risk")} />}
       {sheet === "decay" && <DecayFlow last={decay} ctx={decayCtx} onClose={close} onSave={addEntry} onShop={() => go("shop")} />}
       {sheet === "decayresult" && decay && <DecayResult entry={decay} onClose={close} onRedo={() => setSheet("decay")} onShop={() => go("shop")} />}
       {sheet === "freq" && (
@@ -120,7 +124,7 @@ export default function App() {
       {sheet === "sip" && prefs.sipEvery && <SipFlow every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} followUp={ask(true)} />}
       {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
       {sheet === "ph" && <PhFlow readings={phReadings(entries)} followUp={ask(true)} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
-      {sheet === "report" && <Summary entries={entries} profile={profile} onClose={close} />}
+      {sheet === "report" && <Summary entries={view} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
       {sheet === "daily" && <DailyCheck profile={profile} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} followUp={ask(true)} />}
       {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onClose={close} onUsed={() => setSheet("used")} followUp={ask(true)} />}

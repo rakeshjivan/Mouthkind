@@ -24,7 +24,7 @@ export function dryModel(fromProfile = {}) {
 
 /** A risk questionnaire, one question per screen. Starts from the last answers when updating.
  *  `model` supplies the questions (which can depend on earlier answers), the saved entry and the result screen. */
-export function RiskFlow({ last, onClose, onSave, onCare, model = dryModel() }) {
+export function RiskFlow({ last, onClose, onSave, onCare, plan, model = dryModel() }) {
   const [ans, setAns] = useState(() => ({ ...(last?.answers || {}) }));
   const [i, setI] = useState(0);
   const [saved, setSaved] = useState(null);
@@ -36,7 +36,7 @@ export function RiskFlow({ last, onClose, onSave, onCare, model = dryModel() }) 
   const finish = (a) => { const e = model.entry(a, editId); onSave(e); setSaved(e); };
   const next = (a = ans) => (i >= model.questions(a).length - 1 ? finish(a) : setI(i + 1));
 
-  if (saved) return model.Result({ entry: saved, onClose, onCare,
+  if (saved) return model.Result({ entry: saved, onClose, onCare, plan,
     onRedo: () => { setEditId(saved.id); setSaved(null); setI(0); } });
 
   const picked = q.type === "many" || q.type === "lookup" ? ans[q.id] || [] : ans[q.id];
@@ -69,7 +69,7 @@ export function RiskFlow({ last, onClose, onSave, onCare, model = dryModel() }) 
 }
 
 /** What the score means: where it sits, what makes it up, what can be acted on. */
-export function RiskResult({ entry, onClose, onCare, onRedo }) {
+export function RiskResult({ entry, onClose, onCare, onRedo, plan }) {
   const r = scoreRisk(entry.answers);
   const groups = riskBreakdown(r);
   const act = groups.filter((g) => g.act);
@@ -86,7 +86,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo }) {
         <p className="risk-band">{r.band.label} risk</p>
         <p className="risk-sub">{r.band.sub}</p>
       </div>
-      <RiskMeter score={r.score} bands={RISK_BANDS} />
+      <RiskMeter score={Math.max(r.score, r.band.lo + 1)} bands={RISK_BANDS} />
       <p className="risk-date">Checked {fmtDate(entry.ts)}</p>
 
       {groups.length > 0 ? (<>
@@ -120,7 +120,13 @@ export function RiskResult({ entry, onClose, onCare, onRedo }) {
         )}
       </>) : <p className="lede">You didn't report any of the common risk factors for dry mouth. Keep looking after your teeth with fluoride toothpaste twice a day.</p>}
 
-      {(() => {
+      {plan?.length > 0 ? (
+        <section className="rblock plan">
+          <h3>Added to your plan</h3>
+          <ol className="plan-list">{plan.slice(0, 3).map((it) => <li key={it.id}><strong>{it.title}</strong><p>{it.because[0]}</p></li>)}</ol>
+          {onCare && <button className="btn primary big" onClick={onCare}><Icon name="leaf" /> See my full plan</button>}
+        </section>
+      ) : (() => {
         const adv = riskAdvice(r, entry.answers);
         return adv.length > 0 && (
           <section className="rblock plan">
@@ -144,7 +150,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo }) {
         <p className="soft-note">Your medicines: {entry.answers.medList.map((x) => x.brand || medicineById(x.id)?.g || x.name).filter(Boolean).join(", ")}.</p>
       )}
 
-      {r.band.lo >= 10 && (
+      {!plan?.length && r.band.lo >= 10 && (
         <section className="next-steps">
           <h3>What to do next</h3>
           <p>Even without symptoms, a higher risk means your teeth need extra protection. Your Care tab now shows the steps that matter most for you.</p>

@@ -5,8 +5,8 @@ import { USED } from "../data/used.js";
 
 /** The 10-second daily mouth check: one screen of taps, then what to do. */
 export function DailyCheck({ profile, onClose, onSave, onUsed, followUp }) {
-  const qs = dailyQuestions(profile);
   const [a, setA] = useState({});
+  const qs = dailyQuestions(profile, a);
   const [done, setDone] = useState(null);
   const ready = qs.every((q) => a[q.id] != null);
   const who = profile.carer && profile.carerFor ? `${profile.carerFor}'s` : "your";
@@ -27,7 +27,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp }) {
             <div className="dseg" role="radiogroup" aria-label={q.text}>
               {q.options.map((o) => (
                 <button key={String(o.v)} type="button" role="radio" aria-checked={a[q.id] === o.v}
-                  className={`dseg-btn${a[q.id] === o.v ? " on" : ""}`} onClick={() => setA({ ...a, [q.id]: o.v })}>{o.label}</button>
+                  className={`dseg-btn${a[q.id] === o.v ? " on" : ""}`} onClick={() => setA({ ...a, [q.id]: o.v, ...(q.id === "pain" && o.v !== 8 ? { control: undefined } : {}) })}>{o.label}</button>
               ))}
             </div>
           </fieldset>

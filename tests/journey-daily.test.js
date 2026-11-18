@@ -69,3 +69,22 @@ test("every journey reference exists", () => {
   for (const off of [-10, 3, 20, 55, 120, 600]) for (const c of journey({ ...p, rtStart: iso(NOW - off * D), chemoDates: [iso(NOW - (off % 20) * D)] }, NOW).cards)
     for (const it of [...c.items, ...(c.always || [])]) for (const r of it.refs || []) assert.ok(REFS[r], `${c.id} → ${r}`);
 });
+
+test("severe pain is an emergency only when pain relief isn't keeping it bearable", () => {
+  const base = { pain: 8, eat: "soft", sores: "ulcers", dry: "some", white: "no", urgent: "none" };
+  assert.equal(dailyTriage({ ...base, control: "no" }).level, "now");
+  assert.equal(dailyTriage({ ...base, control: "yes" }).level, "today");
+  assert.ok(dailyQuestions({}, { pain: 8 }).some((q) => q.id === "control"));
+  assert.ok(!dailyQuestions({}, { pain: 5 }).some((q) => q.id === "control"));
+});
+
+test("swelling or trouble breathing is an emergency; exposed bone goes to the team", () => {
+  const ok = { pain: 0, eat: "normal", sores: "none", dry: "none", white: "no" };
+  assert.equal(dailyTriage({ ...ok, urgent: "swell" }).level, "now");
+  assert.equal(dailyTriage({ ...ok, urgent: "breath" }).level, "now");
+  assert.equal(dailyTriage({ ...ok, bone: "yes" }).level, "today");
+  assert.ok(dailyQuestions({ treatments: ["bone"] }).some((q) => q.id === "bone"));
+  assert.ok(!dailyQuestions({ treatments: ["chemo"] }).some((q) => q.id === "bone"));
+  const j = journey({ situation: ["cancer"], treatments: ["bone"] }, NOW);
+  assert.equal(j.cards[0].id, "bone");
+});

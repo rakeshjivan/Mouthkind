@@ -41,7 +41,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop }) {
           <p className="risk-band">{r.band.label} risk</p>
           <p className="risk-sub">{r.band.sub}</p>
         </div>
-        <RiskMeter score={r.score} bands={DECAY_BANDS} />
+        <RiskMeter score={Math.max(r.score, r.band.lo + 1)} bands={DECAY_BANDS} />
       </>)}
       <p className="risk-date">Checked {fmtDate(entry.ts)}</p>
 

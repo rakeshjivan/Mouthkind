@@ -186,15 +186,26 @@ const band = (id) => DECAY_BANDS.find((b) => b.id === id);
  * Dry mouth context from the person's other checks, so it isn't asked twice.
  * { dryRisk: band id, sip: latest SIP (5–15), ph: phPattern level, ageAns: dry mouth risk age answer }
  */
-export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null } = {}) {
-  const dry = dryRisk != null || sip != null;
-  return { dry, dryRisk, sip, ph, age: ageAns };
+export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false } = {}) {
+  const dry = dryRisk != null || sip != null || rtHN || sjogren;
+  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren };
 }
 
-/** Points from the other checks: saliva flow and pH. */
+/** Points from the other checks: radiotherapy, Sjögren's, saliva flow and pH. */
 function contextFactors(ctx) {
   const out = [];
-  if (ctx.sip != null && ctx.sip >= 11)
+  // Radiotherapy damages both the salivary glands and the teeth themselves: decay
+  // can start within months and spread fast (Moore 2020: 29% of patients, 37% within
+  // two years). CAMBRA puts it in the highest group whatever else applies.
+  if (ctx.rtHN)
+    out.push({ q: "ctx", v: "rt", label: "Radiotherapy to the head or neck", pts: 12, floor: "veryhigh", dryStrong: true, from: "risk",
+      why: "Radiotherapy reduces saliva and weakens the teeth themselves. Decay can start within months and spread fast.", refs: ["moore2020", "featherstone2021"] });
+  if (ctx.sjogren)
+    out.push({ q: "ctx", v: "sjogren", label: "Sjögren's", pts: 8, floor: "high", dryStrong: true, from: "risk",
+      why: "Sjögren's reduces saliva for good, and saliva is the teeth's main natural protection.", refs: ["featherstone2021"] });
+  const known = ctx.rtHN || ctx.sjogren;
+  if (known) { /* dryness already counted through the cause */ }
+  else if (ctx.sip != null && ctx.sip >= 11)
     out.push({ q: "ctx", v: "sip", label: `Dry mouth score ${ctx.sip} of 15`, pts: 8, dryStrong: true, from: "sip",
       why: "Your dry mouth check shows moderate to severe dryness. Less saliva means much less protection from decay.", refs: ["featherstone2021"] });
   else if (ctx.sip != null && ctx.sip >= 8)
@@ -239,6 +250,7 @@ export function scoreDecay(answers = {}, ctx = decayContext()) {
   let b = [...DECAY_BANDS].reverse().find((x) => score >= x.lo);
   // CAMBRA: recent decay puts a person at high risk on its own, whatever else.
   if (factors.some((f) => f.floor === "high") && b.lo < band("high").lo) b = band("high");
+  if (factors.some((f) => f.floor === "veryhigh")) b = band("veryhigh");
   // CAMBRA "extreme": high risk plus a very dry mouth.
   const dryStrong = factors.some((f) => f.dryStrong);
   if (b.id === "high" && dryStrong) b = band("veryhigh");

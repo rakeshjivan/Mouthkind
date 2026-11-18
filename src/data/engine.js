@@ -12,8 +12,8 @@
 // every item can be traced to a source, and nothing leaves the phone.
 // Red flags stay in daily.js and are never ranked away.
 
-import { fullAnswers, scoreRisk } from "./risk.js";
-import { scoreDecay } from "./decay.js";
+import { fullAnswers, riskAdvice, scoreRisk } from "./risk.js";
+import { decayPlan, scoreDecay } from "./decay.js";
 import { phPattern, isAcidic } from "./ph.js";
 import { sipBand } from "./clinical.js";
 import { medicineById } from "./medicines.js";
@@ -62,6 +62,8 @@ export function buildModel({ profile = {}, entries = [], now = Date.now() } = {}
     immuno: (cancer && tx.includes("immuno")) || has("cancer", "immuno"),
     rtHN: (cancer && tx.includes("rt_hn")) || has("cancer", "rt_hn"),
     sjogren: has("conditions", "sjogren"),
+    bone: cancer && tx.includes("bone"),
+    decayE, sugarOften: decayE ? ["3", "sip"].includes(decayE.answers?.sugar) : null,
   };
 }
 
@@ -74,6 +76,8 @@ const softDays = (m) => m.dailies.filter((e) => m.now - e.ts < 7 * DAY && (e.eat
 const whiteRecent = (m) => m.last3.some((e) => e.white === "yes");
 const dryRecent = (m) => m.last3.some((e) => e.dry === "lot");
 const hasArr = (v, x) => [].concat(v || []).includes(x);
+// Questions say "you", or the name of the person being cared for.
+const T = (m, you, them) => (m.who ? them.replace(/\$/g, m.who) : you);
 const fresh = (m, id, days) => m.fu[id] && m.now - m.fu[id].ts < days * DAY;
 
 // ── Follow-up questions ─────────────────────────────────────────────────────
@@ -84,8 +88,25 @@ const fresh = (m, id, days) => m.fu[id] && m.now - m.fu[id].ts < days * DAY;
 // again:   days before it can be asked again once answered (default: never).
 export const FOLLOWUPS = [
   {
+    id: "boneDentist", pri: () => 77,
+    text: (m) => T(m, "Does your dentist know about your bone-strengthening medicine?", "Does $'s dentist know about the bone-strengthening medicine?"),
+    why: "Extractions and implants need planning on these medicines, because the jaw bone can heal poorly.",
+    refs: ["yarom2019"],
+    options: [{ v: "yes", label: "Yes" }, { v: "no", label: "Not yet" }, { v: "none", label: "I don't have a dentist" }],
+    when: (m) => m.bone,
+  },
+  {
+    id: "allergy", pri: () => 59, many: true,
+    text: (m) => T(m, "Do you have either of these allergies?", "Does $ have either of these allergies?"),
+    why: "GC Tooth Mousse contains milk protein (casein), and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
+    refs: [],
+    options: [{ v: "milk", label: "Milk protein (casein)" }, { v: "hb", label: "Hydroxybenzoates (parabens)" }, { v: "none", label: "Neither" }],
+    when: (m) => sipNow(m) >= 8 || ["watch", "flag"].includes(m.phPat.level) || m.rtHN || m.sjogren
+      || ["moderate", "high", "veryhigh"].includes(m.decay?.band.id) || ["high", "veryhigh"].includes(m.risk?.band.id),
+  },
+  {
     id: "dentistSeen", pri: () => 96,
-    text: () => "Have you had a dental check since the cancer diagnosis?",
+    text: (m) => T(m, "Have you had a dental check since your cancer diagnosis?", "Has $ had a dental check since the cancer diagnosis?"),
     why: "Any tooth that might cause trouble is best treated before radiotherapy starts, so the mouth can heal first.",
     refs: ["peterson2024"],
     options: [{ v: "yes", label: "Yes" }, { v: "booked", label: "It's booked" }, { v: "no", label: "Not yet" }],
@@ -93,7 +114,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "painRelief", pri: () => 90, again: 3,
-    text: () => "Is pain relief helping the mouth pain?",
+    text: (m) => T(m, "Is pain relief helping your mouth pain?", "Is pain relief helping $'s mouth pain?"),
     why: "Mouth pain during treatment should be treated, and the timing of pain relief makes a big difference to eating.",
     refs: ["elad2020"],
     options: [{ v: "works", label: "Yes, it's working" }, { v: "notEnough", label: "It's not enough" }, { v: "no", label: "Not taking any" }],
@@ -101,7 +122,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "dryEyes", pri: () => 88,
-    text: () => "Do the eyes also feel dry or gritty?",
+    text: (m) => T(m, "Do your eyes also feel dry or gritty?", "Do $'s eyes also feel dry or gritty?"),
     why: "Dry mouth with dry eyes on immunotherapy can be an immune side effect that the cancer team can treat.",
     refs: ["bitoun2024"],
     options: [{ v: "yes", label: "Yes" }, { v: "no", label: "No" }],
@@ -109,7 +130,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "sipRise", pri: () => 86, key: (m) => m.sip?.id,
-    text: (m) => `The dry mouth score went up from ${m.prevSip.sip} to ${m.sip.sip}. Has anything changed?`,
+    text: (m) => `${m.who ? `${m.who}'s` : "Your"} dry mouth score went up from ${m.prevSip.sip} to ${m.sip.sip}. Has anything changed?`,
     why: "Knowing what changed tells us whether it's likely to pass, or needs a medicine review or a call to the team.",
     many: true,
     options: [
@@ -121,7 +142,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "rtFluoride", pri: () => 84, again: 180, many: true,
-    text: () => "Which of these are used every day?",
+    text: (m) => T(m, "Which of these do you use every day?", "Which of these does $ use every day?"),
     why: "After radiotherapy to the head or neck, daily fluoride for life is the main protection against fast decay.",
     refs: ["peterson2024", "featherstone2021"],
     options: [
@@ -132,7 +153,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "phTiming", pri: () => 80, key: (m) => m.ph?.id,
-    text: () => "Was that pH test at least an hour after eating, drinking or brushing?",
+    text: () => "Was the last pH test at least an hour after eating, drinking or brushing?",
     why: "Food, drink and toothpaste change saliva pH for up to an hour, so an early test can look more acidic than it is.",
     refs: ["gcSalivaCheck"],
     options: [{ v: "yes", label: "Yes" }, { v: "no", label: "No, it was sooner" }, { v: "unsure", label: "Not sure" }],
@@ -140,12 +161,12 @@ export const FOLLOWUPS = [
   },
   {
     id: "acidSource", pri: (m) => (m.phPat.level === "flag" ? 82 : 66), again: 60, many: true,
-    text: () => "Could any of these be bringing acid into the mouth?",
+    text: (m) => T(m, "Could any of these be bringing acid into your mouth?", "Could any of these be bringing acid into $'s mouth?"),
     why: "Saliva stays acidic for a reason. Finding it means the advice targets the cause, not just the teeth.",
     refs: ["gcSalivaCheck"],
     options: [
       { v: "drinks", label: "Soft drink, juice, sports drinks or kombucha most days" },
-      { v: "graze", label: "Snacking or sipping sweet drinks through the day" },
+      { v: "graze", label: "Snacking or sipping sweet drinks through the day", show: (m) => m.sugarOften == null },
       { v: "reflux", label: "Reflux or heartburn" }, { v: "vomit", label: "Vomiting or morning sickness" },
       { v: "none", label: "None of these" },
     ],
@@ -153,7 +174,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "rinse", pri: () => 74, again: 14,
-    text: () => "What's being used to rinse the mouth?",
+    text: (m) => T(m, "What are you rinsing your mouth with?", "What is $ rinsing with?"),
     why: "Some mouthwashes sting and dry a sore mouth. A plain bicarb rinse is gentler.",
     refs: ["canberraHN", "ccaMouth2025"],
     options: [
@@ -164,7 +185,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "weight", pri: () => 70, again: 14,
-    text: () => "Any weight loss without trying?",
+    text: (m) => T(m, "Have you lost weight without trying?", "Has $ lost weight without trying?"),
     why: "Eating soft foods for days can mean too little food. A dietitian can help early.",
     refs: ["ccaMouth2025"],
     options: [{ v: "no", label: "No" }, { v: "little", label: "A little" }, { v: "lot", label: "Clothes are looser" }, { v: "unsure", label: "Don't know" }],
@@ -172,7 +193,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "gelTried", pri: () => 60,
-    text: () => "Has a saliva gel or spray been tried?",
+    text: (m) => T(m, "Have you tried a saliva gel or spray?", "Has $ tried a saliva gel or spray?"),
     why: "Gels last longer than water. If one hasn't helped, how it's used, or something else, might.",
     refs: ["nuchit2020", "mercadante2021"],
     options: [{ v: "helps", label: "Yes, it helps" }, { v: "meh", label: "Yes, didn't help much" }, { v: "no", label: "Not yet" }],
@@ -180,7 +201,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "dryTime", pri: () => 56, again: 90,
-    text: () => "When is the mouth driest?",
+    text: (m) => T(m, "When is your mouth driest?", "When is $'s mouth driest?"),
     why: "Night-time dryness has different causes and fixes from daytime dryness.",
     refs: ["raoof2023"],
     options: [{ v: "night", label: "At night or on waking" }, { v: "meals", label: "When eating" }, { v: "day", label: "Through the day" }, { v: "all", label: "All the time" }],
@@ -188,7 +209,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "dentures", pri: () => 50,
-    text: () => "Are dentures worn?",
+    text: (m) => T(m, "Do you wear dentures?", "Does $ wear dentures?"),
     why: "Dentures change how to clean the mouth, and thrush often hides under them.",
     refs: ["ccaMouth2025"],
     options: [{ v: "full", label: "Full dentures" }, { v: "partial", label: "A partial denture" }, { v: "no", label: "No" }],
@@ -196,7 +217,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "cpapHumid", pri: () => 48,
-    text: () => "Does the CPAP machine have a heated humidifier?",
+    text: (m) => T(m, "Does your CPAP machine have a heated humidifier?", "Does $'s CPAP machine have a heated humidifier?"),
     why: "A heated humidifier, and stopping mouth leaks, are the main fixes for a dry mouth on CPAP.",
     refs: ["raoof2023"],
     options: [{ v: "yes", label: "Yes" }, { v: "no", label: "No" }, { v: "unsure", label: "Not sure" }],
@@ -204,7 +225,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "glp1Sick", pri: () => 46,
-    text: () => "On the weight-loss or diabetes injection, is there nausea or reflux?",
+    text: (m) => T(m, "On your weight-loss or diabetes injection, do you get nausea or reflux?", "On the weight-loss or diabetes injection, does $ get nausea or reflux?"),
     why: "Nausea and reflux bring acid onto the teeth and add to dryness.",
     refs: ["massarotto2026", "alzawawi2026"],
     options: [{ v: "often", label: "Often" }, { v: "some", label: "Sometimes" }, { v: "no", label: "No" }],
@@ -212,7 +233,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "inhalerRinse", pri: () => 42,
-    text: () => "After a preventer inhaler, is the mouth rinsed and spat out?",
+    text: (m) => T(m, "After your preventer inhaler, do you rinse and spit?", "After the preventer inhaler, does $ rinse and spit?"),
     why: "Rinsing after a steroid preventer lowers the chance of thrush and a dry, sore mouth.",
     refs: ["asthmaHandbook"],
     options: [{ v: "always", label: "Every time" }, { v: "some", label: "Sometimes" }, { v: "no", label: "No" }, { v: "na", label: "No preventer" }],
@@ -248,6 +269,13 @@ export function snoozeQuestion(profile, q, now = Date.now(), days = 3) {
 // ── The plan ────────────────────────────────────────────────────────────────
 // Each rule returns an item or nothing. Items: { id, pri, title, body, because[], refs?, products?, act? }
 const RULES = [
+  // Bone-strengthening medicines: the dentist must know.
+  (m) => m.bone && answered(m, "boneDentist") !== "yes" && {
+    id: "boneDentist", pri: 75, title: answered(m, "boneDentist") === "none" ? "Find a dentist, and tell them about your bone medicine" : "Tell your dentist about your bone medicine",
+    body: "Extractions and implants need planning, because the jaw bone can fail to heal on these medicines. Show them your dental alert card, and keep up check-ups so extractions aren't needed.",
+    because: ["You take a bone-strengthening medicine (such as denosumab or zoledronic acid).", ...(answered(m, "boneDentist") ? ["Your dentist doesn't know yet."] : [])],
+    refs: ["yarom2019"], act: { label: "My dental alert card", open: "rtcard" },
+  },
   // Before radiotherapy: the dental check.
   (m) => {
     if (!m.rt || m.rt.stage !== "before" && !(m.rt.stage === "during" && m.rt.week <= 1)) return;
@@ -294,7 +322,7 @@ const RULES = [
     const lvl = m.phPat.level;
     if (lvl !== "flag" && lvl !== "watch") return;
     if (lvl === "watch" && m.fu.phTiming?.key === m.ph?.id && m.fu.phTiming.v !== "yes") return;
-    const src = [].concat(answered(m, "acidSource") || []);
+    const src = [...new Set([...[].concat(answered(m, "acidSource") || []), ...(m.sugarOften ? ["graze"] : [])])];
     const steps = [];
     if (src.includes("drinks")) steps.push("Swap soft drink, juice and sports drinks for water or milk, or keep them to mealtimes.");
     if (src.includes("graze")) steps.push("Keep snacks and sweet drinks to mealtimes — every one starts a new acid attack.");
@@ -445,6 +473,51 @@ const RULES = [
   (m) => !m.sip && { id: "startSip", pri: 33, title: "Do your first dry mouth check", body: "Five quick questions (the GC SIP-SCORE) show how much dryness is affecting you.", because: ["You haven't scored your dry mouth yet."], act: { label: "Check now", open: "sip" } },
 ];
 
+// Advice from the two risk checks, folded into the one plan. Each maps to the plan
+// items that already cover it, so nothing is said twice.
+const COVERED = {
+  "risk.track": ["startSip"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
+  "risk.drink": ["water", "riseDrink"], "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
+  "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride"], "decay.tmp": ["rtFluoride", "acid"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
+};
+const DECAY_PRI = { veryhigh: 66, high: 60, moderate: 42, low: 22 };
+function checkAdvice(m) {
+  const out = [];
+  if (m.decayE) {
+    const r = scoreDecay(m.decayE.answers, m.decayE.ctx);
+    decayPlan(r, m.decayE.answers).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: (DECAY_PRI[r.band.id] ?? 30) - i,
+      because: [r.noTeeth ? "You don't have natural teeth." : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
+  }
+  if (m.risk) for (const a of riskAdvice(m.risk, m.answers)) {
+    const top = m.risk.factors[0];
+    out.push({ ...a, id: `risk.${a.id}`, pri: a.id === "dentist" ? 41 : 38, because: [`Your dry mouth risk is ${m.risk.band.label.toLowerCase()}${top ? `, mostly from ${top.label.toLowerCase()}` : ""}.`] });
+  }
+  return out;
+}
+
+// Allergies: never suggest what someone can't use.
+const MILK = ["gc-tmp", "gc-tm", "recaldent"], HB = ["gc-dmg"];
+function safe(it, m) {
+  const al = [].concat(answered(m, "allergy") || []);
+  const milk = al.includes("milk"), hb = al.includes("hb");
+  if (!milk && !hb) return it;
+  let { body, title, products = [], because = [] } = it;
+  const drop = (re) => body.split(/(?<=\.)\s+/).filter((x) => !re.test(x)).join(" ");
+  if (milk && (products.some((p) => MILK.includes(p)) || /Tooth Mousse/.test(body + title))) {
+    products = products.filter((p) => !MILK.includes(p));
+    body = drop(/Tooth Mousse/); title = title.replace(/GC Tooth Mousse( Plus)?/, "extra fluoride");
+    if (/Tooth Mousse/.test(it.title) || !body) body = `${body} Tooth Mousse contains milk protein, so ask your dentist about fluoride varnish or a fluoride gel instead.`.trim();
+    because = [...because, "You're allergic to milk protein, so Tooth Mousse is left out."];
+  }
+  if (hb && (products.includes("gc-dmg") || /Dry Mouth Gel/.test(body + title))) {
+    products = products.filter((p) => !HB.includes(p));
+    body = body.replace(/GC Dry Mouth Gel/g, "a paraben-free saliva gel or spray (ask your pharmacist)");
+    title = title.replace(/GC Dry Mouth Gel/g, "a paraben-free saliva gel");
+    because = [...because, "You're allergic to hydroxybenzoates, so GC Dry Mouth Gel is left out."];
+  }
+  return { ...it, body, title, products, because };
+}
+
 /** The plan, most important first. The first three are "your focus". */
 export function buildPlan(m) {
   const seen = new Set(), out = [];
@@ -452,6 +525,11 @@ export function buildPlan(m) {
     const it = r(m);
     if (it && !seen.has(it.id)) { seen.add(it.id); out.push({ refs: [], products: [], ...it }); }
   }
+  for (const it of checkAdvice(m)) {
+    if (seen.has(it.id) || (COVERED[it.id] || []).some((x) => seen.has(x))) continue;
+    seen.add(it.id); out.push({ refs: [], products: [], ...it });
+  }
+  for (let i = 0; i < out.length; i++) out[i] = safe(out[i], m);
   // A new medicine already says "ask your pharmacist"; don't say it twice.
   const dup = out.some((i) => i.id === "riseMed") ? new Set(["medReview"]) : new Set();
   return out.filter((i) => !dup.has(i.id)).sort((a, b) => b.pri - a.pri);

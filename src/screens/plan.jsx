@@ -51,7 +51,8 @@ export function AskCard({ q, m, profile, setProfile, onPlan, compact }) {
 
 /** The plan: each item says why it's there. */
 export function PlanItem({ it, profile, open, first }) {
-  const [why, setWhy] = useState(!!first);
+  const [why, setWhy] = useState(false);
+  const more = it.because.length > 1;
   const prods = it.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
   return (
     <article className="pitem">
@@ -59,10 +60,11 @@ export function PlanItem({ it, profile, open, first }) {
       <p>{it.body}</p>
       {it.because.length > 0 && (
         <div className="pwhy">
-          <button type="button" className="pwhy-btn" aria-expanded={why} onClick={() => setWhy(!why)}>
-            Why you're seeing this <Icon name="chev" size={14} className={why ? "rot" : ""} />
-          </button>
-          {why && <ul>{it.because.map((b) => <li key={b}>{b}</li>)}</ul>}
+          <p className="pwhy-one"><b>Why:</b> {it.because[0]}</p>
+          {more && <button type="button" className="pwhy-btn" aria-expanded={why} onClick={() => setWhy(!why)}>
+            {why ? "Fewer reasons" : `${it.because.length - 1} more reason${it.because.length > 2 ? "s" : ""}`} <Icon name="chev" size={14} className={why ? "rot" : ""} />
+          </button>}
+          {why && <ul>{it.because.slice(1).map((b) => <li key={b}>{b}</li>)}</ul>}
         </div>
       )}
       {prods.length > 0 && (

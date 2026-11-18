@@ -109,3 +109,51 @@ test("every question and plan item cites sources that exist", () => {
   assert.ok(plan.length >= 8);
   for (const it of plan) { assert.ok(it.because.length, it.id); for (const r of it.refs) assert.ok(REFS[r], `${it.id} → ${r}`); }
 });
+
+test("after head and neck radiotherapy, tooth decay risk is very high even with good habits", async () => {
+  const { scoreDecay, decayContext } = await import("../src/data/decay.js");
+  const clean = { teeth: "yes", recent: "no", sugar: "rare", brush: "2", between: "daily", mouth: [], habits: [], dentist: "1", protect: [] };
+  assert.equal(scoreDecay(clean, decayContext({ rtHN: true, ageAns: "40" })).band.id, "veryhigh");
+  assert.equal(scoreDecay(clean, decayContext({ sjogren: true, ageAns: "40" })).band.id, "veryhigh");
+  assert.equal(scoreDecay(clean, decayContext({ ageAns: "40" })).band.id, "low");
+});
+
+test("near-certain causes are very high; weak answers count at half", async () => {
+  const { scoreRisk } = await import("../src/data/risk.js");
+  assert.equal(scoreRisk({ cancer: ["rt_hn"] }).band.id, "veryhigh");
+  assert.equal(scoreRisk({ conditions: ["sjogren"] }).band.id, "veryhigh");
+  const r = scoreRisk({ habits: ["vape", "caffeine"], water: "low", sex: "f" });
+  assert.equal(r.band.id, "low");
+  assert.ok(r.factors.filter((f) => f.limited).every((f) => f.note));
+});
+
+test("allergies take Tooth Mousse and the gel out of the plan", () => {
+  const e = [6.0, 5.8, 6.2].map((ph, i) => ({ id: `p${i}`, kind: "ph", ph, ts: NOW - (5 - i) * D })).concat([{ id: "s1", kind: "sip", sip: 11, ts: NOW - D }]);
+  const p = { fu: { allergy: { v: ["milk", "hb"], ts: NOW } } };
+  const plan = buildPlan(model(p, e));
+  for (const it of plan) {
+    assert.ok(!it.products.some((x) => ["gc-tmp", "gc-tm", "gc-dmg"].includes(x)), it.id);
+    assert.ok(!/Tooth Mousse Plus over|GC Dry Mouth Gel/.test(it.title + it.body.replace(/Tooth Mousse contains milk protein/, "")), it.id);
+  }
+});
+
+test("treatments from the welcome aren't asked again in the risk check", async () => {
+  const { profileAnswers } = await import("../src/data/person.js");
+  assert.deepEqual(profileAnswers({ situation: ["cancer"], treatments: ["rt_hn", "bone"] }).cancer, ["rt_hn"]);
+  assert.equal(profileAnswers({ situation: ["meds"], treatments: ["rt_hn"] }).cancer, undefined);
+});
+
+test("bone-strengthening medicines: ask about the dentist, and plan for it", () => {
+  const p = { situation: ["cancer"], treatments: ["bone"] };
+  assert.equal(nextQuestion(model(p)).id, "boneDentist");
+  assert.equal(buildPlan(model(answer(p, [], "boneDentist", "no")))[0].id, "boneDentist");
+});
+
+test("the sugar question from the decay check isn't asked again", () => {
+  const e = [6.0, 5.8, 6.2].map((ph, i) => ({ id: `p${i}`, kind: "ph", ph, ts: NOW - (5 - i) * D }))
+    .concat([{ id: "d1", kind: "decay", ts: NOW - D, answers: { teeth: "yes", sugar: "sip" }, ctx: {} }]);
+  const m = model({}, e);
+  const q = FOLLOWUPS.find((x) => x.id === "acidSource");
+  assert.ok(!q.options.filter((o) => !o.show || o.show(m)).some((o) => o.v === "graze"));
+  assert.match(buildPlan(m).find((i) => i.id === "acid").body, /mealtimes/);
+});

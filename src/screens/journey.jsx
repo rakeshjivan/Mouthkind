@@ -25,7 +25,7 @@ export function Journey({ profile, onClose, openTool, onEdit }) {
       <div className="jtools">
         {chemo && <button className="btn ghost" onClick={() => openTool("chemoday")}><Icon name="plus" size={18} /> I had treatment today</button>}
         {hasTx(profile, "rt_hn") && <button className="btn ghost" onClick={() => openTool("jaw")}>Jaw opening check</button>}
-        {hasTx(profile, "rt_hn") && <button className="btn ghost" onClick={() => openTool("rtcard")}>My radiotherapy card</button>}
+        {(hasTx(profile, "rt_hn") || hasTx(profile, "bone")) && <button className="btn ghost" onClick={() => openTool("rtcard")}>My dental alert card</button>}
         <button className="btn ghost" onClick={() => openTool("questions")}>Questions for my team</button>
         <button className="link-btn" onClick={onEdit}>Change my treatment details</button>
       </div>
@@ -106,17 +106,23 @@ export function RtCard({ profile, onClose }) {
   const name = [profile.firstName || profile.name, profile.lastName].filter(Boolean).join(" ");
   const dates = profile.rtStart ? `from ${new Date(`${profile.rtStart}T00:00:00`).toLocaleDateString("en-AU", { month: "long", year: "numeric" })}` : "";
   return (
-    <Sheet title="My radiotherapy card" onClose={onClose} footer={<button className="btn primary big" onClick={onClose}>Done</button>}>
+    <Sheet title="My dental alert card" onClose={onClose} footer={<button className="btn primary big" onClick={onClose}>Done</button>}>
       <p className="lede tight">Show this to any dentist, doctor or oral surgeon. Take a screenshot to keep it handy.</p>
       <div className="rtcard">
         <p className="rtcard-k">Medical alert</p>
-        <h2>I've had radiotherapy to the head and neck</h2>
         {name && <p className="rtcard-name">{name}</p>}
-        {dates && <p>Radiotherapy {dates}</p>}
-        <p>Extractions, implants or surgery in the treated area carry a risk of osteoradionecrosis. Please plan any treatment with my oncology team first.</p>
+        {hasTx(profile, "rt_hn") && (<>
+          <h2>I've had radiotherapy to the head and neck</h2>
+          {dates && <p>Radiotherapy {dates}</p>}
+          <p>Extractions, implants or surgery in the treated area carry a risk of osteoradionecrosis. Please plan any treatment with my oncology team first.</p>
+        </>)}
+        {hasTx(profile, "bone") && (<>
+          <h2>I take a bone-strengthening medicine</h2>
+          <p>Denosumab or a bisphosphonate (antiresorptive). Extractions and implants carry a risk of medication-related osteonecrosis of the jaw (MRONJ). Please plan any treatment with my medical team.</p>
+        </>)}
         {profile.team?.phone24 && <p><b>{profile.team?.name || "Treatment team"}:</b> {profile.team.phone24}</p>}
       </div>
-      <Sources refs={["peterson2024"]} />
+      <Sources refs={[...(hasTx(profile, "rt_hn") ? ["peterson2024"] : []), ...(hasTx(profile, "bone") ? ["yarom2019"] : [])]} />
     </Sheet>
   );
 }

@@ -209,4 +209,5 @@ export const REFS = {
   gcSalivaCheck: { short: "GC Saliva-Check BUFFER", title: "Saliva-Check BUFFER: resting saliva pH and testing instructions", where: "GC product brochure", url: "https://henryschein.com.au/Documents/brochure%20saliva%20check%20buffer.pdf" },
   ramosCasals2020: { short: "Ramos-Casals 2020", title: "EULAR recommendations for the management of Sjögren's syndrome with topical and systemic therapies", where: "Ann Rheum Dis 2020;79:3–18", url: "https://doi.org/10.1136/annrheumdis-2019-216114" },
   asthmaHandbook: { short: "Australian Asthma Handbook", title: "Managing side effects of inhaled corticosteroids (rinse and spit; use a spacer)", where: "National Asthma Council Australia", url: "https://www.asthmahandbook.org.au" },
+  moore2020: { short: "Moore 2020", title: "Dental caries following radiotherapy for head and neck cancer: a systematic review", where: "Oral Oncol 2020;100:104484", url: "https://doi.org/10.1016/j.oraloncology.2019.104484" },
 };
