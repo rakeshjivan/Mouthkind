@@ -15,24 +15,30 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
         <p className="lede">Everything stays on this device. Nothing is sent anywhere.</p></header>
 
       <section className="panel">
-        <h2 className="panel-title">About you</h2>
-        <p className="soft-note tight">Your age and gender are used in your risk checks, so they aren't asked again. All optional.</p>
+        <h2 className="panel-title">{profile.carer ? `About ${profile.firstName || "the person you care for"}` : "About you"}</h2>
+        {profile.carer
+          ? <div className="carer-note"><Icon name="info" size={18} /><p><b>These are their details, not yours.</b> The checks, results and plan are all about them.</p></div>
+          : <p className="soft-note tight">Your age and gender are used in your risk checks, so they aren't asked again. All optional.</p>}
         <div className="field-row">
-          <label className="field"><span>First name</span>
-            <input value={profile.firstName ?? profile.name ?? ""} onChange={(e) => set({ firstName: e.target.value, name: e.target.value })} autoComplete="given-name" /></label>
-          <label className="field"><span>Last name</span>
+          <label className="field"><span>{profile.carer ? "Their first name" : "First name"}</span>
+            <input value={profile.firstName ?? profile.name ?? ""} onChange={(e) => set({ firstName: e.target.value, name: e.target.value, ...(profile.carer ? { carerFor: e.target.value } : {}) })} autoComplete={profile.carer ? "off" : "given-name"} /></label>
+          <label className="field"><span>{profile.carer ? "Their last name" : "Last name"}</span>
             <input value={profile.lastName || ""} onChange={(e) => set({ lastName: e.target.value })} autoComplete="family-name" /></label>
         </div>
         <div className="field-row">
-          <label className="field"><span>Date of birth{ageFrom(profile.dob) != null ? ` · ${ageFrom(profile.dob)} years` : ""}</span>
+          <label className="field"><span>{profile.carer ? "Their date of birth" : "Date of birth"}{ageFrom(profile.dob) != null ? ` · ${ageFrom(profile.dob)} years` : ""}</span>
             <input type="date" value={profile.dob || ""} max={new Date().toISOString().slice(0, 10)} min="1900-01-01" onChange={(e) => set({ dob: e.target.value })} autoComplete="bday" /></label>
-          <label className="field"><span>Gender</span>
+          <label className="field"><span>{profile.carer ? "Their gender" : "Gender"}</span>
             <select value={profile.gender || ""} onChange={(e) => set({ gender: e.target.value })}>
               <option value="">Choose…</option>
               {GENDERS.map((g) => <option key={g.v} value={g.v}>{g.label}</option>)}
             </select></label>
         </div>
-        <div className="field"><span>Where you live</span>
+        {profile.carer && (
+          <label className="field"><span>Your first name (carer, optional)</span>
+            <input value={profile.carerName || ""} onChange={(e) => set({ carerName: e.target.value })} autoComplete="given-name" /></label>
+        )}
+        <div className="field"><span>{profile.carer ? "Where they live" : "Where you live"}</span>
           <div className="seg full">{Object.entries(REGIONS).map(([k, r]) => <button key={k} className={profile.region === k ? "on" : ""} onClick={() => set({ region: k })}>{r.name}</button>)}</div>
         </div>
       </section>

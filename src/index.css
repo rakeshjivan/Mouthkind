@@ -1301,3 +1301,6 @@ details.srcs .sources { margin-top: 4px; }
 .sheet-foot > .btn.primary { flex: 1 1 auto; min-width: 0; }
 .sheet-foot > .btn.ghost { white-space: nowrap; }
 .sheet-foot > .btn { white-space: nowrap; }
+.carer-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--amberbg); border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--card)); margin: 0 0 14px; }
+.carer-note svg { flex: none; color: var(--amber); margin-top: 2px; }
+.carer-note p { margin: 0; }

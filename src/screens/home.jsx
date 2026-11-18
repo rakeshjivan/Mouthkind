@@ -66,7 +66,9 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
   const care = CARE_TOPICS.filter((t) => t.forYou(careCtx));
   const due = [sipNext?.due && "dry mouth check", phNext?.due && "pH test"].filter(Boolean);
   const hour = new Date().getHours();
-  const greet = (h) => `${h}${firstName(profile) ? `, ${firstName(profile)}` : ""}`;
+  // A carer is greeted by their own name; the patient's name is on the line below.
+  const greetName = profile.carer ? (profile.carerName || "").trim() : firstName(profile);
+  const greet = (h) => `${h}${greetName ? `, ${greetName}` : ""}`;
   const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const greeting = greet(hello);
   const empty = !sips.length && !phs.length;

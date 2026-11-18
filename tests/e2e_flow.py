@@ -13,6 +13,7 @@ async def main():
     await pg.goto(BASE); await pg.wait_for_timeout(500)
     wl=pg.locator(".welcome")
     await wl.get_by_role("button", name="Myself").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
+    await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)  # about you
     await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(400)
     await pg.screenshot(path=S+"1-home.png")
     assert await pg.locator(".setup-card").count()==1 and await pg.locator(".focus").count()==0 and await pg.locator(".ask").count()==0

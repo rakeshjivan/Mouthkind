@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Icon } from "../components/ui.jsx";
 import { Pick, TickRows } from "../components/kit.jsx";
 import { STAGES, TREATMENTS } from "../data/journey.js";
+import { GENDERS, ageFrom } from "../data/person.js";
 
 export const SITUATIONS = [
   { v: "cancer", label: "Cancer treatment", hint: "Before, during or after radiotherapy, chemotherapy or other treatment" },
@@ -16,7 +17,7 @@ export function Welcome({ profile, onDone }) {
   const [step, setStep] = useState(0);
   const set = (x) => setP({ ...p, ...x });
   const cancer = (p.situation || []).includes("cancer");
-  const steps = ["who", "why", ...(cancer ? ["tx", "dates", "team"] : [])];
+  const steps = ["who", "about", "why", ...(cancer ? ["tx", "dates", "team"] : [])];
   const at = steps[step];
   const last = step === steps.length - 1;
   const finish = () => onDone({ ...p, onboarded: true });
@@ -25,6 +26,8 @@ export function Welcome({ profile, onDone }) {
   const chemo = (p.treatments || []).some((t) => t === "chemo" || t === "transplant");
 
   const canNext = at === "who" ? p.carer != null : at === "why" ? (p.situation || []).length > 0 : true;
+  // The patient's details. For a carer, firstName is the person they care for.
+  const setName = (v) => set({ firstName: v, name: v, ...(p.carer ? { carerFor: v } : {}) });
   return (
     <div className="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Mouthkind">
       <div className="welcome-in">
@@ -39,15 +42,39 @@ export function Welcome({ profile, onDone }) {
           <h1 className="display">Looking after a dry or sore mouth, together.</h1>
           <p className="lede">A few taps so the app shows what matters to you. Everything stays on this phone.</p>
           <h2 className="q">Who are you using Mouthkind for?</h2>
-          <Pick options={[{ v: false, label: "Myself" }, { v: true, label: "Someone I care for" }]} value={p.carer} onPick={(v) => set({ carer: v })} />
+          <Pick options={[{ v: false, label: "Myself" }, { v: true, label: "Someone I care for" }]} value={p.carer}
+            onPick={(v) => set({ carer: v, ...(v ? { carerFor: p.firstName || p.carerFor || "" } : {}) })} />
+        </>)}
+
+        {at === "about" && (<>
+          <h2 className="q">{p.carer ? "About the person you care for" : "About you"}</h2>
+          {p.carer
+            ? <div className="carer-note"><Icon name="info" size={18} /><p><b>Enter their details, not yours.</b> Everything in the app — the checks, results and plan — is about them.</p></div>
+            : <p className="lede tight">Your age and gender are used in your risk checks, so you won't be asked again.</p>}
+          <div className="field-row">
+            <label className="field"><span>{p.carer ? "Their first name" : "First name"}</span>
+              <input value={p.firstName || ""} onChange={(e) => setName(e.target.value)} autoComplete={p.carer ? "off" : "given-name"} placeholder={p.carer ? "e.g. Margaret" : ""} /></label>
+            <label className="field"><span>{p.carer ? "Their last name" : "Last name"}</span>
+              <input value={p.lastName || ""} onChange={(e) => set({ lastName: e.target.value })} autoComplete={p.carer ? "off" : "family-name"} /></label>
+          </div>
+          <div className="field-row">
+            <label className="field"><span>{p.carer ? "Their date of birth" : "Date of birth"}{ageFrom(p.dob) != null ? ` · ${ageFrom(p.dob)} years` : ""}</span>
+              <input type="date" value={p.dob || ""} max={new Date().toISOString().slice(0, 10)} min="1900-01-01" onChange={(e) => set({ dob: e.target.value })} autoComplete={p.carer ? "off" : "bday"} /></label>
+            <label className="field"><span>{p.carer ? "Their gender" : "Gender"}</span>
+              <select value={p.gender || ""} onChange={(e) => set({ gender: e.target.value })}>
+                <option value="">Choose…</option>
+                {GENDERS.map((g) => <option key={g.v} value={g.v}>{g.label}</option>)}
+              </select></label>
+          </div>
           {p.carer && (
-            <label className="field"><span>Their first name</span>
-              <input value={p.carerFor || ""} onChange={(e) => set({ carerFor: e.target.value })} autoComplete="off" placeholder="e.g. Dad" /></label>
+            <label className="field"><span>Your first name (optional)</span>
+              <input value={p.carerName || ""} onChange={(e) => set({ carerName: e.target.value })} autoComplete="given-name" /></label>
           )}
+          <p className="soft-note">All optional, and you can change them any time in Me.</p>
         </>)}
 
         {at === "why" && (<>
-          <h2 className="q">What brings you here?</h2>
+          <h2 className="q">{p.carer ? `What brings ${p.firstName || "them"} here?` : "What brings you here?"}</h2>
           <p className="lede tight">Tick all that apply.</p>
           <TickRows options={SITUATIONS} value={p.situation || []} onChange={(v) => set({ situation: v })} />
         </>)}
