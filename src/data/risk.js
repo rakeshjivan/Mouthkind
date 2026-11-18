@@ -108,8 +108,8 @@ export const RISK_QUESTIONS = [
     ],
   },
   {
-    id: "medFor", type: "many", section: "Medicines", text: "What do you take medicines for?",
-    hint: "Tick everything you take a medicine for most days — tablets, inhalers, injections or patches.",
+    id: "medFor", type: "many", section: "Medicines", text: "Do you take any medicines for these conditions?",
+    hint: "Tick any that apply. Include tablets, inhalers, injections or patches you use most days.",
     none: "I don't take regular medicines",
     options: MED_PURPOSES.map(({ v, label, hint }) => ({ v, label, hint, pts: 0 })),
   },
