@@ -1042,3 +1042,28 @@ strong, b, .btn, .chip, .tchip, .pick-row strong { font-weight: 600; }
 .medlook-count + .medlook-list { margin-top: 8px; }
 .medlook-hits em.rep, .medlook-list em.rep { color: var(--amber, #a8660f); }
 .medlook-list li.rep { background: color-mix(in srgb, var(--amber, #c98a1a) 10%, var(--card)); }
+
+/* ─── Home boxes, one layout for all six ───────────────────────────────────────
+   Every box is the same height (rows share the tallest box) and has the same
+   slots: icon · title (room for two lines, so results line up) · result and
+   detail · status pinned to the foot. Text never runs past the border. */
+.boxes { grid-auto-rows: 1fr; align-items: stretch; }
+.boxes .tile { display: flex; flex-direction: column; align-items: stretch; gap: 0; height: auto; min-height: 0; padding: 16px;
+  overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+.boxes .tile:focus-visible { outline: 3px solid var(--c); outline-offset: 3px; }
+.boxes .tile-icon { margin-bottom: 10px; flex: none; }
+.boxes .tile-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  min-height: calc(2 * 1.15em); line-height: 1.15; overflow-wrap: anywhere; hyphens: auto; }
+.boxes .tile-body { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; min-width: 0; }
+.boxes .tile-value { margin: 0; line-height: 1.1; overflow-wrap: anywhere; }
+.boxes .tile-sub { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.boxes .tile-status { margin-top: auto; padding-top: 10px; line-height: 1.2; }
+.boxes .tile-spark { margin-top: 4px; }
+.boxes .tile.wide { grid-column: auto; }
+/* An old .advice rule (from an earlier screen) added a border and margin to the advice box. */
+.boxes .tile, .boxes .tile.advice { margin: 0; border: 0; border-radius: 22px; background: var(--card); padding: 16px; }
+/* Let words wrap rather than be cut off; the row grows to the tallest box. */
+.boxes .tile-title, .boxes .tile-sub { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.home-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; margin: 4px 2px 12px; }
+.home-foot-acts { display: flex; gap: 18px; }
+.home-foot .link-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; }

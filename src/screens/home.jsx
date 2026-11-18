@@ -1,5 +1,5 @@
 import { Icon } from "../components/ui.jsx";
-import { phColor, sipBand } from "../data/clinical.js";
+import { phColor, sipBand, SIP_BANDS } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
 import { scoreDecay } from "../data/decay.js";
@@ -27,18 +27,24 @@ function Spark({ values }) {
 }
 
 /** One of the boxes. The whole box is the button. */
+// SIP severity bands → the same colour words the risk box uses.
+const SIP_TONE = ["good", "amber", "orange", "red"];
+
 function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, extra }) {
+  // A tappable block, not a <button>: Safari won't stretch a button to fit its content,
+  // which clipped the last line and stopped the boxes from matching in height.
+  const key = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } };
   return (
-    <button className={`tile ${kind}${due ? " due" : ""}`} onClick={onClick}>
-      <span className="tile-in">
-      <span className="tile-icon">{icon}</span>
+    <div role="button" tabIndex={0} className={`tile ${kind}${due ? " due" : ""}`} onClick={onClick} onKeyDown={key}>
+      <span className="tile-icon" aria-hidden="true">{icon}</span>
       <strong className="tile-title">{title}</strong>
-      {value && <span className={`tile-value${valueTone ? ` t-${valueTone}` : ""}`}>{value}</span>}
-      {sub && <span className="tile-sub">{sub}</span>}
-      {extra}
-      {status && <span className="tile-status">{due && <i />}{status}</span>}
+      <span className="tile-body">
+        {value && <span className={`tile-value${valueTone ? ` t-${valueTone}` : ""}`}>{value}</span>}
+        {sub && <span className="tile-sub">{sub}</span>}
+        {extra}
       </span>
-    </button>
+      {status && <span className="tile-status">{due && <i />}{status}</span>}
+    </div>
   );
 }
 
@@ -88,7 +94,8 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
           status={d ? "See my plan" : "2 min"} due={!d}
           onClick={() => open(d ? "decayresult" : "decay")} />
         <Box kind="sip" title="Dry mouth check" icon={<Icon name="drop" size={22} />}
-          value={sip ? `${sip.sip} of 15` : null} sub={sip ? sipBand(sip.sip).label : "SIP score · 5 questions"}
+          value={sip ? sipBand(sip.sip).label : null} valueTone={sip ? SIP_TONE[SIP_BANDS.indexOf(sipBand(sip.sip))] : null}
+          sub={sip ? `SIP score ${sip.sip} of 15` : "SIP score · 5 questions"}
           status={sipNext ? when(sipNext) : "Not done yet"} due={!sip || sipNext?.due}
           onClick={() => open("sip")} />
         <Box kind="ph" title="Check my saliva pH" icon={<span className="tile-swatches">{[5.4, 6.2, 7.0].map((v) => <i key={v} style={{ background: phColor(v) }} />)}</span>}
@@ -101,7 +108,6 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
         <Box kind="tracker" title="My mouth tracker" icon={<Icon name="chart" size={22} />}
           value={trend ? trend.label : null} valueTone={trend?.tone}
           sub={empty ? "Your results over time" : `${count} result${count === 1 ? "" : "s"} · last ${fmtShort(lastTs)}`}
-          extra={sips.length > 1 ? <Spark values={sips.slice(-8).map((x) => x.sip)} /> : null}
           status={empty ? "No results yet" : "See charts"} onClick={() => go("tracker")} />
       </div>
 
@@ -112,7 +118,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go }) {
           <button className="btn primary" onClick={() => go("advice", "protect")}>What helps</button>
         </div>
       )}
-      {every && <p className="tk-foot home-foot">Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"} · <button className="link-btn" onClick={() => open("freq")}>Change</button> · <button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></p>}
+      {every && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}
 
       <p className="foot-note">Mouthkind is made by Dr Rakesh Jivan. It gives general information, not a diagnosis.</p>
     </div>
