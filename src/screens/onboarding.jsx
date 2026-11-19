@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BrandMark } from "../components/brandMark.jsx";
 import { Icon } from "../components/ui.jsx";
 import { Pick, TickRows } from "../components/kit.jsx";
 import { STAGES, TREATMENTS } from "../data/journey.js";
@@ -38,7 +39,7 @@ export function Welcome({ profile, onDone }) {
         </div>
 
         {at === "who" && (<>
-          <p className="brand">Mouthkind <span className="brand-sub">Dry Mouth Care</span></p>
+          <p className="brand"><BrandMark size={30} />Mouthkind <span className="brand-sub">Dry Mouth Care</span></p>
           <h1 className="display">Looking after a dry or sore mouth, together.</h1>
           <p className="lede">A few taps so the app shows what matters to you. Everything stays on this phone.</p>
           <h2 className="q">Who are you using Mouthkind for?</h2>

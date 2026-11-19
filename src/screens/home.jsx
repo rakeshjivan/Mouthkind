@@ -1,4 +1,5 @@
 import { Icon } from "../components/ui.jsx";
+import { BrandMark } from "../components/brandMark.jsx";
 import { phColor, sipLevel } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
@@ -110,7 +111,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
   return (
     <div className="screen home4">
       <header className="brand-head">
-        <p className="brand">Mouthkind <span className="brand-sub">Dry Mouth Care</span> <span className="test-badge">Testing</span></p>
+        <p className="brand"><BrandMark size={26} />Mouthkind <span className="brand-sub">Dry Mouth Care</span> <span className="test-badge">Testing</span></p>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {who && <p className="carer-line">Looking after {who}'s mouth</p>}
         {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
