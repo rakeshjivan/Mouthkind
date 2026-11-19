@@ -163,7 +163,6 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
 
       {every && !building && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}
 
-      <p className="foot-note">Made by Dr Rakesh Jivan, who works for GC Australasia, maker of GC Tooth Mousse™ and GC Dry Mouth Gel. General information, not a diagnosis.</p>
     </div>
   );
 }
