@@ -245,8 +245,8 @@ export const RISK_SECTIONS = [...new Set(RISK_QUESTIONS.map((q) => q.section))];
 export const RISK_BANDS = [
   { id: "low", lo: 0, label: "Low", sub: "Few known risk factors for dry mouth.", tone: "good" },
   { id: "moderate", lo: 12, label: "Moderate", sub: "Some risk factors. Worth knowing the early signs.", tone: "amber" },
-  { id: "high", lo: 25, label: "High", sub: "Several risk factors. A dry mouth is likely at some point.", tone: "orange" },
-  { id: "veryhigh", lo: 45, label: "Very high", sub: "A dry mouth is very likely. Protect your teeth now.", tone: "red" },
+  { id: "high", lo: 25, label: "High", sub: "Several risk factors. A dry mouth is likely at some point.", tone: "red" },
+  { id: "veryhigh", lo: 45, label: "High", sub: "A dry mouth is very likely. Protect your teeth now.", tone: "red" },
 ];
 
 /** Answers saved before pregnancy moved into the health list. */

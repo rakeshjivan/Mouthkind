@@ -243,13 +243,13 @@ async def main():
         await shot("24-refine-link")
         await refine.click(); await pg.wait_for_timeout(300)
         ask = dlg.locator(".ask")
-        assert "went up from 9 to 12" in await ask.inner_text()
+        assert "got drier" in await ask.inner_text()
         await ask.get_by_role("button", name="A new or changed medicine").click()
         await ask.get_by_role("button", name="Save").click(); await pg.wait_for_timeout(300)
         assert await dlg.get_by_text("Your plan is updated").count() == 1
         await btn("See my plan").click(); await pg.wait_for_timeout(400)
         assert await pg.locator(".refine-line").count() == 0
-        assert "9 to 12" in await pg.locator(".pitem").first.inner_text()
+        assert "got drier" in await pg.locator(".pitem").first.inner_text()
         await shot("26-plan", True)
         print("errors:", errs)
         assert not errs, errs

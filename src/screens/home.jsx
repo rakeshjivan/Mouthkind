@@ -1,5 +1,6 @@
 import { Icon } from "../components/ui.jsx";
-import { phColor, sipBand, SIP_BANDS } from "../data/clinical.js";
+import { BrandMark } from "../components/brandMark.jsx";
+import { phColor, sipLevel } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
 import { scoreDecay } from "../data/decay.js";
@@ -31,7 +32,6 @@ function Spark({ values }) {
 
 /** One of the boxes. The whole box is the button. */
 // SIP severity bands → the same colour words the risk box uses.
-const SIP_TONE = ["good", "amber", "orange", "red"];
 
 function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, extra, wide }) {
   // A tappable block, not a <button>: Safari won't stretch a button to fit its content,
@@ -111,7 +111,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
   return (
     <div className="screen home4">
       <header className="brand-head">
-        <p className="brand">Mouthkind</p>
+        <p className="brand"><BrandMark size={26} />Mouthkind <span className="brand-sub">Dry Mouth Care</span></p>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {who && <p className="carer-line">Looking after {who}'s mouth</p>}
         {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
@@ -135,7 +135,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
       <div className="boxes">
         <Box kind="risk" title="Dry mouth risk" icon={<Icon name="shield" size={22} />}
           value={r ? r.band.label : null} valueTone={r ? calm(r.band.tone) : null} sub={r ? `${r.factors.length} risk factor${r.factors.length === 1 ? "" : "s"}` : "Medicines, health and habits"}
-          status={r ? (planned && r.band.lo >= 25 ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!r}
+          status={r ? (planned && ["high", "veryhigh"].includes(r.band.id) ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!r}
           onClick={() => open(r ? "riskresult" : "risk")} />
         <Box kind="decay" title="Tooth decay risk" icon={<Icon name="tooth" size={22} />}
           value={d ? (d.noTeeth ? "No natural teeth" : d.band.label) : null} valueTone={d && !d.noTeeth ? calm(d.band.tone) : null}
@@ -143,8 +143,8 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
           status={d ? (planned && ["high", "veryhigh"].includes(d.band.id) ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!d}
           onClick={() => open(d ? "decayresult" : "decay")} />
         <Box kind="sip" title="Dry mouth score" icon={<Icon name="drop" size={22} />}
-          value={sip ? sipBand(sip.sip).label : null} valueTone={sip ? SIP_TONE[SIP_BANDS.indexOf(sipBand(sip.sip))] : null}
-          sub={sip ? `${sip.sip} of 15${trend && !empty ? ` · ${trend.label.toLowerCase()}` : ""}` : "5 quick questions"}
+          value={sip ? sipLevel(sip.sip).label : null} valueTone={sip ? calm(sipLevel(sip.sip).tone) : null}
+          sub={sip ? (trend && !empty ? trend.label : `Checked ${fmtShort(sip.ts)}`) : "5 quick questions"}
           status={sipNext ? when(sipNext) : "Not done yet"} due={!sip || sipNext?.due}
           onClick={() => open("sip")} />
         <Box kind="ph" title="Saliva pH" icon={<span className="tile-swatches">{[5.4, 6.2, 7.0].map((v) => <i key={v} style={{ background: phColor(v) }} />)}</span>}

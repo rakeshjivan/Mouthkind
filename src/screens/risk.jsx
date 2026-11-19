@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
-import { Breakdown, Pick, RiskMeter, TickRows } from "../components/kit.jsx";
+import { Breakdown, LevelMeter, Pick, TickRows } from "../components/kit.jsx";
 import { RISK_BANDS, RISK_VERSION, riskAdvice, riskBreakdown, scoreRisk, visibleRiskQuestions } from "../data/risk.js";
 import { medicineById } from "../data/medicines.js";
 import { MedLookup } from "../components/medLookup.jsx";
@@ -82,16 +82,15 @@ export function RiskResult({ entry, onClose, onCare, onRedo, plan, next }) {
         {next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}
       </>}>
       <div className={`risk-top ${r.band.tone}`}>
-        <p className="risk-score"><strong>{r.score}</strong><span>points</span></p>
         <p className="risk-band">{r.band.label} risk</p>
         <p className="risk-sub">{r.band.sub}</p>
       </div>
-      <RiskMeter score={Math.max(r.score, r.band.lo + 1)} bands={RISK_BANDS} />
+      <LevelMeter level={r.band.id} />
       <p className="risk-date">Checked {fmtDate(entry.ts)}</p>
 
       {groups.length > 0 ? (<>
         <section className="rblock">
-          <h3>What makes up your score</h3>
+          <h3>What adds to your risk</h3>
           <Breakdown groups={groups} />
         </section>
 
@@ -100,7 +99,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo, plan, next }) {
             <h3>Things you can act on</h3>
             {act.map((g) => (
               <div key={g.id} className={`fgroup g-${g.id}`}>
-                <p className="fg-head"><i />{g.label}<b>+{g.pts}</b></p>
+                <p className="fg-head"><i />{g.label}</p>
                 {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
                 <p className="fg-act"><Icon name="check" size={16} stroke={2.6} /> {g.actNote}</p>
               </div>
@@ -112,7 +111,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo, plan, next }) {
             <h3>Things to be aware of</h3>
             {aware.map((g) => (
               <div key={g.id} className={`fgroup g-${g.id}`}>
-                <p className="fg-head"><i />{g.label}<b>+{g.pts}</b></p>
+                <p className="fg-head"><i />{g.label}</p>
                 {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
               </div>
             ))}
@@ -169,7 +168,7 @@ export function RiskResult({ entry, onClose, onCare, onRedo, plan, next }) {
         </section>
       )}
 
-      <p className="disclaimer"><Icon name="info" size={16} /> This score adds up known risk factors for dry mouth. It isn't a diagnosis and hasn't yet been tested against saliva measurements. Talk to your dentist, GP or pharmacist about your result.</p>
+      <p className="disclaimer"><Icon name="info" size={16} /> This check looks at known risk factors for dry mouth. It isn't a diagnosis and hasn't yet been tested against saliva measurements. Talk to your dentist, GP or pharmacist about your result.</p>
       <Sources refs={refs} />
     </Sheet>
   );

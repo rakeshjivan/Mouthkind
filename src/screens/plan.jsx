@@ -54,7 +54,7 @@ export function AskCard({ q, m, profile, setProfile, onPlan, compact, left = 0, 
 
 /** The plan as a checklist. Each item is one row: tick it when you're doing it,
  *  tap it for the detail. Products are small chips that open their full details. */
-export function PlanItem({ it, profile, open, done, onTick, onProduct, startOpen }) {
+export function PlanItem({ it, profile, open, done, onTick, onProduct, startOpen, onAddQ }) {
   const [on, setOn] = useState(!!startOpen);
   const [why, setWhy] = useState(false);
   const prods = it.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
@@ -88,7 +88,11 @@ export function PlanItem({ it, profile, open, done, onTick, onProduct, startOpen
               ))}
             </div>
           )}
-          {it.act && (it.act.call ? <CallTeam profile={profile} /> : <button className="btn primary pact" onClick={() => open(it.act.open)}>{it.act.label}</button>)}
+          {it.act && (it.act.call ? <CallTeam profile={profile} />
+            : it.act.addQ ? (onAddQ && ((profile.ownQuestions || []).includes(it.act.addQ)
+              ? <p className="pact-done"><Icon name="check" size={16} stroke={2.6} /> In your questions for your team</p>
+              : <button className="btn primary pact" onClick={() => onAddQ(it.act.addQ)}>{it.act.label}</button>))
+            : <button className="btn primary pact" onClick={() => open(it.act.open)}>{it.act.label}</button>)}
           {!done && <button type="button" className="btn ghost pdo" onClick={onTick}><Icon name="check" size={18} /> I'm doing this</button>}
           {it.refs.length > 0 && <details className="srcs"><summary>Sources</summary><Sources refs={it.refs} /></details>}
         </div>
@@ -123,7 +127,8 @@ export function PlanBlock({ plan, sum, profile, setProfile, open, refine, onShop
     setProfile({ ...profile, planDone: d });
   };
   const row = (it, i) => <PlanItem key={it.id} it={it} profile={profile} open={open} done={isDone(it)} startOpen={i === 0 && !isDone(it)}
-    onTick={() => tick(it)} onProduct={setProd} />;
+    onTick={() => tick(it)} onProduct={setProd}
+    onAddQ={(q) => { const qs = profile.ownQuestions || []; if (!qs.includes(q)) setProfile({ ...profile, ownQuestions: [...qs, q] }); }} />;
   return (
     <section className="plan-block" id="my-plan">
       {sum.length > 0 && <p className="plan-sum">{sum.join(" ")}</p>}

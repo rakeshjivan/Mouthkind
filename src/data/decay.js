@@ -177,8 +177,8 @@ export const DECAY_QUESTIONS = [
 export const DECAY_BANDS = [
   { id: "low", lo: 0, label: "Low", sub: "Few signs of decay risk. Keep doing what you're doing.", tone: "good" },
   { id: "moderate", lo: 8, label: "Moderate", sub: "Some risk factors. A few changes will protect your teeth.", tone: "amber" },
-  { id: "high", lo: 18, label: "High", sub: "Decay is likely without extra protection.", tone: "orange" },
-  { id: "veryhigh", lo: 30, label: "Very high", sub: "High risk with a dry mouth. Your teeth need the most protection.", tone: "red" },
+  { id: "high", lo: 18, label: "High", sub: "Decay is likely without extra protection.", tone: "red" },
+  { id: "veryhigh", lo: 30, label: "High", sub: "With a dry mouth, your teeth need the most protection.", tone: "red" },
 ];
 const band = (id) => DECAY_BANDS.find((b) => b.id === id);
 
@@ -211,10 +211,10 @@ function contextFactors(ctx) {
   const known = ctx.rtHN || ctx.sjogren;
   if (known) { /* dryness already counted through the cause */ }
   else if (ctx.sip != null && ctx.sip >= 11)
-    out.push({ q: "ctx", v: "sip", label: `Dry mouth score ${ctx.sip} of 15`, pts: 8, dryStrong: true, from: "sip",
-      why: "Your dry mouth check shows moderate to severe dryness. Less saliva means much less protection from decay.", refs: ["featherstone2021"] });
+    out.push({ q: "ctx", v: "sip", label: "High dry mouth score", pts: 8, dryStrong: true, from: "sip",
+      why: "Your dry mouth check shows a lot of dryness. Less saliva means much less protection from decay.", refs: ["featherstone2021"] });
   else if (ctx.sip != null && ctx.sip >= 8)
-    out.push({ q: "ctx", v: "sip", label: `Dry mouth score ${ctx.sip} of 15`, pts: 4, from: "sip",
+    out.push({ q: "ctx", v: "sip", label: "Moderate dry mouth score", pts: 4, from: "sip",
       why: "Your dry mouth check shows some dryness, so your saliva protects your teeth less.", refs: ["featherstone2021"] });
   else if (ctx.sip == null && (ctx.dryRisk === "high" || ctx.dryRisk === "veryhigh"))
     out.push({ q: "ctx", v: "dryrisk", label: "High risk of dry mouth", pts: 4, from: "risk",
@@ -285,8 +285,8 @@ export function decayPlan(result, answers = {}) {
       body: "Use a standard fluoride toothpaste (1,000 to 1,450 ppm) morning and night. Spit, don't rinse — the fluoride left on your teeth keeps working.",
       products: ["oranurse"], refs: ["walsh2019"] });
 
-  if (lvl !== "low" || has("mouth", "braces"))
-    out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus, morning and night",
+  // Everyone with natural teeth: fluoride and Tooth Mousse for daily prevention.
+  out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus, morning and night",
       body: lvl === "veryhigh"
         ? "After brushing in the morning and at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, you can also use it after lunch."
         : has("mouth", "braces")

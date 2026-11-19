@@ -15,7 +15,7 @@
 import { fullAnswers, riskAdvice, scoreRisk } from "./risk.js";
 import { decayPlan, scoreDecay } from "./decay.js";
 import { phPattern, isAcidic } from "./ph.js";
-import { sipBand } from "./clinical.js";
+import { sipBand, sipLevel } from "./clinical.js";
 import { medicineById } from "./medicines.js";
 import { usedInsights } from "./used.js";
 import { PRODUCTS } from "./products.js";
@@ -71,6 +71,10 @@ export function buildModel({ profile = {}, entries = [], now = Date.now() } = {}
 // ── Helpers the rules share ─────────────────────────────────────────────────
 const answered = (m, id) => m.fu[id]?.v;
 const sipNow = (m) => m.sip?.sip ?? 0;
+// At risk: a drier mouth, acidic saliva, a known cause, or a raised risk result.
+const atRisk = (m) => sipNow(m) >= 8 || ["watch", "flag"].includes(m.phPat.level) || m.rtHN || m.sjogren
+  || ["moderate", "high", "veryhigh"].includes(m.decay?.band.id) || ["high", "veryhigh"].includes(m.risk?.band.id);
+export const SALIVA_TEST_Q = "Can you test my stimulated saliva flow and buffering capacity?";
 const painDays = (m, n) => m.last3.filter((e) => (e.pain ?? 0) >= n).length;
 const soreDays = (m) => m.last3.filter((e) => e.sores && e.sores !== "none").length;
 const softDays = (m) => m.dailies.filter((e) => m.now - e.ts < 7 * DAY && (e.eat === "soft" || e.eat === "liquid")).length;
@@ -102,8 +106,7 @@ export const FOLLOWUPS = [
     why: "GC Tooth Mousse contains milk protein (casein), and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
     refs: [],
     options: [{ v: "milk", label: "Milk protein (casein)" }, { v: "hb", label: "Hydroxybenzoates (parabens)" }, { v: "none", label: "Neither" }],
-    when: (m) => sipNow(m) >= 8 || ["watch", "flag"].includes(m.phPat.level) || m.rtHN || m.sjogren
-      || ["moderate", "high", "veryhigh"].includes(m.decay?.band.id) || ["high", "veryhigh"].includes(m.risk?.band.id),
+    when: (m) => atRisk(m),
   },
   {
     id: "dentistSeen", pri: () => 96,
@@ -131,7 +134,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "sipRise", pri: () => 86, key: (m) => m.sip?.id,
-    text: (m) => `${m.who ? `${m.who}'s` : "Your"} dry mouth score went up from ${m.prevSip.sip} to ${m.sip.sip}. Has anything changed?`,
+    text: (m) => `${m.who ? `${m.who}'s` : "Your"} mouth has got drier since the last check. Has anything changed?`,
     why: "Knowing what changed tells us whether it's likely to pass, or needs a medicine review or a call to the team.",
     many: true,
     options: [
@@ -313,6 +316,22 @@ const RULES = [
       body: "Soft, high-energy foods little and often, and supplement drinks if needed. A dietitian can tailor this to your treatment.",
       because: [`You've been on soft foods or liquids on ${softDays(m)} of the last 7 days.`, a === "lot" ? "Your clothes are looser." : "You've lost a little weight."], refs: ["ccaMouth2025"] };
   },
+  // The rest of the saliva picture, which a dentist measures.
+  (m) => atRisk(m) && !m.noTeeth && {
+    id: "salivaTest", pri: ["flag", "watch"].includes(m.phPat.level) || sipNow(m) >= 11 ? 58 : 46,
+    title: T(m, "Ask your dentist for a saliva test", "Ask the dentist for a saliva test"),
+    body: "A pH test shows how acidic saliva is at rest. Your dentist can also measure how much saliva you make when chewing (stimulated flow) and how well it neutralises acid (buffering capacity), for example with GC Saliva-Check BUFFER. Low flow or weak buffering means less protection from decay and erosion, so it helps your dentist decide how much extra protection you need.",
+    because: [
+      sipNow(m) >= 8 ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`
+        : ["flag", "watch"].includes(m.phPat.level) ? "Some of your saliva results are acidic."
+        : m.rtHN ? "Radiotherapy to the head or neck reduces saliva."
+        : m.sjogren ? "Sjögren's reduces saliva."
+        : m.decay && ["moderate", "high", "veryhigh"].includes(m.decay.band.id) ? `Your tooth decay risk is ${m.decay.band.label.toLowerCase()}.`
+        : `Your dry mouth risk is ${m.risk.band.label.toLowerCase()}.`,
+    ],
+    refs: ["gcSalivaCheck", "bratthall2005", "featherstone2021"],
+    act: { label: "Add to my questions", addQ: SALIVA_TEST_Q },
+  },
   // Repeat an early pH test.
   (m) => m.ph && isAcidic(m.ph.ph) && m.fu.phTiming?.key === m.ph.id && m.fu.phTiming.v !== "yes" && {
     id: "phRetest", pri: 79, title: "Repeat your pH test before breakfast",
@@ -394,9 +413,9 @@ const RULES = [
   (m) => {
     if (!(m.rise >= 2) || m.fu.sipRise?.key !== m.sip.id) return;
     const r = [].concat(m.fu.sipRise.v);
-    const because = [`Your dry mouth score went from ${m.prevSip.sip} to ${m.sip.sip}.`];
+    const because = ["Your mouth has got drier since your last check."];
     if (r.includes("med")) return { id: "riseMed", pri: 78, title: "Ask your pharmacist about the new medicine", body: "Many medicines dry the mouth. A different medicine, dose or time of day can help. Don't stop a medicine without asking first.", because: [...because, "You started or changed a medicine."], refs: ["wolff2017"] };
-    if (r.includes("stopped")) return { id: "riseStopped", pri: 72, title: "Go back to what was helping", body: "Restart it for 2 weeks, then do your dry mouth check again to see if the score comes back down.", because: [...because, "You stopped something you were using."], act: { label: "Log what I used", open: "used" } };
+    if (r.includes("stopped")) return { id: "riseStopped", pri: 72, title: "Go back to what was helping", body: "Restart it for 2 weeks, then do your dry mouth check again to see if your mouth is less dry.", because: [...because, "You stopped something you were using."], act: { label: "Log what I used", open: "used" } };
     if (r.includes("drink")) return { id: "riseDrink", pri: 68, title: "Sip water through the day", body: "Keep a bottle with you and take small sips often. Water with every meal helps chewing and swallowing.", because: [...because, "You've been drinking less."] };
     if (r.includes("ill")) return { id: "riseIll", pri: 58, title: "Recheck in two weeks", body: "Being unwell, a fever and cold and flu tablets can dry the mouth for a while. Sip water often. If the score stays up, mention it to your GP.", because: [...because, "You've been unwell."], act: { label: "Remind me", open: "remind" } };
     if (r.includes("tx")) return { id: "riseTx", pri: 64, title: "Dryness often follows treatment", body: "Tell your team at your next visit, and use a saliva gel before meals and at bedtime.", because: [...because, "Your cancer treatment started or changed."], refs: ["mercadante2021"], products: ["gc-dmg"] };
@@ -406,7 +425,7 @@ const RULES = [
   (m) => sipNow(m) >= 11 && (m.rtHN || m.sjogren) && answered(m, "gelTried") === "meh" && {
     id: "sialogogue", pri: 64, title: "Ask your doctor about a saliva-stimulating medicine",
     body: "Pilocarpine can help when the salivary glands still work a little. It needs a prescription and isn't suitable for everyone — your doctor will check.",
-    because: [`Your dry mouth score is ${sipNow(m)} (${sipBand(sipNow(m)).label.toLowerCase()}).`, "A saliva gel hasn't helped enough.", m.rtHN ? "You've had radiotherapy to the head or neck." : "You have Sjögren's."],
+    because: [`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`, "A saliva gel hasn't helped enough.", m.rtHN ? "You've had radiotherapy to the head or neck." : "You have Sjögren's."],
     refs: m.rtHN ? ["mercadante2021"] : ["ramosCasals2020"],
   },
   // Saliva gel: try one, or use it better.
@@ -414,10 +433,10 @@ const RULES = [
     const a = answered(m, "gelTried");
     if (sipNow(m) < 8 || m.usedNow.has("gc-dmg") || a === "helps") return;
     const night = answered(m, "dryTime") === "night";
-    const because = [`Your dry mouth score is ${sipNow(m)} (${sipBand(sipNow(m)).label.toLowerCase()}).`];
+    const because = [`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`];
     if (night) because.push("Your mouth is driest at night.");
     if (a === "meh") return { id: "gel", pri: 50, title: "Get more from your saliva gel", body: "Use a pea-sized amount spread over the tongue, cheeks and gums with a clean finger — before meals, at bedtime and whenever you need it. Water alone wears off within minutes.", because: [...because, "You said gel didn't help much."], refs: ["nuchit2020"], products: ["gc-dmg"] };
-    return { id: "gel", pri: 62, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Try GC Dry Mouth Gel", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals and at bedtime. It lasts longer than water.", because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
+    return { id: "gel", pri: 62, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Try GC Dry Mouth Gel", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals and at bedtime. It lasts longer than water." + ([].concat(answered(m, "allergy") || []).includes("milk") ? "" : " You can mix it with GC Tooth Mousse or Tooth Mousse Plus before you put it on."), because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
   },
   // Night-time dryness.
   (m) => {
@@ -441,7 +460,7 @@ const RULES = [
     if (pts < 8) return;
     const names = m.named.map((x) => x.g).slice(0, 3);
     const because = [names.length ? `You take ${list(names)}, ${names.length === 1 ? "which is" : "which are"} known to dry the mouth.` : `Medicines make up ${pts} points of your dry mouth risk.`];
-    if (sipNow(m) >= 8) because.push(`Your dry mouth score is ${sipNow(m)}.`);
+    if (sipNow(m) >= 8) because.push(`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`);
     return { id: "medReview", pri: sipNow(m) >= 8 ? 61 : 44, title: "Ask for a medicine review", body: "Your pharmacist or GP may be able to change the dose, timing or type of a medicine that dries the mouth. Take your list. Never stop a medicine without asking first.", because, refs: ["wolff2017"] };
   },
   // Inhalers.
@@ -489,7 +508,9 @@ function checkAdvice(m) {
   if (m.decayE) {
     const r = scoreDecay(m.decayE.answers, m.decayE.ctx);
     decayPlan(r, m.decayE.answers).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: (DECAY_PRI[r.band.id] ?? 30) - i,
-      because: [r.noTeeth ? "You don't have natural teeth." : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
+      because: [r.noTeeth ? "You don't have natural teeth."
+        : a.id === "tmp" && r.band.id === "low" ? "Daily prevention: calcium, phosphate and fluoride for your teeth every day."
+        : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }
   if (m.risk) for (const a of riskAdvice(m.risk, m.answers)) {
     const top = m.risk.factors[0];
@@ -591,8 +612,8 @@ export function summary(m) {
     s.push(`${m.risk.band.label} dry mouth risk${top.length ? `, mostly from ${list(top)}` : ""}.`);
   }
   if (m.sip) {
-    const t = m.rise >= 2 ? `, up ${m.rise} since ${fmt(m.prevSip.ts)}` : m.rise <= -2 ? `, down ${-m.rise} since ${fmt(m.prevSip.ts)}` : "";
-    s.push(`Dry mouth score ${m.sip.sip} of 15 (${sipBand(m.sip.sip).label.toLowerCase()})${t}.`);
+    const t = m.rise >= 2 ? `, drier than on ${fmt(m.prevSip.ts)}` : m.rise <= -2 ? `, less dry than on ${fmt(m.prevSip.ts)}` : "";
+    s.push(`${sipLevel(m.sip.sip).label} dry mouth score${t}.`);
   }
   if (m.phPat.level === "flag" || m.phPat.level === "watch") s.push(m.phPat.n === 1 ? "Your last pH test was acidic." : `Saliva acidic in ${m.phPat.acid} of the last ${m.phPat.n} pH tests.`);
   else if (m.phPat.level === "ok") s.push(m.phPat.n === 1 ? "Saliva pH healthy in the last test." : "Saliva pH healthy in recent tests.");

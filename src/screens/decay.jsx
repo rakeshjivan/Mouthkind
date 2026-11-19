@@ -1,5 +1,5 @@
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
-import { Breakdown, RiskMeter } from "../components/kit.jsx";
+import { Breakdown, LevelMeter } from "../components/kit.jsx";
 import { ProductImage } from "../components/productImage.jsx";
 import { DECAY_BANDS, DECAY_VERSION, decayBreakdown, decayPlan, scoreDecay, visibleQuestions } from "../data/decay.js";
 import { PRODUCTS } from "../data/products.js";
@@ -37,21 +37,20 @@ export function DecayResult({ entry, onClose, onRedo, onShop, next }) {
         <div className="risk-top good"><p className="risk-band">No natural teeth</p><p className="risk-sub">Tooth decay doesn't affect dentures or implants.</p></div>
       ) : (<>
         <div className={`risk-top ${r.band.tone}`}>
-          <p className="risk-score"><strong>{r.score}</strong><span>points</span></p>
           <p className="risk-band">{r.band.label} risk</p>
           <p className="risk-sub">{r.band.sub}</p>
         </div>
-        <RiskMeter score={Math.max(r.score, r.band.lo + 1)} bands={DECAY_BANDS} />
+        <LevelMeter level={r.band.id} />
       </>)}
       <p className="risk-date">Checked {fmtDate(entry.ts)}</p>
 
       {groups.length > 0 && (
         <section className="rblock">
-          <h3>What makes up your score</h3>
+          <h3>What adds to your risk</h3>
           <Breakdown groups={groups} />
           {groups.map((g) => (
             <div key={g.id} className={`fgroup g-${g.id}`}>
-              <p className="fg-head"><i />{g.label}<b>+{g.pts}</b></p>
+              <p className="fg-head"><i />{g.label}</p>
               {g.factors.map((f) => <p key={f.q + f.v} className="fg-item"><strong>{f.label}.</strong> {f.why}</p>)}
             </div>
           ))}
@@ -62,7 +61,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop, next }) {
       {r.protective.length > 0 && (
         <section className="rblock">
           <h3>Already protecting you</h3>
-          {r.protective.map((f) => <p key={f.v} className="fg-item good-item"><Icon name="check" size={16} stroke={2.6} /> <strong>{f.label}</strong> <b>{f.pts}</b></p>)}
+          {r.protective.map((f) => <p key={f.v} className="fg-item good-item"><Icon name="check" size={16} stroke={2.6} /> <strong>{f.label}</strong></p>)}
         </section>
       )}
 

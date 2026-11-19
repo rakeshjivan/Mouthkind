@@ -91,6 +91,12 @@ export const REFS = {
     where: "Cancer Society of New Zealand",
     url: "https://www.cancer.org.nz/cancer/cancer-treatment/side-effects-of-cancer-and-treatment/mouth-and-taste-problems/",
   },
+  bratthall2005: {
+    short: "Bratthall 2005",
+    title: "Cariogram — a multifactorial risk assessment model for a multifactorial disease",
+    where: "Community Dent Oral Epidemiol 2005;33:256–64",
+    url: "https://pubmed.ncbi.nlm.nih.gov/16008632/",
+  },
   thomson2011: {
     short: "Thomson 2011",
     title: "Shortening the xerostomia inventory",
