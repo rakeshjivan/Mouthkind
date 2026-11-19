@@ -5,7 +5,10 @@
 // without an examination are used; the clinical ones (radiographs, visible
 // plaque, bacterial tests) are left to the dentist.
 //
-// NOT A VALIDATED INSTRUMENT. Points are set here, in one place, for clinical
+// A SCREENING CHECK, NOT A VALIDATED INSTRUMENT. Even the best-validated tools (Cariogram,
+// CAMBRA) reach only moderate accuracy (Hasyim 2026). Saliva tests add little to
+// prediction in adults (Hayes 2017), so pH carries little weight here.
+// Points are set here, in one place, for clinical
 // review. No caries risk method has better than limited diagnostic accuracy,
 // and recent caries experience is the strongest single predictor
 // (Senneby 2015) — so it carries the most weight and, as in CAMBRA, puts a
@@ -19,7 +22,7 @@
 //
 // `limited: true` = commonly listed but no primary source checked for this app.
 
-export const DECAY_VERSION = 1;
+export const DECAY_VERSION = 2; // 2: fillings and gums re-weighted, gum questions added, pH weight lowered
 
 const NAT = (a) => a.teeth !== "none"; // has natural teeth
 
@@ -96,8 +99,8 @@ export const DECAY_QUESTIONS = [
         why: "Plaque collects around brackets and wires; about half of people with braces get early decay (white spots).", refs: ["salerno2024", "featherstone2021"] },
       { v: "partial", label: "I wear a partial denture (a plate with clasps)", as: "Partial denture", pts: 5, limited: true,
         why: "Plaque gathers where the plate and clasps touch your teeth." },
-      { v: "fillings", label: "I have lots of fillings or crowns", as: "Lots of fillings or crowns", pts: 3,
-        why: "Past decay predicts future decay, and the edges of fillings and crowns can decay again.", refs: ["senneby2015"] },
+      { v: "fillings", label: "I have lots of fillings or crowns", as: "Lots of fillings or crowns", pts: 5,
+        why: "Past decay is the strongest predictor of future decay, and the edges of fillings and crowns can decay again.", refs: ["senneby2015", "arino2016", "pitiphat2002"] },
       { v: "grooves", label: "My dentist says I have deep grooves in my back teeth", as: "Deep grooves in the back teeth", pts: 3,
         why: "Deep pits and grooves trap food and plaque that a brush can't reach.", refs: ["featherstone2021"] },
       { v: "bridge", label: "I have a bridge", as: "A bridge", pts: 2, limited: true,
@@ -106,6 +109,16 @@ export const DECAY_QUESTIONS = [
         why: "Overlapping teeth are harder to clean." },
       { v: "gaps", label: "I have gaps where teeth have been taken out", as: "Missing teeth", pts: 2, limited: true,
         why: "Missing teeth often mean past decay, and the teeth next to a gap are harder to clean." },
+    ],
+  },
+  {
+    id: "gums", type: "many", section: "Your gums", when: NAT, none: "None of these",
+    text: "Do either of these apply to your gums?",
+    options: [
+      { v: "bleed", label: "My gums bleed when I brush or floss", hint: "Even a little, most days", as: "Gums bleed when brushing", pts: 3,
+        why: "Bleeding gums usually mean plaque is being left along the gumline — and plaque is one of the strongest predictors of decay, especially on roots.", refs: ["hayes2016", "ritter2010"] },
+      { v: "perio", label: "A dentist or hygienist has told me I have gum disease", hint: "Also called periodontitis or periodontal disease", as: "Diagnosed with gum disease", pts: 2,
+        why: "Gum disease makes the gums shrink back, exposing roots, which decay more easily than enamel.", refs: ["cortellini2018", "hayes2016"] },
     ],
   },
   {
@@ -220,10 +233,10 @@ function contextFactors(ctx) {
     out.push({ q: "ctx", v: "dryrisk", label: "High risk of dry mouth", pts: 4, from: "risk",
       why: "Your dry mouth risk check shows a dry mouth is likely, which raises the risk of decay.", refs: ["featherstone2021"] });
   if (ctx.ph === "flag")
-    out.push({ q: "ctx", v: "ph", label: "Saliva consistently acidic", pts: 6, from: "ph",
+    out.push({ q: "ctx", v: "ph", label: "Saliva consistently acidic", pts: 3, from: "ph",
       why: "Acidic saliva can't neutralise the acid that dissolves teeth.", refs: ["gcSalivaCheck"] });
   else if (ctx.ph === "watch")
-    out.push({ q: "ctx", v: "ph", label: "Some acidic saliva results", pts: 3, from: "ph",
+    out.push({ q: "ctx", v: "ph", label: "Some acidic saliva results", pts: 1, from: "ph",
       why: "Some of your saliva results are acidic, which weakens your teeth's defence.", refs: ["gcSalivaCheck"] });
   return out;
 }
@@ -321,6 +334,7 @@ export const DECAY_GROUPS = [
   { id: "diet", label: "Food and drink", qs: ["sugar"], act: true, actNote: "Keep sugar to mealtimes." },
   { id: "clean", label: "Cleaning", qs: ["brush", "between", "dentist"], act: true, actNote: "Twice-daily fluoride toothpaste and regular check-ups." },
   { id: "teeth", label: "Your teeth", qs: ["mouth"], act: false },
+  { id: "gums", label: "Your gums", qs: ["gums"], act: true, actNote: "Brush gently along the gumline twice a day, clean between your teeth, and ask your dentist or hygienist about a gum check." },
   { id: "saliva", label: "Saliva", qs: ["dry", "ctx"], act: true, actNote: "Saliva gel, water and sugar-free gum help." },
   { id: "acid", label: "Stomach acid", qs: ["acid"], act: true, actNote: "After vomiting, rinse with water or a bicarbonate rinse and wait at least 30 minutes before brushing." },
   { id: "habits", label: "Habits", qs: ["habits"], act: true, actNote: "Small changes here make a real difference." },

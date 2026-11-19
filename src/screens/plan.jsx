@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { PRODUCTS } from "../data/products.js";
 import { ProductImage } from "../components/productImage.jsx";
-import { answerQuestion, optionsFor } from "../data/engine.js";
+import { FOLLOWUPS, answerQuestion, optionsFor } from "../data/engine.js";
 import { CallTeam } from "./daily.jsx";
 import { ShopItem } from "./shop.jsx";
 
@@ -150,16 +150,29 @@ export function PlanBlock({ plan, sum, profile, setProfile, open, refine, onShop
 }
 
 /** The last step of building the plan: the follow-up questions, one after another. */
-export function SetupQuestions({ q, m, left, profile, setProfile, onClose, onPlan, refining }) {
-  const [asked, setAsked] = useState(0);
-  const total = asked + left;
+export function SetupQuestions({ q: nextQ, m, left, profile, setProfile, onClose, onPlan, refining }) {
+  const [history, setHistory] = useState([]); // ids answered here, so Back can show them again
+  const [revisit, setRevisit] = useState(null); // an earlier question being changed
+  const back = revisit ? history.slice(0, history.indexOf(revisit)) : history;
+  const q = revisit ? FOLLOWUPS.find((x) => x.id === revisit) : nextQ;
+  const asked = back.length; // position of the question on screen
+  const total = history.length + left;
+  const goBack = () => setRevisit(back[back.length - 1]);
   return (
     <Sheet title={refining ? "Refine your plan" : "A few questions about you"} onClose={onClose}
       progress={q ? { of: total, at: asked, label: `${asked + 1} of ${total}` } : null}
-      footer={q ? null : <button className="btn primary big" onClick={onPlan}>See my plan</button>}>
+      footer={q ? (back.length ? <button className="btn ghost" onClick={goBack}><Icon name="back" size={18} /> Back</button> : null)
+        : <button className="btn primary big" onClick={onPlan}>See my plan</button>}>
       {q ? (<>
         <p className="eyebrow-q">{refining ? "Your recent results raised a question" : "Last step · each answer tailors your plan"}</p>
-        <AskCard key={q.id} flow q={q} m={m} profile={profile} setProfile={(p) => { setProfile(p); setAsked(asked + 1); }} />
+        <AskCard key={q.id + (revisit ? ":again" : "")} flow q={q} m={m} profile={profile} setProfile={(p) => {
+          setProfile(p);
+          if (revisit) {
+            // Move on to the question after the one just changed, or back to the next new one.
+            const after = history[history.indexOf(revisit) + 1];
+            setRevisit(after || null);
+          } else setHistory([...history, q.id]);
+        }} />
       </>) : (
         <div className="setup-done">
           <span className="setup-done-icon"><Icon name="check" size={30} stroke={2.6} /></span>

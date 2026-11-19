@@ -109,6 +109,7 @@ async def main():
         await exact("Once a day").click(); await pg.wait_for_timeout(350)
         await pick("Sometimes").click(); await pg.wait_for_timeout(350)
         await pick("My gums have shrunk back").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
+        await pick("My gums bleed when I brush or floss").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("1 to 2 years ago").click(); await pg.wait_for_timeout(350)
         assert await dlg.get_by_text("Does your mouth often feel dry?").count() == 0

@@ -46,7 +46,7 @@ test("dry mouth and pH come from the other checks instead of being asked", () =>
   const r = scoreDecay({ ...clean, recent: "one" }, ctx);
   assert.equal(r.band.id, "veryhigh");
   assert.ok(r.factors.some((f) => f.from === "sip" && f.pts === 8));
-  assert.ok(r.factors.some((f) => f.from === "ph" && f.pts === 6));
+  assert.ok(r.factors.some((f) => f.from === "ph" && f.pts === 3));
   assert.ok(r.factors.some((f) => f.q === "age" && f.pts === 4));
   assert.ok(ids(decayPlan(r, clean)).includes("dry"));
 });
@@ -65,4 +65,20 @@ test("every reference and product named exists", () => {
     for (const r of s.refs || []) assert.ok(REFS[r], `${s.id} → ${r}`);
     for (const p of s.products || []) assert.ok(PRODUCTS.find((x) => x.id === p), `${s.id} → ${p}`);
   }
+});
+
+test("v2: gums questions count, fillings weigh more, pH weighs less", async () => {
+  const { scoreDecay, decayContext } = await import("../src/data/decay.js");
+  const base = { teeth: "yes", recent: "no", sugar: "rare", brush: "2", between: "daily", mouth: [], gums: [], age: "40", dry: "no", habits: [], dentist: "1", protect: [] };
+  const gums = scoreDecay({ ...base, gums: ["bleed", "perio"] });
+  assert.equal(gums.factors.filter((f) => f.q === "gums").reduce((s, f) => s + f.pts, 0), 5);
+  assert.equal(scoreDecay({ ...base, mouth: ["fillings"] }).factors.find((f) => f.v === "fillings").pts, 5);
+  assert.equal(scoreDecay(base, decayContext({ ph: "flag" })).factors.find((f) => f.v === "ph").pts, 3);
+  assert.equal(scoreDecay(base, decayContext({ ph: "watch" })).factors.find((f) => f.v === "ph").pts, 1);
+});
+
+test("protective products never lower the result below High when there's recent decay", async () => {
+  const { scoreDecay } = await import("../src/data/decay.js");
+  const r = scoreDecay({ teeth: "yes", recent: "one", brush: "2", protect: ["hf", "tm", "varnish", "rinse", "gum"] });
+  assert.ok(["high", "veryhigh"].includes(r.band.id), r.band.id);
 });
