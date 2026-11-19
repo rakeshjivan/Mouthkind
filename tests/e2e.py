@@ -113,7 +113,7 @@ async def main():
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("1 to 2 years ago").click(); await pg.wait_for_timeout(350)
         assert await dlg.get_by_text("Does your mouth often feel dry?").count() == 0
-        await pick("GC Tooth Mousse or Tooth Mousse Plus").click()
+        await pick("GC Tooth Mousse™ or Tooth Mousse™ Plus").click()
         await btn("See my result").click(); await pg.wait_for_timeout(600)
         await shot("05c-decay-result")
         assert await dlg.get_by_text("Switch to a high-fluoride toothpaste").count() == 1
@@ -161,7 +161,7 @@ async def main():
         await shot("14b-care", True)
         await pg.click("nav >> text=Shop"); await pg.wait_for_timeout(300)
         await shot("14c-shop", True)
-        tm = pg.locator(".shop-item").filter(has=pg.get_by_role("heading", name="GC Tooth Mousse", exact=True))
+        tm = pg.locator(".shop-item").filter(has=pg.get_by_role("heading", name="GC Tooth Mousse™", exact=True))
         await tm.get_by_role("radio", name="Strawberry").click(); await pg.wait_for_timeout(150)
         assert "98657" in await tm.locator("a.btn").get_attribute("href")
         assert "Buy Strawberry" in await tm.locator("a.btn").inner_text()

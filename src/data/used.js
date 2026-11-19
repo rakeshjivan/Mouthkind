@@ -5,8 +5,8 @@
 
 export const USED = [
   { v: "gc-dmg", label: "GC Dry Mouth Gel", product: "gc-dmg" },
-  { v: "gc-tmp", label: "GC Tooth Mousse Plus", product: "gc-tmp" },
-  { v: "gc-tm", label: "GC Tooth Mousse", product: "gc-tm" },
+  { v: "gc-tmp", label: "GC Tooth Mousse™ Plus", product: "gc-tmp" },
+  { v: "gc-tm", label: "GC Tooth Mousse™", product: "gc-tm" },
   { v: "hf", label: "High-fluoride toothpaste", product: "neutrafluor" },
   { v: "tray", label: "Fluoride trays" },
   { v: "rinse", label: "Bicarb or salt water rinse" },

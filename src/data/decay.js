@@ -175,7 +175,7 @@ export const DECAY_QUESTIONS = [
     options: [
       { v: "hf", label: "High-fluoride toothpaste (5,000 ppm)", hint: "e.g. NeutraFluor 5000, Clinpro 5000", as: "Using a high-fluoride toothpaste", pts: -4,
         why: "High-fluoride toothpaste gives the strongest everyday protection.", refs: ["featherstone2021", "chen2026"] },
-      { v: "tm", label: "GC Tooth Mousse or Tooth Mousse Plus", as: "Using GC Tooth Mousse or Tooth Mousse Plus", pts: -3,
+      { v: "tm", label: "GC Tooth Mousse™ or Tooth Mousse™ Plus", as: "Using GC Tooth Mousse™ or Tooth Mousse™ Plus", pts: -3,
         why: "Calcium and phosphate (CPP-ACP) are recommended for people at higher risk of decay.", refs: ["featherstone2021", "agarwal2022"] },
       { v: "varnish", label: "Fluoride varnish from my dentist in the last 6 months", as: "Fluoride varnish in the last 6 months", pts: -3,
         why: "Professional fluoride varnish helps stop early decay.", refs: ["slayton2018", "featherstone2021"] },
@@ -299,17 +299,17 @@ export function decayPlan(result, answers = {}) {
       products: ["oranurse"], refs: ["walsh2019"] });
 
   // Everyone with natural teeth: fluoride and Tooth Mousse for daily prevention.
-  out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus, morning and night",
+  out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse™ Plus" : "Add GC Tooth Mousse™ Plus, morning and night",
       body: lvl === "veryhigh"
         ? "After brushing in the morning and at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, you can also use it after lunch."
         : has("mouth", "braces")
           ? "After brushing in the morning and at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
-          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse adds calcium and phosphate; Tooth Mousse Plus provides additional protection, fortified with 900 ppm fluoride.",
+          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse™ adds calcium and phosphate; Tooth Mousse™ Plus provides additional protection, fortified with 900 ppm fluoride.",
       products: ["gc-tmp", "gc-tm"], refs: ["featherstone2021", "agarwal2022"] });
 
   if (hi)
-    out.push({ id: "tm", title: "During the day: GC Tooth Mousse",
-      body: "If you're using a high-fluoride toothpaste, GC Tooth Mousse — calcium and phosphate without added fluoride — can go on during the day for extra protection. Your dentist can tell you which suits you.",
+    out.push({ id: "tm", title: "During the day: GC Tooth Mousse™",
+      body: "If you're using a high-fluoride toothpaste, GC Tooth Mousse™ — calcium and phosphate without added fluoride — can go on during the day for extra protection. Your dentist can tell you which suits you.",
       products: ["gc-tm"], refs: ["featherstone2021"] });
 
   if (result.factors.some((f) => f.q === "sugar"))

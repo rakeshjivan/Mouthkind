@@ -22,12 +22,12 @@ export const PRODUCTS = [
       "Lubricates and moistens the mouth for up to 4 hours.",
       "Sugar-free.",
       "A range of flavours, including citrus flavours that help get saliva flowing.",
-      "Can be used together with GC Tooth Mousse or Tooth Mousse Plus.",
+      "Can be used together with GC Tooth Mousse™ or Tooth Mousse™ Plus.",
     ],
   },
   // Protect teeth
   {
-    id: "gc-tmp", gc: true, name: "GC Tooth Mousse Plus", job: "protect",
+    id: "gc-tmp", gc: true, name: "GC Tooth Mousse™ Plus", job: "protect",
     form: "Crème with CPP-ACP, fortified with 900 ppm fluoride", regions: { AU: "yes", NZ: "yes" },
     why: "Adds calcium and phosphate (CPP-ACP) plus fluoride, for additional protection in anyone over 6. With a dry mouth, saliva no longer supplies these, so teeth lose mineral faster.",
     use: "After brushing in the morning and at night, smear a pea-sized amount over the teeth. Don't rinse, eat or drink for 30 minutes.",
@@ -47,7 +47,7 @@ export const PRODUCTS = [
     ],
   },
   {
-    id: "gc-tm", gc: true, name: "GC Tooth Mousse", job: "protect",
+    id: "gc-tm", gc: true, name: "GC Tooth Mousse™", job: "protect",
     form: "Crème with CPP-ACP", regions: { AU: "yes", NZ: "yes" },
     why: "Calcium and phosphate (CPP-ACP) without added fluoride — for children 6 and under, people who'd rather avoid fluoride, and anyone likely to swallow it.",
     use: "Smear a pea-sized amount over the teeth, during the day or as your dentist directs. Don't rinse, eat or drink for 30 minutes.",

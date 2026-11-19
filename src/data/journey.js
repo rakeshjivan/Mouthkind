@@ -112,7 +112,7 @@ function rtCard(p, now) {
   const base = { id: "rt", title: "Radiotherapy to the head or neck" };
   if (s.stage === "before") return { ...base, when: s.daysToGo ? `Starts in ${s.daysToGo} day${s.daysToGo === 1 ? "" : "s"}` : "Before you start", items: [
     { t: "See your dentist now. Any teeth that need to come out should come out before radiotherapy, ideally at least 2 weeks before, so the gum can heal.", refs: ["peterson2024"] },
-    { t: "Ask your dentist about a high-fluoride toothpaste or fluoride trays, and start GC Tooth Mousse Plus after brushing, morning and night.", refs: ["nciPdqHp", "featherstone2021"] },
+    { t: "Ask your dentist about a high-fluoride toothpaste or fluoride trays, and start GC Tooth Mousse™ Plus after brushing, morning and night.", refs: ["nciPdqHp", "featherstone2021"] },
     { t: "Do your dry mouth check and a pH test now. Having a starting point makes later changes easy to see." },
     { t: "Check how wide you can open your mouth (the finger test in Tools), so any stiffness later is spotted early.", refs: ["nciPdqHp"] },
   ], next: "Soreness usually begins around the second week of treatment." };
@@ -136,7 +136,7 @@ function rtCard(p, now) {
   ], next: "Dryness may slowly improve over months, but often doesn't fully go." };
   if (s.stage === "after") return { ...base, when: s.monthsAfter ? `About ${s.monthsAfter} month${s.monthsAfter === 1 ? "" : "s"} after` : "In the year after", items: [
     { t: "Dryness may improve slowly over months but often doesn't fully recover. Keep tracking it here." },
-    { t: "Use fluoride every day — high-fluoride toothpaste or trays — and GC Tooth Mousse Plus after brushing, morning and night. A dry mouth decays fast.", refs: ["nciPdqHp", "featherstone2021"] },
+    { t: "Use fluoride every day — high-fluoride toothpaste or trays — and GC Tooth Mousse™ Plus after brushing, morning and night. A dry mouth decays fast.", refs: ["nciPdqHp", "featherstone2021"] },
     { t: "Check how wide you can open once a month. If it's getting harder, ask about jaw exercises — they help once stiffness starts.", refs: ["shao2020"] },
     { t: "See your dentist every 3 to 6 months." },
   ], always: ORN };

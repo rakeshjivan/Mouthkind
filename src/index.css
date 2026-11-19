@@ -1358,3 +1358,43 @@ details.srcs .sources { margin-top: 4px; }
 .panel.about summary svg { transition: transform .2s; color: var(--ink3); }
 .panel.about[open] summary svg { transform: rotate(90deg); }
 .panel.about[open] summary { margin-bottom: 10px; }
+
+/* ─── GC brand (GC Corporate Design Manual, Feb 2024) ─────────────────────
+   GC Green #158B70 and its tints (60/45/30/15/10%), white space, black text,
+   greys for lines. Inter is GC's recommended web font. GC Green is used at full
+   strength for large type and the brand; small green text uses a darker shade
+   of it (#0F6E59) so it meets WCAG AA contrast (GC Green is 4.2:1 on white). */
+:root {
+  --gc: #158b70; --gc60: #73b9a9; --gc45: #96cbbf; --gc30: #b9dcd4; --gc15: #dceeea; --gc10: #e8f3f1;
+  --accent: #0f6e59; --accent2: #0b5948; --accent-ink: #ffffff;
+  --tint: var(--gc10); --soft: #f2f2f2;
+  --ink: #000000; --ink2: #4d4d4d; --ink3: #666666; --line: #e6e6e6; --dim: #cccccc;
+  --good: #0f6e59; --good-bg: var(--gc10);
+  --btn-bg: var(--gc15); --btn-hover: var(--gc30); --btn-ink: #0b5948; --btn-line: var(--gc30);
+  --font: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --display: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+[data-theme="dark"] {
+  --gc: #73b9a9; --gc60: #4d9d8a; --gc45: #2f7e6c; --gc30: #1f5a4d; --gc15: #143d34; --gc10: #10302a;
+  --accent: #73b9a9; --accent2: #96cbbf; --accent-ink: #0b2a23;
+  --tint: var(--gc10); --soft: #1e2228;
+  --ink: #f2f2f2; --ink2: #b8bcc2; --ink3: #949aa2; --line: #2b2f35; --dim: #3a3f46;
+  --good: #73b9a9; --good-bg: var(--gc10);
+  --btn-bg: var(--gc15); --btn-hover: var(--gc30); --btn-ink: #b9dcd4; --btn-line: var(--gc30);
+}
+/* The brand name in GC Green; headings stay black for readability, as the manual allows. */
+.brand, .brand-head .brand { color: var(--gc); }
+.test-badge { background: var(--gc10); color: var(--accent); }
+/* Result boxes: one family in GC Green tints instead of five pastel colours.
+   Red, amber and green stay only where they mean Low, Moderate or High. */
+.tile.risk, .tile.decay, .tile.sip, .tile.jaw, .tile.advice, .tile.tracker { --c: var(--accent); }
+.tile.ph { --c: #4d4d4d; }
+[data-theme="dark"] .tile.ph { --c: #b8bcc2; }
+.boxes .tile, .boxes .tile.advice { background: var(--card); border: 1.5px solid var(--gc30); }
+.boxes .tile.due { border-color: var(--gc60); }
+.boxes .tile:hover { border-color: var(--gc60); }
+.tile-icon { background: var(--gc10); color: var(--accent); }
+.tile.ph .tile-icon { background: #f2f2f2; }
+[data-theme="dark"] .tile.ph .tile-icon { background: var(--soft); }
+/* Product images sit on the manual's light-grey panel (10% black). */
+.pimg, .prod-img, .product-image { background: #f2f2f2; }

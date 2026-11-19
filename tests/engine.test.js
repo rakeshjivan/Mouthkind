@@ -133,7 +133,7 @@ test("allergies take Tooth Mousse and the gel out of the plan", () => {
   const plan = buildPlan(model(p, e));
   for (const it of plan) {
     assert.ok(!it.products.some((x) => ["gc-tmp", "gc-tm", "gc-dmg"].includes(x)), it.id);
-    assert.ok(!/Tooth Mousse Plus over|GC Dry Mouth Gel/.test(it.title + it.body.replace(/Tooth Mousse contains milk protein/, "")), it.id);
+    assert.ok(!/Tooth Mousse™ Plus over|GC Dry Mouth Gel/.test(it.title + it.body.replace(/Tooth Mousse contains milk protein/, "")), it.id);
   }
 });
 
@@ -160,7 +160,7 @@ test("the sugar question from the decay check isn't asked again", () => {
 
 test("after radiotherapy: fluoride options, and the plan responds to fluoride-free toothpaste", () => {
   const q = FOLLOWUPS.find((x) => x.id === "rtFluoride");
-  assert.deepEqual(q.options.map((o) => o.label), ["Fluoride toothpaste", "High-fluoride toothpaste", "Fluoride-free toothpaste", "Fluoride mouthwash", "GC Tooth Mousse Plus", "None of these"]);
+  assert.deepEqual(q.options.map((o) => o.label), ["Fluoride toothpaste", "High-fluoride toothpaste", "Fluoride-free toothpaste", "Fluoride mouthwash", "GC Tooth Mousse™ Plus", "None of these"]);
   assert.ok(q.noSnooze);
   const p = { situation: ["cancer"], treatments: ["rt_hn"], rtStart: iso(NOW - 200 * D) };
   const it = buildPlan(model(answer(p, [], "rtFluoride", ["ff"]))).find((i) => i.id === "rtFluoride");
@@ -174,7 +174,7 @@ test("products already in use are praised, not recommended as new", () => {
   const e = [{ id: "u1", kind: "used", items: ["gc-tmp"], ts: NOW - D }, { id: "s1", kind: "sip", sip: 12, ts: NOW - D }];
   const plan = buildPlan(model(answer(p, e, "rtFluoride", ["plain", "tmp"]), e));
   const rt = plan.find((i) => i.id === "rtFluoride");
-  assert.match(rt.body, /already using GC Tooth Mousse Plus — keep going/);
+  assert.match(rt.body, /already using GC Tooth Mousse™ Plus — keep going/);
   const acid = [6.0, 5.8, 6.2].map((ph, i) => ({ id: `p${i}`, kind: "ph", ph, ts: NOW - (5 - i) * D }))
     .concat([{ id: "u2", kind: "used", items: ["gc-tmp", "gc-tm"], ts: NOW - D }]);
   const kept = buildPlan(model({}, acid)).filter((i) => i.kept);
@@ -248,7 +248,7 @@ test("everyone with teeth gets fluoride and Tooth Mousse, unless allergic to mil
 test("the gel tip about mixing with Tooth Mousse is left out for milk-protein allergy", () => {
   const e = [{ id: "s1", kind: "sip", ts: Date.now(), sip: 10 }];
   const gel = (p) => buildPlan(buildModel({ profile: p, entries: e })).find((i) => i.id === "gel");
-  assert.match(gel({}).body, /mix it with GC Tooth Mousse/);
+  assert.match(gel({}).body, /mix it with GC Tooth Mousse™/);
   assert.doesNotMatch(gel({ fu: { allergy: { v: ["milk"] } } }).body, /Tooth Mousse/);
 });
 

@@ -50,7 +50,7 @@ function UsedPanel({ entries, open }) {
           })}
           <p className="panel-foot">Last 6 weeks.</p>
         </div>
-      ) : <p className="soft-note">Log what you use — gel, Tooth Mousse, rinses — and after a few weeks this shows whether your dry mouth score changed.</p>}
+      ) : <p className="soft-note">Log what you use — gel, Tooth Mousse™, rinses — and after a few weeks this shows whether your dry mouth score changed.</p>}
     </section>
   );
 }
