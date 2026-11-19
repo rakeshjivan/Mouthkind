@@ -441,7 +441,7 @@ const RULES = [
     if (pts < 8) return;
     const names = m.named.map((x) => x.g).slice(0, 3);
     const because = [names.length ? `You take ${list(names)}, ${names.length === 1 ? "which is" : "which are"} known to dry the mouth.` : `Medicines make up ${pts} points of your dry mouth risk.`];
-    if (sipNow(m) >= 8) because.push(`Your dry mouth score is ${sipNow(m)}.`);
+    if (sipNow(m) >= 8) because.push(`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`);
     return { id: "medReview", pri: sipNow(m) >= 8 ? 61 : 44, title: "Ask for a medicine review", body: "Your pharmacist or GP may be able to change the dose, timing or type of a medicine that dries the mouth. Take your list. Never stop a medicine without asking first.", because, refs: ["wolff2017"] };
   },
   // Inhalers.

@@ -220,5 +220,5 @@ test("people see low, moderate or high — never 'Very high' or a number out of 
     { id: "s1", kind: "sip", ts: Date.now() - 20 * 864e5, sip: 9 }, { id: "s2", kind: "sip", ts: Date.now(), sip: 13 },
     { id: "r1", kind: "risk", ts: Date.now(), answers: { cancer: ["rt_hn"] } }] });
   const text = JSON.stringify([summary(m), buildPlan(m)]);
-  assert.doesNotMatch(text, /Very high|of 15/);
+  assert.doesNotMatch(text, /Very high|of 15|score is \d|score \d/);
 });
