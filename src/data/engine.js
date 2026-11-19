@@ -72,6 +72,9 @@ export function buildModel({ profile = {}, entries = [], now = Date.now() } = {}
 // ── Helpers the rules share ─────────────────────────────────────────────────
 const answered = (m, id) => m.fu[id]?.v;
 const sipNow = (m) => m.sip?.sip ?? 0;
+// Lower-case a label for use mid-sentence, keeping names and abbreviations ("Sjögren's", "HRT", "GP").
+const PROPER = /^(Sjögren|Parkinson|Alzheimer|Crohn|Graves|Hashimoto|HIV|HRT|GLP|CPAP|ADHD|GP|GC)/;
+const lc = (s = "") => PROPER.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1);
 // At risk: a drier mouth, acidic saliva, a known cause, or a raised risk result.
 const atRisk = (m) => sipNow(m) >= 8 || ["watch", "flag"].includes(m.phPat.level) || m.rtHN || m.sjogren
   || ["moderate", "high", "veryhigh"].includes(m.decay?.band.id) || ["high", "veryhigh"].includes(m.risk?.band.id);
@@ -104,10 +107,12 @@ export const FOLLOWUPS = [
   {
     id: "allergy", pri: () => 59, many: true,
     text: (m) => T(m, "Do you have either of these allergies?", "Does $ have either of these allergies?"),
-    why: "GC Tooth Mousse contains milk protein (casein), and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
+    why: "GC Tooth Mousse™ contains milk protein (casein), and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
     refs: [],
     options: [{ v: "milk", label: "Milk protein (casein)" }, { v: "hb", label: "Hydroxybenzoates (parabens)" }, { v: "none", label: "Neither" }],
-    when: (m) => atRisk(m),
+    // Tooth Mousse is recommended to everyone with natural teeth, so everyone with teeth is asked;
+    // the gel is only suggested for dryness, which atRisk already covers.
+    when: (m) => atRisk(m) || (!!m.decay && !m.noTeeth),
   },
   {
     id: "dentistSeen", pri: () => 96,
@@ -154,7 +159,7 @@ export const FOLLOWUPS = [
     options: [
       { v: "plain", label: "Fluoride toothpaste" }, { v: "hf", label: "High-fluoride toothpaste" },
       { v: "ff", label: "Fluoride-free toothpaste" }, { v: "rinse", label: "Fluoride mouthwash" },
-      { v: "tmp", label: "GC Tooth Mousse Plus" }, { v: "none", label: "None of these" },
+      { v: "tmp", label: "GC Tooth Mousse™ Plus" }, { v: "none", label: "None of these" },
     ],
     when: (m) => m.rtHN && (!m.rt || m.rt.stage !== "before"),
   },
@@ -351,13 +356,12 @@ const RULES = [
     if (src.includes("graze")) steps.push("Keep snacks and sweet drinks to mealtimes — every one starts a new acid attack.");
     if (src.includes("reflux")) steps.push("Ask your GP about treating the reflux. After heartburn, rinse with water and wait an hour to brush.");
     if (src.includes("vomit")) steps.push("After vomiting, rinse with water or a bicarbonate rinse, and wait at least 30 minutes before brushing.");
-    steps.push("After brushing, morning and night, smear GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) over your teeth.");
     if (lvl === "flag") steps.push("See your dentist and show them your pH results.");
     const because = [m.phPat.n === 1 ? "Your last pH test was acidic." : `Your saliva was acidic in ${m.phPat.acid} of your last ${m.phPat.n} tests.`];
     if (src.length && !src.includes("none")) because.push(`You mentioned ${list(src.filter((s) => s !== "none").map((s) => ({ drinks: "acidic drinks", graze: "snacking through the day", reflux: "reflux", vomit: "vomiting" })[s]))}.`);
     if (sipNow(m) >= 8) because.push("A dry mouth makes acid harder to clear.");
     return { id: "acid", pri: lvl === "flag" ? 84 : 55, title: lvl === "flag" ? "Bring the acid down and protect your teeth" : "Keep an eye on your saliva pH",
-      body: steps.join(" "), because, refs: ["gcSalivaCheck", "agarwal2022", ...(src.includes("vomit") ? ["adaPregnancy"] : [])], products: ["gc-tmp", "gc-tm"] };
+      body: steps.join(" "), because, refs: ["gcSalivaCheck", ...(src.includes("vomit") ? ["adaPregnancy"] : [])] };
   },
   // Head and neck radiotherapy: fluoride for life.
   (m) => {
@@ -365,7 +369,7 @@ const RULES = [
     const f = [].concat(answered(m, "rtFluoride") || []);
     if (f.includes("hf") || f.includes("tray")) return { id: "rtFluoride", pri: 30, title: "Keep up your daily fluoride, for life", body: "You're doing the most important thing. See your dentist every 3 to 6 months.", because: ["You've had radiotherapy to the head or neck."], refs: ["peterson2024"] };
     return { id: "rtFluoride", pri: 83, title: "Use high-strength fluoride every day, for life",
-      body: "Brush with a high-fluoride toothpaste (5,000 ppm) twice a day — spit, don't rinse. After brushing, morning and night, add GC Tooth Mousse Plus (fortified with 900 ppm fluoride) or GC Tooth Mousse.",
+      body: "Brush with a high-fluoride toothpaste (5,000 ppm) twice a day — spit, don't rinse. After brushing, morning and night, add GC Tooth Mousse™ Plus (fortified with 900 ppm fluoride) or GC Tooth Mousse™.",
       because: ["You've had radiotherapy to the head or neck. Teeth can decay very fast afterwards.",
         ...(f.includes("ff") ? ["Your toothpaste has no fluoride."] : f.includes("plain") ? ["You're using an ordinary-strength fluoride toothpaste."] : f.includes("none") ? ["You're not using any fluoride yet."] : [])],
       refs: ["peterson2024", "featherstone2021"], products: ["neutrafluor", "gc-tmp"] };
@@ -437,7 +441,7 @@ const RULES = [
     const because = [`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`];
     if (night) because.push("Your mouth is driest at night.");
     if (a === "meh") return { id: "gel", pri: 50, title: "Get more from your saliva gel", body: "Use a pea-sized amount spread over the tongue, cheeks and gums with a clean finger — before meals, at bedtime and whenever you need it. Water alone wears off within minutes.", because: [...because, "You said gel didn't help much."], refs: ["nuchit2020"], products: ["gc-dmg"] };
-    return { id: "gel", pri: 62, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Try GC Dry Mouth Gel", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals and at bedtime. It lasts longer than water." + ([].concat(answered(m, "allergy") || []).includes("milk") ? "" : " You can mix it with GC Tooth Mousse or Tooth Mousse Plus before you put it on."), because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
+    return { id: "gel", pri: 66, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Through the day: GC Dry Mouth Gel, as needed", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals, at bedtime and whenever your mouth feels dry. It lasts longer than water." + ([].concat(answered(m, "allergy") || []).includes("milk") ? "" : " You can mix it with GC Tooth Mousse™ or Tooth Mousse™ Plus before you put it on."), because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
   },
   // Night-time dryness.
   (m) => {
@@ -501,21 +505,25 @@ const RULES = [
 const COVERED = {
   "risk.track": ["startSip"], "risk.dentist": ["decay.visit"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
   "risk.drink": ["water", "riseDrink"], "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
-  "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride"], "decay.tmp": ["rtFluoride", "acid"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
+  "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride"], "decay.tmp": ["rtFluoride"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
 };
 const DECAY_PRI = { veryhigh: 66, high: 60, moderate: 42, low: 22 };
 function checkAdvice(m) {
   const out = [];
   if (m.decayE) {
     const r = scoreDecay(m.decayE.answers, m.decayE.ctx);
-    decayPlan(r, m.decayE.answers).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: (DECAY_PRI[r.band.id] ?? 30) - i,
+    const base = DECAY_PRI[r.band.id] ?? 30;
+    // Tooth Mousse Plus morning and night leads the plan (after anything urgent); Tooth Mousse through
+    // the day follows straight after the gel.
+    const order = (a, i) => a.id === "tmp" ? (r.band.id === "low" ? base + 5 : 70) : a.id === "tm" ? 65 : base - i;
+    decayPlan(r, m.decayE.answers).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: order(a, i),
       because: [r.noTeeth ? "You don't have natural teeth."
         : a.id === "tmp" && r.band.id === "low" ? "Daily prevention: calcium, phosphate and fluoride for your teeth every day."
         : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }
   if (m.risk) for (const a of riskAdvice(m.risk, m.answers)) {
     const top = m.risk.factors[0];
-    out.push({ ...a, id: `risk.${a.id}`, pri: a.id === "dentist" ? 41 : 38, because: [`Your dry mouth risk is ${m.risk.band.label.toLowerCase()}${top ? `, mostly from ${top.label.toLowerCase()}` : ""}.`] });
+    out.push({ ...a, id: `risk.${a.id}`, pri: a.id === "dentist" ? 41 : 38, because: [`Your dry mouth risk is ${m.risk.band.label.toLowerCase()}${top ? `, mostly from ${lc(top.label)}` : ""}.`] });
   }
   return out;
 }
@@ -531,9 +539,9 @@ function safe(it, m) {
   const drop = (re) => body.split(/(?<=\.)\s+/).filter((x) => !re.test(x)).join(" ");
   if (milk && (products.some((p) => MILK.includes(p)) || /Tooth Mousse/.test(body + title))) {
     products = products.filter((p) => !MILK.includes(p));
-    body = drop(/Tooth Mousse/); title = title.replace(/GC Tooth Mousse( Plus)?/, "extra fluoride");
-    if (/Tooth Mousse/.test(it.title) || !body) body = `${body} Tooth Mousse contains milk protein, so ask your dentist about fluoride varnish or a fluoride gel instead.`.trim();
-    because = [...because, "You're allergic to milk protein, so Tooth Mousse is left out."];
+    body = drop(/Tooth Mousse/); title = title.replace(/GC Tooth Mousse™?( Plus)?/, "extra fluoride");
+    if (/Tooth Mousse/.test(it.title) || !body) body = `${body} Tooth Mousse™ contains milk protein, so ask your dentist about fluoride varnish or a fluoride gel instead.`.trim();
+    because = [...because, "You're allergic to milk protein, so Tooth Mousse™ is left out."];
   }
   if (hb && (products.includes("gc-dmg") || /Dry Mouth Gel/.test(body + title))) {
     products = products.filter((p) => !HB.includes(p));
@@ -611,7 +619,7 @@ export function summary(m) {
   else if (m.chemo != null && m.chemo <= 21) s.push(`Day ${m.chemo} after chemotherapy.`);
   if (m.daily && m.now - m.daily.ts < DAY) s.push(`Today: ${GRADES[m.daily.grade ?? mucositisGrade(m.daily)].label.toLowerCase()}.`);
   if (m.risk) {
-    const top = m.risk.factors.slice(0, 2).map((f) => f.label.toLowerCase());
+    const top = m.risk.factors.slice(0, 2).map((f) => lc(f.label));
     s.push(`${m.risk.band.label} dry mouth risk${top.length ? `, mostly from ${list(top)}` : ""}.`);
   }
   if (m.sip) {

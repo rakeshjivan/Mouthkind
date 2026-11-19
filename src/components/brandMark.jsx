@@ -4,7 +4,7 @@ export function BrandMark({ size = 28 }) {
     <svg viewBox="150 150 724 680" width={size} height={size} aria-hidden="true" className="brand-mark">
       <defs>
 <linearGradient id="bm-d" x1=".25" y1="0" x2=".75" y2="1"><stop offset="0" stopColor="#6fb6ec"/><stop offset="1" stopColor="#1f6fa8"/></linearGradient>
-<linearGradient id="bm-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#7aa53a"/><stop offset="1" stopColor="#5f8a26"/></linearGradient>
+<linearGradient id="bm-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1c9a7d"/><stop offset="1" stopColor="#0f6e59"/></linearGradient>
 </defs>
 
 <path d="M512 176 C 478 254, 356 358, 356 476 A 156 156 0 0 0 668 476 C 668 358, 546 254, 512 176 Z" fill="url(#bm-d)"/>
