@@ -33,15 +33,15 @@ export function Chips({ options, value, onChange, tone = "" }) {
 }
 
 // ─── A small series of single values (SIP, pH) ─────────────────────────────
-export function DotSeries({ points, min, max, line, lineLabel, tone, fmt = (v) => v }) {
-  const W = 340, H = 120, L = 30, R = 10, T = 12, B = 22;
+export function DotSeries({ points, min, max, line, lineLabel, tone, fmt = (v) => v, ticks, gutter = 30 }) {
+  const W = 340, H = 120, L = gutter, R = 10, T = 12, B = ticks ? 30 : 22;
   const n = points.length;
   const x = (i) => (n === 1 ? (W + L - R) / 2 : L + (i * (W - L - R)) / (n - 1));
   const y = (v) => T + ((max - v) * (H - T - B)) / (max - min);
   const d = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join("");
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart2" role="img" aria-label={points.map((p) => `${p.label}: ${fmt(p.v)}`).join("; ")}>
-      {[min, max].map((v) => <text key={v} x={L - 8} y={y(v) + 4} className="c-axis" textAnchor="end">{fmt(v)}</text>)}
+      {(ticks || [min, max]).map((v) => <text key={v} x={L - 8} y={y(v) + 4} className="c-axis" textAnchor="end">{fmt(v)}</text>)}
       {line != null && <g><line x1={L} x2={W - R} y1={y(line)} y2={y(line)} className="c-ref" /><text x={L + 4} y={y(line) + 14} className="c-mlabel">{lineLabel}</text></g>}
       <path d={d} className={`c-line ${tone}`} />
       {points.map((p, i) => <circle key={i} cx={x(i)} cy={y(p.v)} r="4" className={`c-pt ${tone}`} />)}
@@ -80,25 +80,16 @@ export function RiskDial({ score, tone }) {
   );
 }
 
-// ─── Risk meter: where the score sits across the four bands ────────────────
-// The scale runs 0–60; anything above 60 sits at the end of "very high".
-export function RiskMeter({ score, bands }) {
-  const MAX = 60, pos = Math.min(score, MAX) / MAX * 100;
+// ─── Level meter: low, moderate or high — no numbers ──────────────────────
+const LEVEL_ZONES = [{ id: "low", label: "Low", tone: "good" }, { id: "moderate", label: "Moderate", tone: "amber" }, { id: "high", label: "High", tone: "red" }];
+export const levelId = (bandId) => (bandId === "veryhigh" ? "high" : bandId);
+export function LevelMeter({ level, what = "risk" }) {
+  const on = levelId(level);
   return (
-    <div className="rmeter" role="img" aria-label={`${[...bands].reverse().find((b) => score >= b.lo)?.label} risk, on a scale of ${bands.map((b) => b.label).join(", ")}`}>
-      <div className="rm-track">
-        {bands.map((b, i) => {
-          const hi = i < bands.length - 1 ? bands[i + 1].lo : MAX;
-          return <span key={b.id} className={`rm-zone ${b.tone}`} style={{ width: `${(hi - b.lo) / MAX * 100}%` }} />;
-        })}
-        <span className="rm-marker" style={{ left: `${pos}%` }}><i /></span>
-      </div>
-      <div className="rm-labels">
-        {bands.map((b, i) => {
-          const hi = i < bands.length - 1 ? bands[i + 1].lo : MAX;
-          return <span key={b.id} style={{ width: `${(hi - b.lo) / MAX * 100}%` }}>{b.label}</span>;
-        })}
-      </div>
+    <div className="lmeter" role="img" aria-label={`${LEVEL_ZONES.find((z) => z.id === on)?.label} ${what}, on a scale of low, moderate and high`}>
+      {LEVEL_ZONES.map((z) => (
+        <span key={z.id} className={`lm-zone ${z.tone}${z.id === on ? " on" : ""}`}><i />{z.label}</span>
+      ))}
     </div>
   );
 }
@@ -108,11 +99,11 @@ export function Breakdown({ groups }) {
   const total = groups.reduce((s, g) => s + g.pts, 0) || 1;
   return (
     <div className="breakdown">
-      <div className="bd-bar" role="img" aria-label={groups.map((g) => `${g.label} ${g.pts}`).join(", ")}>
+      <div className="bd-bar" role="img" aria-label={`Made up of: ${groups.map((g) => g.label).join(", ")}`}>
         {groups.map((g) => <span key={g.id} className={`bd-seg g-${g.id}`} style={{ width: `${(g.pts / total) * 100}%` }} />)}
       </div>
       <ul className="bd-legend">
-        {groups.map((g) => <li key={g.id}><i className={`g-${g.id}`} /><span>{g.label}</span><b>{g.pts}</b></li>)}
+        {groups.map((g) => <li key={g.id}><i className={`g-${g.id}`} /><span>{g.label}</span></li>)}
       </ul>
     </div>
   );

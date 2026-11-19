@@ -15,7 +15,7 @@
 import { fullAnswers, riskAdvice, scoreRisk } from "./risk.js";
 import { decayPlan, scoreDecay } from "./decay.js";
 import { phPattern, isAcidic } from "./ph.js";
-import { sipBand } from "./clinical.js";
+import { sipBand, sipLevel } from "./clinical.js";
 import { medicineById } from "./medicines.js";
 import { usedInsights } from "./used.js";
 import { PRODUCTS } from "./products.js";
@@ -131,7 +131,7 @@ export const FOLLOWUPS = [
   },
   {
     id: "sipRise", pri: () => 86, key: (m) => m.sip?.id,
-    text: (m) => `${m.who ? `${m.who}'s` : "Your"} dry mouth score went up from ${m.prevSip.sip} to ${m.sip.sip}. Has anything changed?`,
+    text: (m) => `${m.who ? `${m.who}'s` : "Your"} mouth has got drier since the last check. Has anything changed?`,
     why: "Knowing what changed tells us whether it's likely to pass, or needs a medicine review or a call to the team.",
     many: true,
     options: [
@@ -394,9 +394,9 @@ const RULES = [
   (m) => {
     if (!(m.rise >= 2) || m.fu.sipRise?.key !== m.sip.id) return;
     const r = [].concat(m.fu.sipRise.v);
-    const because = [`Your dry mouth score went from ${m.prevSip.sip} to ${m.sip.sip}.`];
+    const because = ["Your mouth has got drier since your last check."];
     if (r.includes("med")) return { id: "riseMed", pri: 78, title: "Ask your pharmacist about the new medicine", body: "Many medicines dry the mouth. A different medicine, dose or time of day can help. Don't stop a medicine without asking first.", because: [...because, "You started or changed a medicine."], refs: ["wolff2017"] };
-    if (r.includes("stopped")) return { id: "riseStopped", pri: 72, title: "Go back to what was helping", body: "Restart it for 2 weeks, then do your dry mouth check again to see if the score comes back down.", because: [...because, "You stopped something you were using."], act: { label: "Log what I used", open: "used" } };
+    if (r.includes("stopped")) return { id: "riseStopped", pri: 72, title: "Go back to what was helping", body: "Restart it for 2 weeks, then do your dry mouth check again to see if your mouth is less dry.", because: [...because, "You stopped something you were using."], act: { label: "Log what I used", open: "used" } };
     if (r.includes("drink")) return { id: "riseDrink", pri: 68, title: "Sip water through the day", body: "Keep a bottle with you and take small sips often. Water with every meal helps chewing and swallowing.", because: [...because, "You've been drinking less."] };
     if (r.includes("ill")) return { id: "riseIll", pri: 58, title: "Recheck in two weeks", body: "Being unwell, a fever and cold and flu tablets can dry the mouth for a while. Sip water often. If the score stays up, mention it to your GP.", because: [...because, "You've been unwell."], act: { label: "Remind me", open: "remind" } };
     if (r.includes("tx")) return { id: "riseTx", pri: 64, title: "Dryness often follows treatment", body: "Tell your team at your next visit, and use a saliva gel before meals and at bedtime.", because: [...because, "Your cancer treatment started or changed."], refs: ["mercadante2021"], products: ["gc-dmg"] };
@@ -406,7 +406,7 @@ const RULES = [
   (m) => sipNow(m) >= 11 && (m.rtHN || m.sjogren) && answered(m, "gelTried") === "meh" && {
     id: "sialogogue", pri: 64, title: "Ask your doctor about a saliva-stimulating medicine",
     body: "Pilocarpine can help when the salivary glands still work a little. It needs a prescription and isn't suitable for everyone — your doctor will check.",
-    because: [`Your dry mouth score is ${sipNow(m)} (${sipBand(sipNow(m)).label.toLowerCase()}).`, "A saliva gel hasn't helped enough.", m.rtHN ? "You've had radiotherapy to the head or neck." : "You have Sjögren's."],
+    because: [`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`, "A saliva gel hasn't helped enough.", m.rtHN ? "You've had radiotherapy to the head or neck." : "You have Sjögren's."],
     refs: m.rtHN ? ["mercadante2021"] : ["ramosCasals2020"],
   },
   // Saliva gel: try one, or use it better.
@@ -414,7 +414,7 @@ const RULES = [
     const a = answered(m, "gelTried");
     if (sipNow(m) < 8 || m.usedNow.has("gc-dmg") || a === "helps") return;
     const night = answered(m, "dryTime") === "night";
-    const because = [`Your dry mouth score is ${sipNow(m)} (${sipBand(sipNow(m)).label.toLowerCase()}).`];
+    const because = [`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`];
     if (night) because.push("Your mouth is driest at night.");
     if (a === "meh") return { id: "gel", pri: 50, title: "Get more from your saliva gel", body: "Use a pea-sized amount spread over the tongue, cheeks and gums with a clean finger — before meals, at bedtime and whenever you need it. Water alone wears off within minutes.", because: [...because, "You said gel didn't help much."], refs: ["nuchit2020"], products: ["gc-dmg"] };
     return { id: "gel", pri: 62, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Try GC Dry Mouth Gel", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals and at bedtime. It lasts longer than water.", because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
@@ -591,8 +591,8 @@ export function summary(m) {
     s.push(`${m.risk.band.label} dry mouth risk${top.length ? `, mostly from ${list(top)}` : ""}.`);
   }
   if (m.sip) {
-    const t = m.rise >= 2 ? `, up ${m.rise} since ${fmt(m.prevSip.ts)}` : m.rise <= -2 ? `, down ${-m.rise} since ${fmt(m.prevSip.ts)}` : "";
-    s.push(`Dry mouth score ${m.sip.sip} of 15 (${sipBand(m.sip.sip).label.toLowerCase()})${t}.`);
+    const t = m.rise >= 2 ? `, drier than on ${fmt(m.prevSip.ts)}` : m.rise <= -2 ? `, less dry than on ${fmt(m.prevSip.ts)}` : "";
+    s.push(`${sipLevel(m.sip.sip).label} dry mouth score${t}.`);
   }
   if (m.phPat.level === "flag" || m.phPat.level === "watch") s.push(m.phPat.n === 1 ? "Your last pH test was acidic." : `Saliva acidic in ${m.phPat.acid} of the last ${m.phPat.n} pH tests.`);
   else if (m.phPat.level === "ok") s.push(m.phPat.n === 1 ? "Saliva pH healthy in the last test." : "Saliva pH healthy in recent tests.");

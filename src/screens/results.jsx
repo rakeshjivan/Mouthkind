@@ -2,8 +2,8 @@ import { USED, usedDays, usedInsights } from "../data/used.js";
 import { GRADES } from "../data/daily.js";
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
-import { DotSeries, PhTimeline } from "../components/kit.jsx";
-import { SIP_QUESTIONS, SIP_OPTIONS, phBand, phColor, sipBand } from "../data/clinical.js";
+import { DotSeries, PhTimeline, levelId } from "../components/kit.jsx";
+import { SIP_QUESTIONS, SIP_OPTIONS, phBand, phColor, sipBand, sipLevel } from "../data/clinical.js";
 import { PH_ZONES, isAcidic, phPattern } from "../data/ph.js";
 import { RISK_BANDS, scoreRisk } from "../data/risk.js";
 import { DECAY_BANDS, scoreDecay } from "../data/decay.js";
@@ -13,6 +13,13 @@ import { fmtDate, fmtShort, fmtTime } from "../lib/store.js";
 const by = (kind) => (e) => e.kind === kind;
 
 const DAY = 86400000;
+
+/** A history of levels as a simple line on three rows: low, moderate, high. */
+const LEVEL_ROWS = ["low", "moderate", "high"];
+const LEVEL_NAME = { low: "Low", moderate: "Moderate", high: "High" };
+function LevelSeries({ items, tone }) {
+  return <DotSeries points={items.map((x) => ({ v: LEVEL_ROWS.indexOf(x.id), label: fmtShort(x.ts) }))} min={0} max={2} ticks={[0, 1, 2]} gutter={74} tone={tone} fmt={(v) => LEVEL_NAME[LEVEL_ROWS[v]]} />;
+}
 
 /** What was used on which days, over the last 6 weeks, plus any before/after pattern in the SIP score. */
 function UsedPanel({ entries, open }) {
@@ -84,9 +91,9 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
       <section className="panel">
         <div className="panel-h"><h2>Dry mouth score</h2><button className="link-btn" onClick={() => open("sip")}>Check now</button></div>
         {sips.length ? (<>
-          <p className="big-read"><strong>{sips.at(-1).sip}</strong> of 15 · <span style={{ color: sipBand(sips.at(-1).sip).color }}>{sipBand(sips.at(-1).sip).full.toLowerCase()}</span></p>
-          {sips.length > 1 && <DotSeries points={sips.slice(-20).map((s) => ({ v: s.sip, label: fmtShort(s.ts) }))} min={5} max={15} tone="dry" />}
-          <p className="panel-foot">GC SIP-SCORE. 5 means no dryness, 15 is severe.</p>
+          <p className="big-read"><strong>{sipLevel(sips.at(-1).sip).label}</strong> · <span style={{ color: sipLevel(sips.at(-1).sip).color }}>{sipLevel(sips.at(-1).sip).full.toLowerCase()}</span></p>
+          {sips.length > 1 && <LevelSeries items={sips.slice(-20).map((s) => ({ id: sipLevel(s.sip).id, ts: s.ts }))} tone="dry" />}
+          <p className="panel-foot">GC SIP-SCORE: low, moderate or high dryness.</p>
         </>) : <p className="soft-note">No checks yet.</p>}
       </section>
 
@@ -113,8 +120,8 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
         <section className="panel">
           <div className="panel-h"><h2>Dry mouth risk</h2><button className="link-btn" onClick={onShowRisk}>See result</button></div>
           {risks.length > 1
-            ? <DotSeries points={risks.map((r) => ({ v: r.score, label: fmtShort(r.ts) }))} min={0} max={Math.max(60, ...risks.map((r) => r.score))} tone="accent" />
-            : <p className="big-read"><strong>{risks[0].score}</strong> · {RISK_BANDS.find((b) => b.id === risks[0].band)?.label.toLowerCase()} risk</p>}
+            ? <LevelSeries items={risks.map((r) => ({ id: levelId(r.band), ts: r.ts }))} tone="accent" />
+            : <p className="big-read"><strong>{RISK_BANDS.find((b) => b.id === risks[0].band)?.label}</strong> risk</p>}
         </section>
       )}
 
@@ -122,8 +129,8 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
         <section className="panel">
           <div className="panel-h"><h2>Tooth decay risk</h2><button className="link-btn" onClick={onShowDecay}>See result</button></div>
           {decays.length > 1
-            ? <DotSeries points={decays.map((r) => ({ v: r.score, label: fmtShort(r.ts) }))} min={0} max={Math.max(50, ...decays.map((r) => r.score))} tone="accent" />
-            : <p className="big-read"><strong>{decays[0].score}</strong> · {DECAY_BANDS.find((b) => b.id === decays[0].band)?.label.toLowerCase()} risk</p>}
+            ? <LevelSeries items={decays.map((r) => ({ id: levelId(r.band), ts: r.ts }))} tone="accent" />
+            : <p className="big-read"><strong>{DECAY_BANDS.find((b) => b.id === decays[0].band)?.label}</strong> risk</p>}
         </section>
       )}
 
@@ -143,9 +150,9 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
                 <span className="entry2-main">
                   <strong>{new Date(e.ts).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</strong>
                   <span className="entry2-pills">
-                    {e.kind === "decay" && <span className="pill">Decay risk {e.score} · {DECAY_BANDS.find((b) => b.id === e.band)?.label}</span>}
-                    {e.kind === "risk" && <span className="pill">Dry mouth risk {e.score} · {RISK_BANDS.find((b) => b.id === e.band)?.label}</span>}
-                    {e.sip != null && e.kind !== "risk" && <span className="pill dry"><b>{e.sip}</b> dry mouth score</span>}
+                    {e.kind === "decay" && <span className="pill">Decay risk: {DECAY_BANDS.find((b) => b.id === e.band)?.label.toLowerCase()}</span>}
+                    {e.kind === "risk" && <span className="pill">Dry mouth risk: {RISK_BANDS.find((b) => b.id === e.band)?.label.toLowerCase()}</span>}
+                    {e.sip != null && e.kind !== "risk" && <span className="pill dry">Dry mouth score: {sipLevel(e.sip).label.toLowerCase()}</span>}
                     {e.ph != null && <span className="pill">pH {e.ph.toFixed(1)}</span>}
                   </span>
                 </span>

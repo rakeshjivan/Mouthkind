@@ -34,7 +34,7 @@ test("a dry mouth score that rises is asked about, and asked again for a new ris
   const p = answer({}, e, "sipRise", ["med"]);
   const plan = buildPlan(model(p, e));
   assert.equal(plan[0].id, "riseMed");
-  assert.match(plan[0].because[0], /9 to 12/);
+  assert.match(plan[0].because[0], /got drier/);
   const e2 = [...e, { id: "s3", kind: "sip", sip: 14, ts: NOW }];
   assert.ok(openQuestions(model(p, e2)).some((q) => q.id === "sipRise"));
 });
@@ -207,4 +207,18 @@ test("pregnancy with morning sickness: moderate dry mouth risk, and the decay ch
   const clean = { teeth: "yes", recent: "no", sugar: "rare", brush: "2", between: "daily", mouth: [], habits: [], dentist: "1", protect: [] };
   const d = scoreDecay(clean, decayContext({ acid: "Morning sickness or vomiting", ageAns: "u40" }));
   assert.ok(d.factors.some((f) => f.v === "acid"));
+});
+
+test("people see low, moderate or high — never 'Very high' or a number out of 15", async () => {
+  const { RISK_BANDS } = await import("../src/data/risk.js");
+  const { DECAY_BANDS } = await import("../src/data/decay.js");
+  const { sipLevel } = await import("../src/data/clinical.js");
+  for (const b of [...RISK_BANDS, ...DECAY_BANDS]) assert.ok(["Low", "Moderate", "High"].includes(b.label), b.label);
+  assert.equal(sipLevel(7).label, "Low"); assert.equal(sipLevel(8).label, "Moderate");
+  assert.equal(sipLevel(10).label, "Moderate"); assert.equal(sipLevel(11).label, "High"); assert.equal(sipLevel(15).label, "High");
+  const m = buildModel({ profile: {}, entries: [
+    { id: "s1", kind: "sip", ts: Date.now() - 20 * 864e5, sip: 9 }, { id: "s2", kind: "sip", ts: Date.now(), sip: 13 },
+    { id: "r1", kind: "risk", ts: Date.now(), answers: { cancer: ["rt_hn"] } }] });
+  const text = JSON.stringify([summary(m), buildPlan(m)]);
+  assert.doesNotMatch(text, /Very high|of 15/);
 });

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Gauge, Icon, PhInput, Sheet, Sources } from "../components/ui.jsx";
 import { Pick } from "../components/kit.jsx";
-import { SIP_OPTIONS, SIP_QUESTIONS, phColor, sipBand } from "../data/clinical.js";
+import { SIP_OPTIONS, SIP_QUESTIONS, phColor, sipLevel } from "../data/clinical.js";
 import { PH_STEPS, PH_WINDOW, phPattern, phZone } from "../data/ph.js";
 import { FREQUENCIES, freqFor, reminderIcs } from "../data/schedule.js";
 import { downloadText } from "../lib/store.js";
@@ -48,15 +48,15 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
   const [done, setDone] = useState(null);
 
   if (done) {
-    const b = sipBand(done.sip);
+    const b = sipLevel(done.sip);
     const diff = previous ? done.sip - previous.sip : null;
     return (
       <Sheet title="Dry mouth score" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className="sip-result">
           <Gauge score={done.sip} />
-          <p className="sip-num">{done.sip}<span> of 15</span></p>
+          <p className="sip-num">{b.label}</p>
           <p className="sip-band" style={{ color: b.color }}>{b.full}</p>
-          {diff != null && <p className="soft-note center">{diff === 0 ? "The same as last time." : diff > 0 ? `${diff} higher than last time — drier.` : `${-diff} lower than last time — less dry.`}</p>}
+          {diff != null && <p className="soft-note center">{diff === 0 ? "The same as last time." : diff > 0 ? "Drier than last time." : "Less dry than last time."}</p>}
         </div>
         <p className="lede">{done.sip >= 11
           ? "That's a lot of dryness to live with. Show your scores to your dentist or doctor — there's more they can do, including checking your medicines and prescribing saliva stimulants."

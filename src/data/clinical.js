@@ -68,6 +68,13 @@ export const SIP_BANDS = [
   { lo: 14, hi: 15, label: "Severe", full: "Severe dry mouth", color: "#BE332A", t0: 0.85, t1: 1 },
 ];
 export const sipBand = (s) => SIP_BANDS.find((b) => s >= b.lo && s <= b.hi) || SIP_BANDS[0];
+// What people see: low, moderate or high, never the number.
+export const SIP_LEVELS = [
+  { id: "low", lo: 5, label: "Low", full: "Little or no dry mouth", tone: "good", color: "#4C9A6A" },
+  { id: "moderate", lo: 8, label: "Moderate", full: "A moderately dry mouth", tone: "amber", color: "#C9A21A" },
+  { id: "high", lo: 11, label: "High", full: "A very dry mouth", tone: "red", color: "#BE332A" },
+];
+export const sipLevel = (s) => [...SIP_LEVELS].reverse().find((l) => s >= l.lo) || SIP_LEVELS[0];
 // The SIP items ask about the last fortnight, so that's the cadence.
 export const SIP_INTERVAL_DAYS = 14;
 

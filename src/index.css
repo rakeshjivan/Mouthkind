@@ -1337,3 +1337,11 @@ details.srcs .sources { margin-top: 4px; }
 .me-group { margin: 28px 0 10px; font-family: var(--display); font-size: calc(15px * var(--s)); color: var(--ink2); font-weight: 700; }
 .phl-dot { stroke: var(--ink); stroke-width: 2; }
 .plan-more { width: 100%; margin: 4px 0 0; }
+
+/* Level meter: three equal steps, the person's level filled in */
+.lmeter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 4px 0 2px; }
+.lm-zone { display: flex; flex-direction: column; gap: 8px; font-size: calc(14px * var(--s)); font-weight: 600; color: var(--ink3); }
+.lm-zone i { display: block; height: 12px; border-radius: 999px; opacity: .22; }
+.lm-zone.good i { background: var(--good); } .lm-zone.amber i { background: var(--amber); } .lm-zone.red i { background: var(--red); }
+.lm-zone.on { color: var(--ink); font-weight: 700; }
+.lm-zone.on i { opacity: 1; }

@@ -1,6 +1,6 @@
 import { externalClick } from "../lib/external.js";
 import { useEffect, useRef } from "react";
-import { PH_VALUES, phColor, phBand, SIP_BANDS, sipBand } from "../data/clinical.js";
+import { PH_VALUES, phColor, phBand, SIP_LEVELS, sipLevel } from "../data/clinical.js";
 import { REFS } from "../data/references.js";
 
 // ─── Icons (inline, stroke-based) ──────────────────────────────────────────
@@ -43,7 +43,7 @@ export function Icon({ name, size = 22, stroke = 2, className = "" }) {
   );
 }
 
-// ─── Gauge — the dial is the real 5–15 scale ───────────────────────────────
+// ─── Gauge — three zones: low, moderate, high ─────────────────────────────
 export function Gauge({ score }) {
   const CX = 150, CY = 152, R = 112, SW = 26;
   const polar = (r, deg) => { const a = (deg * Math.PI) / 180; return [CX + r * Math.cos(a), CY - r * Math.sin(a)]; };
@@ -51,23 +51,20 @@ export function Gauge({ score }) {
     const [x0, y0] = polar(r, 180 - t0 * 180), [x1, y1] = polar(r, 180 - t1 * 180);
     return `M ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1}`;
   };
-  const angle = score == null ? 90 : 180 - ((score - 5) / 10) * 180;
-  const band = score == null ? null : sipBand(score);
+  const lvl = score == null ? null : sipLevel(score);
+  const at = lvl ? SIP_LEVELS.indexOf(lvl) : 1;
+  // The needle points to the middle of the level, so the dial never reads as a number.
+  const angle = 180 - ((at + 0.5) / 3) * 180;
   return (
     <svg viewBox="0 0 300 178" className="gauge" role="img"
-      aria-label={score == null ? "No dry mouth score yet" : `Dry mouth score ${score} of 15, ${band.label}`}>
-      {SIP_BANDS.map((b, i) => (
-        <path key={i} d={arc(R, b.t0 + (i ? 0.006 : 0), b.t1 - (i < 3 ? 0.006 : 0))}
-          stroke={score == null ? "var(--dim)" : b.color} strokeWidth={SW} fill="none"
-          opacity={score == null || band === b ? 1 : 0.28} />
+      aria-label={lvl ? `Dry mouth score: ${lvl.label.toLowerCase()}` : "No dry mouth score yet"}>
+      {SIP_LEVELS.map((l, i) => (
+        <path key={l.id} d={arc(R, i / 3 + (i ? 0.006 : 0), (i + 1) / 3 - (i < 2 ? 0.006 : 0))}
+          stroke={lvl ? l.color : "var(--dim)"} strokeWidth={SW} fill="none"
+          opacity={!lvl || lvl === l ? 1 : 0.28} />
       ))}
-      {Array.from({ length: 11 }, (_, i) => {
-        const a = 180 - (i / 10) * 180;
-        const [x1, y1] = polar(R - SW / 2 - 3, a), [x2, y2] = polar(R - SW / 2 - (i % 5 === 0 ? 12 : 8), a);
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ink3)" strokeWidth={i % 5 ? 1.2 : 2} strokeLinecap="round" />;
-      })}
-      <text x="18" y="172" className="g-end">5</text>
-      <text x="282" y="172" className="g-end" textAnchor="end">15</text>
+      <text x="18" y="172" className="g-end">Low</text>
+      <text x="282" y="172" className="g-end" textAnchor="end">High</text>
       <g className="needle" style={{ transform: `rotate(${90 - angle}deg)` }}>
         <path d="M 150 152 L 145 148 L 150 48 L 155 148 Z" fill="var(--ink)" />
       </g>
