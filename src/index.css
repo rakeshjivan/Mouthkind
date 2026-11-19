@@ -1346,3 +1346,4 @@ details.srcs .sources { margin-top: 4px; }
 .lm-zone.on { color: var(--ink); font-weight: 700; }
 .lm-zone.on i { opacity: 1; }
 .pact-done { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-weight: 600; color: var(--good-ink, var(--ink2)); }
+.brand-sub { font-weight: 500; color: var(--ink3); margin-left: 4px; }
