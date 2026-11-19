@@ -28,21 +28,21 @@ export const CARE_TOPICS = [
       "You can't open your mouth, your face is swelling, or it's hard to breathe.",
       "Keep your team's 24-hour number in Me, so it's on the screen when you need it.",
     ],
-    refs: ["ccaMouth2025"],
+    refs: ["healthdirectFN", "ccaMouth2025"],
   },
   {
     id: "sore", icon: "heart", title: "A sore mouth during treatment", cancer: true,
     short: "Rinse, brush gently, and take pain relief before meals.",
     forYou: (c) => !!c.cancer && (c.active || tx(c, "rt_hn", "chemo", "transplant")),
     steps: [
-      "Rinse at least 4 times a day: ¼ teaspoon bicarbonate of soda in a cup of warm water. Swish for 30 seconds, then spit.",
+      "Rinse at least 4 times a day with a bland rinse, such as ¼ teaspoon bicarbonate of soda in a cup of warm water. Swish for 30 seconds, then spit.",
       "Keep brushing with a soft brush and mild fluoride toothpaste, after meals and at bedtime. A clean mouth heals better.",
       "If brushing is too sore, ask your team which mouthwash or swabs to use instead.",
       "Ask about pain relief. Take it before meals so eating is easier.",
       "Skip alcohol and alcohol mouthwashes, and spicy, acidic, crunchy or very hot food.",
       "If you wear dentures, leave them out except to eat.",
     ],
-    refs: ["canberraHN", "elad2020", "ccaMouth2025"],
+    refs: ["elad2020", "elad2015", "canberraHN", "ccaMouth2025"],
   },
   {
     id: "eating", icon: "leaf", title: "Eating with a sore or dry mouth", cancer: true,
@@ -65,10 +65,11 @@ export const CARE_TOPICS = [
     steps: [
       "Look for white or red patches, or a white or yellow coating on your tongue or cheeks.",
       "It can change your taste or cause bad breath.",
-      "Tell your team. Drops or gel usually clear it in a few days.",
+      "Tell your team. Antifungal drops or gel usually clear it within 1 to 2 weeks — finish the full course.",
+      "Take warfarin or another blood thinner? Say so before you start. Miconazole gel can raise warfarin levels dangerously.",
       "Clean dentures every day and leave them out overnight.",
     ],
-    refs: ["ccaMouth2025", "canberraHN"],
+    refs: ["lalla2010", "mhraMiconazole", "ccaMouth2025"],
   },
   {
     id: "rtlife", icon: "shield", title: "After radiotherapy: teeth for life", cancer: true,
@@ -91,23 +92,25 @@ export const CARE_TOPICS = [
     forYou: (c) => has(c, "water.low", "habits.caffeine", "habits.alcohol") || (c.sip ?? 0) >= 8,
     steps: [
       "Carry a water bottle and take small sips often.",
-      "Aim for about 8 glasses a day, unless your doctor has said to drink less.",
+      "Little and often works better than a lot at once. If your doctor has limited how much you drink, follow their advice.",
       "Sip water with meals to help you chew and swallow.",
       "Keep water by your bed at night.",
       "Water is best. Soft drink, juice and sports drinks are acidic and sugary.",
     ],
+    refs: ["thomson2011"],
   },
   {
     id: "diet", icon: "leaf", title: "Eat and drink for your teeth",
-    short: "How often you have sugar matters more than how much.",
+    short: "How much sugar you have, and how often, both matter.",
     forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8,
     steps: [
-      "Keep sweet and acidic food and drinks to mealtimes. Every snack starts a new acid attack.",
+      "Have less sugar overall, and keep sweet and acidic food and drinks to mealtimes. Every snack starts a new acid attack.",
       "Go easy on soft drink, juice, sports drinks, wine and citrus.",
       "Finish a meal with cheese or milk — they help neutralise acid.",
       "Chew sugar-free gum after meals to get saliva flowing.",
       "Don't suck sweets to ease a dry mouth. Use sugar-free gum or a saliva gel.",
     ],
+    refs: ["bernabe2016", "moynihan2014"],
   },
   {
     id: "habits", icon: "user", title: "Change a few habits",
@@ -115,13 +118,13 @@ export const CARE_TOPICS = [
     forYou: (c) => has(c, "habits.smoke", "habits.vape", "habits.cannabis", "habits.alcohol", "habits.caffeine", "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
     steps: [
       "If you smoke or vape, quitting helps. Quitline is free: 13 78 48 (Australia), 0800 778 778 (New Zealand).",
-      "Have less alcohol and caffeine, especially in the evening.",
+      "Have less alcohol, especially in the evening. Cut back on caffeine too if you notice it dries your mouth.",
       "Use an alcohol-free mouthwash.",
       "Breathe through your mouth? Ask your GP to check for a blocked nose, allergies or sleep apnoea.",
-      "On CPAP? Ask about a heated humidifier, a chin strap or a full-face mask.",
+      "On CPAP? Ask your sleep clinic about a heated humidifier, and about stopping air leaking from your mouth (a chin strap or a better-fitting mask).",
       "A humidifier in the bedroom can help at night.",
     ],
-    refs: ["raoof2023"],
+    refs: ["mador2005", "kennedy2019", "wolff2017"],
   },
   {
     id: "clean", icon: "check", title: "Clean gently, twice a day",
@@ -135,7 +138,7 @@ export const CARE_TOPICS = [
       "Mouth sore or sensitive? Try a mild, low-foam toothpaste (no SLS).",
       "Clean dentures every day and leave them out at night.",
     ],
-    products: ["oranurse"],
+    products: ["oranurse"], refs: ["walsh2019", "felton2011"],
   },
   {
     id: "protect", icon: "shield", title: "Protect your teeth",
@@ -168,8 +171,8 @@ export const CARE_TOPICS = [
     short: "Acid softens enamel — rinse first, brush later.",
     forYou: (c) => has(c, "conditions.reflux", "conditions.eating", "conditions.pregnantSick", "medTypes.glp1"),
     steps: [
-      "Rinse your mouth with plain water straight away.",
-      "Wait about an hour before brushing. Brushing softened enamel wears it away.",
+      "Rinse straight away with water, or with 1 teaspoon of bicarbonate of soda in a cup of water to neutralise the acid.",
+      "Wait at least 30 minutes, ideally an hour, before brushing. Brushing softened enamel wears it away.",
       "Meanwhile, smear fluoride toothpaste, GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) on your teeth with a clean finger.",
       "Chew sugar-free gum to wash the acid away.",
       "If it keeps happening, see your GP, and tell your dentist.",
@@ -186,7 +189,7 @@ export const CARE_TOPICS = [
       "Keep sweet treats to mealtimes. Choose cheese, plain yoghurt or crackers between meals.",
       "Brushing makes you gag? Try a smaller brush head, an unflavoured toothpaste, or a different time of day.",
     ],
-    products: ["oranurse"], refs: ["adaPregnancy", "pbbTeeth"],
+    products: ["oranurse"], refs: ["adaPregnancy", "adaAusGums", "pbbTeeth"],
   },
   {
     id: "medicines", icon: "doc", title: "Check your medicines",
@@ -197,7 +200,7 @@ export const CARE_TOPICS = [
       "A different medicine, dose or time of day can make a big difference.",
       "Never stop or change a medicine without talking to your doctor first.",
     ],
-    refs: ["wolff2017"],
+    refs: ["wolff2017", "ringstad2026", "lee2026"],
   },
   {
     id: "dentist", icon: "user", title: "See your dentist regularly",
@@ -208,7 +211,7 @@ export const CARE_TOPICS = [
       "Ask how often to come in — often every 3 to 6 months when risk is high.",
       "Your dentist can test your saliva, apply fluoride varnish and find early decay.",
     ],
-    refs: ["gcSalivaCheck"],
+    refs: ["niceRecall", "featherstone2021", "gcSalivaCheck"],
   },
 ];
 

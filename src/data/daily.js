@@ -73,7 +73,7 @@ export function dailyTriage(a) {
   if ((a.pain ?? 0) >= 8 && a.control === "yes") today.push("Severe pain, even with pain relief — tell your team today so they can review it.");
   if (a.bone === "yes") today.push("Bone showing in the mouth needs to be seen by your dentist or team within days. Make sure no tooth is taken out nearby until they've checked.");
   if (a.bone === "unsure") today.push("If you can see something hard and white or yellow in the gum, show your dentist or team.");
-  if (a.white === "yes") today.push("White patches can be thrush, which is easy to treat with drops or gel from your team.");
+  if (a.white === "yes") today.push("White patches can be thrush, which is easy to treat with drops or gel from your team. Taking warfarin? Tell them — miconazole gel can interact with it.");
   if (a.eat === "liquid") today.push("Liquids only for more than a day or two means you may need help with nutrition.");
   if ((a.pain ?? 0) >= 5 && (a.pain ?? 0) < 8) today.push("Moderate pain — ask about pain relief to take before meals.");
   if (a.sores === "ulcers") today.push("Ulcers are common during treatment. Let your team know so they can check them.");
@@ -85,7 +85,7 @@ export function dailyTriage(a) {
 }
 
 export const DAILY_TIPS = {
-  rinse: { t: "Rinse at least 4 times a day with ¼ teaspoon bicarbonate of soda in a cup of warm water. Swish for 30 seconds, then spit.", refs: ["canberraHN", "elad2020"] },
+  rinse: { t: "Rinse at least 4 times a day with ¼ teaspoon bicarbonate of soda in a cup of warm water. Swish for 30 seconds, then spit.", refs: ["elad2020", "canberraHN"] },
   gentle: { t: "Keep brushing gently with a soft brush and mild fluoride toothpaste — a clean mouth heals better.", refs: ["elad2020", "ccaMouth2025"] },
   soft: { t: "Soft, moist foods are easiest: soup, yoghurt, custard, mashed vegetables. A straw can help. Avoid spicy, acidic, crunchy and very hot foods.", refs: ["ccaMouth2025"] },
   gel: { t: "GC Dry Mouth Gel before meals and at bedtime eases dryness. Sip water often.", refs: ["ccaMouth2025"] },

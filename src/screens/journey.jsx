@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { milkAllergic, milkFree } from "../data/allergy.js";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { hasTx, journey } from "../data/journey.js";
 import { CallTeam } from "./daily.jsx";
@@ -17,7 +18,7 @@ export function Journey({ profile, onClose, openTool, onEdit }) {
         <section key={c.id} className="jcard">
           <p className="jcard-when">{c.when}</p>
           <h3>{c.title}</h3>
-          <ul className="tip-list">{c.items.map((x) => <li key={x.t}>{x.t}</li>)}</ul>
+          <ul className="tip-list">{c.items.map((x) => <li key={x.t}>{milkAllergic(profile) ? milkFree(x.t) : x.t}</li>)}</ul>
           {c.next && <p className="jcard-next"><b>Coming up:</b> {c.next}</p>}
           {c.always?.map((x) => <p key={x.t} className="jcard-always"><Icon name="alert" size={16} /> {x.t}</p>)}
           <details className="srcs"><summary>Sources</summary><Sources refs={[...new Set([...c.items, ...(c.always || [])].flatMap((x) => x.refs || []))]} /></details>

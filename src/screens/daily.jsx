@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { milkAllergic, milkFree } from "../data/allergy.js";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { DAILY_TIPS, GRADES, dailyQuestions, dailyTriage, mucositisGrade } from "../data/daily.js";
 import { USED } from "../data/used.js";
@@ -72,7 +73,7 @@ export function DailyResult({ entry, profile, onClose, onUsed, followUp }) {
       {tips.length > 0 && (
         <section className="rblock plan">
           <h3>What helps today</h3>
-          <ul className="tip-list">{tips.map((x) => <li key={x.t}>{x.t}</li>)}</ul>
+          <ul className="tip-list">{tips.map((x) => <li key={x.t}>{milkAllergic(profile) ? milkFree(x.t) : x.t}</li>)}</ul>
           <Sources refs={[...new Set(tips.flatMap((x) => x.refs))]} />
         </section>
       )}

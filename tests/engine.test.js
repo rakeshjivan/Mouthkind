@@ -251,3 +251,41 @@ test("the gel tip about mixing with Tooth Mousse is left out for milk-protein al
   assert.match(gel({}).body, /mix it with GC Tooth Mousse/);
   assert.doesNotMatch(gel({ fu: { allergy: { v: ["milk"] } } }).body, /Tooth Mousse/);
 });
+
+test("milk-protein allergy: no cheese, milk or yoghurt suggestions anywhere", async () => {
+  const { milkFree } = await import("../src/data/allergy.js");
+  const { CARE_TOPICS } = await import("../src/data/care.js");
+  const { DAILY_TIPS } = await import("../src/data/daily.js");
+  const texts = [...CARE_TOPICS.flatMap((t) => t.steps), ...Object.values(DAILY_TIPS).map((x) => x.t)].map(milkFree);
+  for (const t of texts) assert.doesNotMatch(t, /cheese|\bmilk\b(?! protein)|yoghurt/i, t);
+  const e = [{ id: "d1", kind: "decay", ts: Date.now(), answers: { sugar: "3" } }];
+  const plan = buildPlan(buildModel({ profile: { fu: { allergy: { v: ["milk"] } } }, entries: e }));
+  for (const i of plan) assert.doesNotMatch(i.body, /cheese|yoghurt/i, i.id);
+});
+
+test("thrush advice warns about warfarin; sugar advice says amount and frequency", async () => {
+  const { CARE_TOPICS } = await import("../src/data/care.js");
+  const thrush = CARE_TOPICS.find((t) => t.id === "thrush");
+  assert.ok(thrush.steps.some((s) => /warfarin/.test(s)));
+  const diet = CARE_TOPICS.find((t) => t.id === "diet");
+  assert.doesNotMatch(diet.short + diet.steps.join(" "), /more than how much/);
+});
+
+test("every source cited anywhere exists, and every listed source is cited", async () => {
+  const fs = await import("node:fs");
+  const files = [...fs.readdirSync("src/data").map((f) => `src/data/${f}`), ...fs.readdirSync("src/screens").map((f) => `src/screens/${f}`)]
+    .filter((f) => f !== "src/data/references.js");
+  const src = files.map((f) => fs.readFileSync(f, "utf8")).join("\n");
+  const cited = new Set([...src.matchAll(/refs(?:\.push\(|:\s*\[|=\{\[)([^\])]*)/g)].flatMap((m) => [...m[1].matchAll(/(?<!includes\()"([A-Za-z0-9]+)"/g)].map((x) => x[1])));
+  for (const r of cited) assert.ok(REFS[r], `missing source: ${r}`);
+  const unused = Object.keys(REFS).filter((k) => !new RegExp(`["']${k}["']`).test(src));
+  assert.deepEqual(unused, []);
+});
+
+test("the plan doesn't repeat itself: one dentist visit item, no 'check your dryness' once it's done", () => {
+  const e = [{ id: "r1", kind: "risk", ts: Date.now(), answers: { conditions: ["sjogren"] } },
+    { id: "d1", kind: "decay", ts: Date.now(), answers: {}, ctx: { sjogren: true } },
+    { id: "s1", kind: "sip", ts: Date.now(), sip: 12 }];
+  const ids = buildPlan(buildModel({ profile: {}, entries: e })).map((i) => i.id);
+  assert.ok(ids.includes("decay.visit")); assert.ok(!ids.includes("risk.dentist")); assert.ok(!ids.includes("risk.track"));
+});

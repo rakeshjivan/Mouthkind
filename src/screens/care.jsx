@@ -4,6 +4,7 @@ import { CARE_TOPICS } from "../data/care.js";
 import { PRODUCTS } from "../data/products.js";
 import { ProductImage } from "../components/productImage.jsx";
 import { PlanBlock } from "./plan.jsx";
+import { milkAllergic, milkFree } from "../data/allergy.js";
 
 /** Support strategies. Topics that match the person's results come first. */
 export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile, open, setup, onSetup, refine, onShop }) {
@@ -26,7 +27,7 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
         </button>
         {on && (
           <div className="ctopic-body">
-            <ul>{t.steps.map((s) => <li key={s}>{s}</li>)}</ul>
+            <ul>{t.steps.map((s) => milkAllergic(profile) ? milkFree(s) : s).map((s) => <li key={s}>{s}</li>)}</ul>
             {t.products && (
               <div className="prod-cards">
                 {t.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean).map((p) => (

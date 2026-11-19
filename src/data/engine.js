@@ -12,6 +12,7 @@
 // every item can be traced to a source, and nothing leaves the phone.
 // Red flags stay in daily.js and are never ranked away.
 
+import { milkFree } from "./allergy.js";
 import { fullAnswers, riskAdvice, scoreRisk } from "./risk.js";
 import { decayPlan, scoreDecay } from "./decay.js";
 import { phPattern, isAcidic } from "./ph.js";
@@ -225,7 +226,7 @@ export const FOLLOWUPS = [
     id: "cpapHumid", pri: () => 48,
     text: (m) => T(m, "Does your CPAP machine have a heated humidifier?", "Does $'s CPAP machine have a heated humidifier?"),
     why: "A heated humidifier, and stopping mouth leaks, are the main fixes for a dry mouth on CPAP.",
-    refs: ["raoof2023"],
+    refs: ["mador2005", "kennedy2019"],
     options: [{ v: "yes", label: "Yes" }, { v: "no", label: "No" }, { v: "unsure", label: "Not sure" }],
     when: (m) => m.has("breathing", "cpap"),
   },
@@ -349,7 +350,7 @@ const RULES = [
     if (src.includes("drinks")) steps.push("Swap soft drink, juice and sports drinks for water or milk, or keep them to mealtimes.");
     if (src.includes("graze")) steps.push("Keep snacks and sweet drinks to mealtimes — every one starts a new acid attack.");
     if (src.includes("reflux")) steps.push("Ask your GP about treating the reflux. After heartburn, rinse with water and wait an hour to brush.");
-    if (src.includes("vomit")) steps.push("After vomiting, rinse with water and wait about an hour before brushing.");
+    if (src.includes("vomit")) steps.push("After vomiting, rinse with water or a bicarbonate rinse, and wait at least 30 minutes before brushing.");
     steps.push("After brushing, morning and night, smear GC Tooth Mousse or GC Tooth Mousse Plus (fortified with 900 ppm fluoride) over your teeth.");
     if (lvl === "flag") steps.push("See your dentist and show them your pH results.");
     const because = [m.phPat.n === 1 ? "Your last pH test was acidic." : `Your saliva was acidic in ${m.phPat.acid} of your last ${m.phPat.n} tests.`];
@@ -398,7 +399,7 @@ const RULES = [
   // Thrush under dentures.
   (m) => whiteRecent(m) && ["full", "partial"].includes(answered(m, "dentures")) && {
     id: "dentureThrush", pri: 73, title: "Check under your dentures for thrush",
-    body: "Take dentures out at night, brush and soak them every day, and show your team the white patches — drops or gel usually clear thrush in a few days.",
+    body: "Take dentures out at night, brush and soak them every day, and show your team the white patches — drops or gel usually clear thrush within 1 to 2 weeks. If you take warfarin, say so first — miconazole gel can interact with it.",
     because: ["You noticed white patches.", "You wear dentures."], refs: ["ccaMouth2025"],
   },
   // Jaw opening after head and neck radiotherapy.
@@ -445,13 +446,13 @@ const RULES = [
     const because = ["Your mouth is driest at night or when you wake."];
     let pri = 56, refs = [];
     if (m.has("breathing", "mouth") || m.has("breathing", "snore")) { steps.push("Ask your GP to check for a blocked nose or sleep apnoea."); because.push(m.has("breathing", "snore") ? "You snore or have sleep apnoea." : "You breathe through your mouth."); refs.push("raoof2023"); pri = 60; }
-    if (m.has("breathing", "cpap") && answered(m, "cpapHumid") !== "yes") { steps.push("Ask your sleep clinic about a heated humidifier, a chin strap or a full-face mask."); because.push("You use CPAP without a heated humidifier."); refs.push("raoof2023"); pri = 63; }
+    if (m.has("breathing", "cpap") && answered(m, "cpapHumid") !== "yes") { steps.push("Ask your sleep clinic about a heated humidifier, and about stopping air leaking from your mouth."); because.push("You use CPAP without a heated humidifier."); refs.push("mador2005"); pri = 63; }
     return { id: "night", pri, title: "Make nights less dry", body: steps.join(" "), because, refs: [...new Set(refs)], products: ["gc-dmg"] };
   },
   // CPAP without a humidifier (when nights weren't flagged).
   (m) => m.has("breathing", "cpap") && ["no", "unsure"].includes(answered(m, "cpapHumid")) && answered(m, "dryTime") !== "night" && {
-    id: "cpap", pri: 52, title: "Ask about a heated humidifier for your CPAP", body: "Humidified air, and stopping mouth leaks with a chin strap or full-face mask, are the main fixes for a dry mouth on CPAP.",
-    because: ["You use a CPAP machine.", answered(m, "cpapHumid") === "no" ? "It doesn't have a heated humidifier." : "You're not sure it has a humidifier."], refs: ["raoof2023"],
+    id: "cpap", pri: 52, title: "Ask about a heated humidifier for your CPAP", body: "Heated humidification reduces dry mouth on CPAP. Your sleep clinic can also check for air leaking from your mouth — a chin strap or a better-fitting mask can help.",
+    because: ["You use a CPAP machine.", answered(m, "cpapHumid") === "no" ? "It doesn't have a heated humidifier." : "You're not sure it has a humidifier."], refs: ["mador2005", "kennedy2019"],
   },
   // Medicines: name them.
   (m) => {
@@ -489,7 +490,7 @@ const RULES = [
       because: [`Your dry mouth score averaged ${best.before} before you started and ${best.after} since.`] };
   },
   // Water.
-  (m) => m.has("water", "low") && { id: "water", pri: 40, title: "Drink a little more water", body: "Carry a bottle and take small sips often — aim for about 8 glasses a day unless your doctor has said otherwise.", because: ["You drink less than 4 glasses of water a day."] },
+  (m) => m.has("water", "low") && { id: "water", pri: 40, title: "Drink a little more water", body: "Carry a bottle and take small sips often — little and often, unless your doctor has limited how much you drink.", because: ["You drink less than 4 glasses of water a day."] },
   // Getting started.
   (m) => !m.risk && { id: "startRisk", pri: 35, title: "Do your dry mouth risk check", body: "Two minutes on your health, medicines and habits. It shapes everything else the app suggests.", because: ["The app doesn't know your risk factors yet."], act: { label: "Start", open: "risk" } },
   (m) => !m.sip && { id: "startSip", pri: 33, title: "Do your first dry mouth check", body: "Five quick questions (the GC SIP-SCORE) show how much dryness is affecting you.", because: ["You haven't scored your dry mouth yet."], act: { label: "Check now", open: "sip" } },
@@ -498,7 +499,7 @@ const RULES = [
 // Advice from the two risk checks, folded into the one plan. Each maps to the plan
 // items that already cover it, so nothing is said twice.
 const COVERED = {
-  "risk.track": ["startSip"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
+  "risk.track": ["startSip"], "risk.dentist": ["decay.visit"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
   "risk.drink": ["water", "riseDrink"], "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
   "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride"], "decay.tmp": ["rtFluoride", "acid"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
 };
@@ -526,6 +527,7 @@ function safe(it, m) {
   const milk = al.includes("milk"), hb = al.includes("hb");
   if (!milk && !hb) return it;
   let { body, title, products = [], because = [] } = it;
+  if (milk) body = milkFree(body);
   const drop = (re) => body.split(/(?<=\.)\s+/).filter((x) => !re.test(x)).join(" ");
   if (milk && (products.some((p) => MILK.includes(p)) || /Tooth Mousse/.test(body + title))) {
     products = products.filter((p) => !MILK.includes(p));
@@ -583,6 +585,7 @@ export function buildPlan(m) {
   }
   for (const it of checkAdvice(m)) {
     if (seen.has(it.id) || (COVERED[it.id] || []).some((x) => seen.has(x))) continue;
+    if (it.id === "risk.track" && m.sip) continue; // the dry mouth score is already done
     seen.add(it.id); out.push({ refs: [], products: [], ...it });
   }
   // Tooth Mousse and Tooth Mousse Plus go together: show both wherever one is suggested.
