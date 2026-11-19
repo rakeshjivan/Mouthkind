@@ -132,7 +132,8 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
       {ask}
       <FocusList plan={plan.filter((it) => !it.id.startsWith("start") && !(profile.planDone || {})[it.id] && !it.kept)} skip={today.id ? [today.id] : []} onOpen={() => go("advice", "plan")} />
 
-      <div className="boxes">
+      {/* The result boxes appear once the assessment is complete; until then the setup card leads. */}
+      {!building && <div className="boxes">
         <Box kind="risk" title="Dry mouth risk" icon={<Icon name="shield" size={22} />}
           value={r ? r.band.label : null} valueTone={r ? calm(r.band.tone) : null} sub={r ? `${r.factors.length} risk factor${r.factors.length === 1 ? "" : "s"}` : "Medicines, health and habits"}
           status={r ? (planned && ["high", "veryhigh"].includes(r.band.id) ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!r}
@@ -158,9 +159,9 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
             status={jawDue ? (jaw ? "Due this month" : "Not done yet") : "Once a month"} due={jawDue}
             onClick={() => open("jaw")} />
         )}
-      </div>
+      </div>}
 
-      {every && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}
+      {every && !building && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}
 
       <p className="foot-note">Made by Dr Rakesh Jivan, who works for GC Australasia, maker of GC Tooth Mousse and GC Dry Mouth Gel. General information, not a diagnosis.</p>
     </div>

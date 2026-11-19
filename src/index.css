@@ -1352,3 +1352,9 @@ details.srcs .sources { margin-top: 4px; }
 .risk-kind { margin: 0 0 2px; font-size: calc(14px * var(--s)); font-weight: 600; color: var(--ink3); }
 :root { --g-gums: #a0643a; } [data-theme="dark"] { --g-gums: #dca27a; }
 .g-gums { background: var(--g-gums); } .fgroup.g-gums { background: var(--card); } .g-gums .fg-head i { background: var(--g-gums); }
+.panel.about summary { display: flex; align-items: center; justify-content: space-between; cursor: pointer; list-style: none; min-height: 44px; }
+.panel.about summary::-webkit-details-marker { display: none; }
+.panel.about summary .panel-title { margin: 0; }
+.panel.about summary svg { transition: transform .2s; color: var(--ink3); }
+.panel.about[open] summary svg { transform: rotate(90deg); }
+.panel.about[open] summary { margin-bottom: 10px; }
