@@ -285,8 +285,8 @@ export function decayPlan(result, answers = {}) {
       body: "Use a standard fluoride toothpaste (1,000 to 1,450 ppm) morning and night. Spit, don't rinse — the fluoride left on your teeth keeps working.",
       products: ["oranurse"], refs: ["walsh2019"] });
 
-  if (lvl !== "low" || has("mouth", "braces"))
-    out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus, morning and night",
+  // Everyone with natural teeth: fluoride and Tooth Mousse for daily prevention.
+  out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse Plus" : "Add GC Tooth Mousse Plus, morning and night",
       body: lvl === "veryhigh"
         ? "After brushing in the morning and at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, you can also use it after lunch."
         : has("mouth", "braces")

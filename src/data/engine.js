@@ -71,6 +71,10 @@ export function buildModel({ profile = {}, entries = [], now = Date.now() } = {}
 // ── Helpers the rules share ─────────────────────────────────────────────────
 const answered = (m, id) => m.fu[id]?.v;
 const sipNow = (m) => m.sip?.sip ?? 0;
+// At risk: a drier mouth, acidic saliva, a known cause, or a raised risk result.
+const atRisk = (m) => sipNow(m) >= 8 || ["watch", "flag"].includes(m.phPat.level) || m.rtHN || m.sjogren
+  || ["moderate", "high", "veryhigh"].includes(m.decay?.band.id) || ["high", "veryhigh"].includes(m.risk?.band.id);
+export const SALIVA_TEST_Q = "Can you test my stimulated saliva flow and buffering capacity?";
 const painDays = (m, n) => m.last3.filter((e) => (e.pain ?? 0) >= n).length;
 const soreDays = (m) => m.last3.filter((e) => e.sores && e.sores !== "none").length;
 const softDays = (m) => m.dailies.filter((e) => m.now - e.ts < 7 * DAY && (e.eat === "soft" || e.eat === "liquid")).length;
@@ -102,8 +106,7 @@ export const FOLLOWUPS = [
     why: "GC Tooth Mousse contains milk protein (casein), and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
     refs: [],
     options: [{ v: "milk", label: "Milk protein (casein)" }, { v: "hb", label: "Hydroxybenzoates (parabens)" }, { v: "none", label: "Neither" }],
-    when: (m) => sipNow(m) >= 8 || ["watch", "flag"].includes(m.phPat.level) || m.rtHN || m.sjogren
-      || ["moderate", "high", "veryhigh"].includes(m.decay?.band.id) || ["high", "veryhigh"].includes(m.risk?.band.id),
+    when: (m) => atRisk(m),
   },
   {
     id: "dentistSeen", pri: () => 96,
@@ -313,6 +316,22 @@ const RULES = [
       body: "Soft, high-energy foods little and often, and supplement drinks if needed. A dietitian can tailor this to your treatment.",
       because: [`You've been on soft foods or liquids on ${softDays(m)} of the last 7 days.`, a === "lot" ? "Your clothes are looser." : "You've lost a little weight."], refs: ["ccaMouth2025"] };
   },
+  // The rest of the saliva picture, which a dentist measures.
+  (m) => atRisk(m) && !m.noTeeth && {
+    id: "salivaTest", pri: ["flag", "watch"].includes(m.phPat.level) || sipNow(m) >= 11 ? 58 : 46,
+    title: T(m, "Ask your dentist for a saliva test", "Ask the dentist for a saliva test"),
+    body: "A pH test shows how acidic saliva is at rest. Your dentist can also measure how much saliva you make when chewing (stimulated flow) and how well it neutralises acid (buffering capacity), for example with GC Saliva-Check BUFFER. Low flow or weak buffering means less protection from decay and erosion, so it helps your dentist decide how much extra protection you need.",
+    because: [
+      sipNow(m) >= 8 ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`
+        : ["flag", "watch"].includes(m.phPat.level) ? "Some of your saliva results are acidic."
+        : m.rtHN ? "Radiotherapy to the head or neck reduces saliva."
+        : m.sjogren ? "Sjögren's reduces saliva."
+        : m.decay && ["moderate", "high", "veryhigh"].includes(m.decay.band.id) ? `Your tooth decay risk is ${m.decay.band.label.toLowerCase()}.`
+        : `Your dry mouth risk is ${m.risk.band.label.toLowerCase()}.`,
+    ],
+    refs: ["gcSalivaCheck", "bratthall2005", "featherstone2021"],
+    act: { label: "Add to my questions", addQ: SALIVA_TEST_Q },
+  },
   // Repeat an early pH test.
   (m) => m.ph && isAcidic(m.ph.ph) && m.fu.phTiming?.key === m.ph.id && m.fu.phTiming.v !== "yes" && {
     id: "phRetest", pri: 79, title: "Repeat your pH test before breakfast",
@@ -417,7 +436,7 @@ const RULES = [
     const because = [`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`];
     if (night) because.push("Your mouth is driest at night.");
     if (a === "meh") return { id: "gel", pri: 50, title: "Get more from your saliva gel", body: "Use a pea-sized amount spread over the tongue, cheeks and gums with a clean finger — before meals, at bedtime and whenever you need it. Water alone wears off within minutes.", because: [...because, "You said gel didn't help much."], refs: ["nuchit2020"], products: ["gc-dmg"] };
-    return { id: "gel", pri: 62, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Try GC Dry Mouth Gel", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals and at bedtime. It lasts longer than water.", because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
+    return { id: "gel", pri: 62, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Try GC Dry Mouth Gel", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals and at bedtime. It lasts longer than water." + ([].concat(answered(m, "allergy") || []).includes("milk") ? "" : " You can mix it with GC Tooth Mousse or Tooth Mousse Plus before you put it on."), because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
   },
   // Night-time dryness.
   (m) => {
@@ -489,7 +508,9 @@ function checkAdvice(m) {
   if (m.decayE) {
     const r = scoreDecay(m.decayE.answers, m.decayE.ctx);
     decayPlan(r, m.decayE.answers).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: (DECAY_PRI[r.band.id] ?? 30) - i,
-      because: [r.noTeeth ? "You don't have natural teeth." : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
+      because: [r.noTeeth ? "You don't have natural teeth."
+        : a.id === "tmp" && r.band.id === "low" ? "Daily prevention: calcium, phosphate and fluoride for your teeth every day."
+        : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }
   if (m.risk) for (const a of riskAdvice(m.risk, m.answers)) {
     const top = m.risk.factors[0];

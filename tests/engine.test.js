@@ -222,3 +222,32 @@ test("people see low, moderate or high — never 'Very high' or a number out of 
   const text = JSON.stringify([summary(m), buildPlan(m)]);
   assert.doesNotMatch(text, /Very high|of 15|score is \d|score \d/);
 });
+
+test("people at risk are asked to get a saliva flow and buffering test from their dentist", () => {
+  const atRisk = buildPlan(buildModel({ profile: {}, entries: [{ id: "s1", kind: "sip", ts: Date.now(), sip: 9 }] }));
+  const it = atRisk.find((i) => i.id === "salivaTest");
+  assert.ok(it); assert.match(it.body, /stimulated flow/); assert.match(it.body, /buffering/);
+  assert.ok(it.act.addQ);
+  const low = buildPlan(buildModel({ profile: {}, entries: [{ id: "s1", kind: "sip", ts: Date.now(), sip: 6 }] }));
+  assert.ok(!low.some((i) => i.id === "salivaTest"));
+});
+
+test("everyone with teeth gets fluoride and Tooth Mousse, unless allergic to milk protein", async () => {
+  const { scoreDecay, decayPlan } = await import("../src/data/decay.js");
+  const low = scoreDecay({});
+  assert.equal(low.band.id, "low");
+  const steps = decayPlan(low, {});
+  assert.ok(steps.some((s) => s.id === "paste") && steps.some((s) => s.id === "tmp"));
+  const e = [{ id: "d1", kind: "decay", ts: Date.now(), answers: {} }];
+  const plan = buildPlan(buildModel({ profile: {}, entries: e }));
+  assert.ok(plan.some((i) => i.products.includes("gc-tmp")));
+  const allergic = buildPlan(buildModel({ profile: { fu: { allergy: { v: ["milk"] } } }, entries: e }));
+  assert.ok(!allergic.some((i) => i.products.includes("gc-tmp") || i.products.includes("gc-tm")));
+});
+
+test("the gel tip about mixing with Tooth Mousse is left out for milk-protein allergy", () => {
+  const e = [{ id: "s1", kind: "sip", ts: Date.now(), sip: 10 }];
+  const gel = (p) => buildPlan(buildModel({ profile: p, entries: e })).find((i) => i.id === "gel");
+  assert.match(gel({}).body, /mix it with GC Tooth Mousse/);
+  assert.doesNotMatch(gel({ fu: { allergy: { v: ["milk"] } } }).body, /Tooth Mousse/);
+});

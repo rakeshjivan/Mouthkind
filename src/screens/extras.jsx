@@ -61,7 +61,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
         <p className="lede">{done.sip >= 11
           ? "That's a lot of dryness to live with. Show your scores to your dentist or doctor — there's more they can do, including checking your medicines and prescribing saliva stimulants."
           : done.sip >= 8 ? "Dryness is affecting you. Sip water often, use a saliva gel such as GC Dry Mouth Gel before meals and bed, and protect your teeth with fluoride."
-            : "Your mouth isn't very dry right now. Keep protecting your teeth with fluoride."}</p>
+            : "Your mouth isn't very dry right now. Keep protecting your teeth every day with fluoride toothpaste and GC Tooth Mousse."}</p>
         {followUp}
         <Sources refs={["thomson2011", "mercadante2021"]} />
       </Sheet>
