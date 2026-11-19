@@ -37,6 +37,7 @@ export function DecayResult({ entry, onClose, onRedo, onShop, next }) {
         <div className="risk-top good"><p className="risk-band">No natural teeth</p><p className="risk-sub">Tooth decay doesn't affect dentures or implants.</p></div>
       ) : (<>
         <div className={`risk-top ${r.band.tone}`}>
+          <p className="risk-kind">Screening result</p>
           <p className="risk-band">{r.band.label} risk</p>
           <p className="risk-sub">{r.band.sub}</p>
         </div>
@@ -81,8 +82,8 @@ export function DecayResult({ entry, onClose, onRedo, onShop, next }) {
         {onShop && !r.noTeeth && <button className="btn primary big" onClick={onShop}><Icon name="cart" /> See these products</button>}
       </section>}
 
-      <p className="disclaimer"><Icon name="info" size={16} /> Based on the CAMBRA approach to decay risk, using only questions you can answer yourself. It isn't a diagnosis — your dentist can check for decay you can't see or feel.</p>
-      <Sources refs={refs} />
+      <p className="disclaimer"><Icon name="info" size={16} /> This is a screening check, based on the CAMBRA approach and using only questions you can answer yourself. Even the best-tested decay risk tools are only moderately accurate, so your dentist's examination and X-rays come first. It isn't a diagnosis — your dentist can find decay you can't see or feel.</p>
+      <Sources refs={[...new Set([...refs, "hasyim2026", "hayes2017"])]} />
     </Sheet>
   );
 }

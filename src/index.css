@@ -1349,3 +1349,6 @@ details.srcs .sources { margin-top: 4px; }
 .brand-sub { font-weight: 500; color: var(--ink3); margin-left: 4px; }
 .brand-mark { vertical-align: -5px; margin-right: 6px; }
 .panel.about p { margin: 0 0 10px; line-height: 1.5; color: var(--ink2); } .panel.about p strong { color: var(--ink); }
+.risk-kind { margin: 0 0 2px; font-size: calc(14px * var(--s)); font-weight: 600; color: var(--ink3); }
+:root { --g-gums: #a0643a; } [data-theme="dark"] { --g-gums: #dca27a; }
+.g-gums { background: var(--g-gums); } .fgroup.g-gums { background: var(--card); } .g-gums .fg-head i { background: var(--g-gums); }

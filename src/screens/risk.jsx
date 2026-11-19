@@ -41,7 +41,7 @@ export function RiskFlow({ last, onClose, onSave, onCare, plan, next: nextStep, 
 
   const picked = q.type === "many" || q.type === "lookup" ? ans[q.id] || [] : ans[q.id];
   return (
-    <Sheet title={model.title} onClose={onClose} onBack={i ? () => setI(i - 1) : null}
+    <Sheet title={model.title} onClose={onClose}
       progress={{ of: qs.length, at: i, label: `${i + 1} of ${qs.length}` }}
       footer={(i > 0 || q.type !== "one" || picked != null) ? (<>
         {i > 0 && <button className="btn ghost" onClick={() => setI(i - 1)}><Icon name="back" size={18} /> Back</button>}

@@ -140,8 +140,9 @@ export function Sheet({ title, onClose, onBack, progress, children, footer, tone
     <div className="sheet-wrap" role="dialog" aria-modal="true" aria-label={title}>
       <div className={`sheet${tone ? " " + tone : ""}`} ref={ref} tabIndex={-1}>
         <div className="sheet-top">
-          <button className="icon-btn" onClick={onBack || onClose} aria-label={onBack ? "Back" : "Close"}>
-            <Icon name={onBack ? "back" : "x"} />
+          {/* Close is always here; going back is a labelled button in the footer, so nobody has to guess. */}
+          <button className="icon-btn" onClick={onClose} aria-label="Close">
+            <Icon name="x" />
           </button>
           {progress ? (
             <div className="pips" aria-hidden="true">

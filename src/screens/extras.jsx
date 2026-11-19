@@ -75,14 +75,15 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
     onSave(e); setDone(e);
   };
   return (
-    <Sheet title="Dry mouth score" onClose={onClose} onBack={k >= 0 ? () => setK(k - 1) : null}
+    <Sheet title="Dry mouth score" onClose={onClose}
       progress={intro ? null : { of: 5, at: k, label: `${k + 1} of 5` }}
-      footer={intro ? <button className="btn primary big" onClick={() => setK(0)}>Start</button> : null}>
+      footer={intro ? <button className="btn primary big" onClick={() => setK(0)}>Start</button>
+        : k > 0 ? <button className="btn ghost" onClick={() => setK(k - 1)}><Icon name="back" size={18} /> Back</button> : null}>
       {intro ? (
         <div className="intro">
           <div className="intro-mark dry"><Icon name="drop" size={28} /></div>
           <h2 className="q">Five quick questions</h2>
-          <p className="lede">This is the GC SIP-SCORE. Think about {f.days === 1 ? "today" : f.days === 7 ? "the last week" : "the last two weeks"}. Scores run from 5 (no dryness) to 15.</p>
+          <p className="lede">This is the GC SIP-SCORE. Think about {f.days === 1 ? "today" : f.days === 7 ? "the last week" : "the last two weeks"}. Your result shows as low, moderate or high.</p>
         </div>
       ) : (<>
         <p className="eyebrow-q">{f.recall}</p>
