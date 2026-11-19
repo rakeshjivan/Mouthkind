@@ -44,7 +44,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
       </section>
 
       <section className="panel">
-        <h2 className="panel-title">My situation</h2>
+        <h2 className="panel-title">{profile.carer ? "Their situation and treatment" : "Situation and treatment"}</h2>
         <div className="set-row"><span><strong>{profile.carer ? `Caring for ${profile.carerFor || "someone"}` : "For myself"}</strong>
           <em>{(profile.situation || []).map((v) => SITUATIONS.find((x) => x.v === v)?.label).filter(Boolean).join(" · ") || "Not set"}</em></span>
           <button className="btn ghost" onClick={() => open("situation")}>Change</button></div>
@@ -59,18 +59,26 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
             </div>
           )}
           {(hasTx(profile, "chemo") || hasTx(profile, "transplant")) && (
-            <div className="set-row"><span><strong>Chemotherapy dates</strong><em>{(profile.chemoDates || []).slice(-3).join(", ") || "None added"}</em></span>
+            <div className="set-row"><span><strong>Chemotherapy dates</strong><em>{(profile.chemoDates || []).slice(-3).map((d) => new Date(`${d}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })).join(", ") || "None added"}</em></span>
               <button className="btn ghost" onClick={() => open("chemoday")}><Icon name="plus" size={18} /> Add</button></div>
           )}
-          <label className="field"><span>Treatment team</span><input value={profile.team?.name || ""} onChange={(e) => set({ team: { ...profile.team, name: e.target.value } })} /></label>
-          <label className="field"><span>Team's 24-hour number</span><input type="tel" inputMode="tel" value={profile.team?.phone24 || ""} onChange={(e) => set({ team: { ...profile.team, phone24: e.target.value } })} /></label>
           <div className="set-row"><span><strong>Tools</strong><em>Jaw check, dental alert card, questions</em></span>
             <button className="btn ghost" onClick={() => open("journey")}>Open</button></div>
+        </>)}
+      </section>
+
+      <section className="panel">
+        <h2 className="panel-title">Care team</h2>
+        {(profile.situation || []).includes("cancer") && (<>
+          <label className="field"><span>Treatment team</span><input value={profile.team?.name || ""} onChange={(e) => set({ team: { ...profile.team, name: e.target.value } })} /></label>
+          <label className="field"><span>Team's 24-hour number</span><input type="tel" inputMode="tel" value={profile.team?.phone24 || ""} onChange={(e) => set({ team: { ...profile.team, phone24: e.target.value } })} /></label>
         </>)}
         <label className="field"><span>Dentist's phone</span><input type="tel" inputMode="tel" value={profile.dentist?.phone || ""} onChange={(e) => set({ dentist: { ...profile.dentist, phone: e.target.value } })} /></label>
       </section>
 
+      <h2 className="me-group">App settings</h2>
       <section className="panel">
+        <h2 className="panel-title">Reminders</h2>
         <div className="set-row"><span><strong>How often I check</strong><em>{prefs.sipEvery ? freqFor(prefs.sipEvery).label : "Not set yet"}</em></span>
           <button className="btn ghost" onClick={() => open("freq")}>Change</button></div>
         <div className="set-row"><span><strong>Reminder</strong><em>Add a repeating reminder to your calendar</em></span>
@@ -78,6 +86,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
       </section>
 
       <section className="panel">
+        <h2 className="panel-title">Display</h2>
         <div className="field"><span>Text size</span>
           <div className="seg full">{[["m", "Standard"], ["l", "Larger"], ["xl", "Largest"]].map(([k, t]) => <button key={k} className={prefs.text === k ? "on" : ""} onClick={() => setPrefs({ ...prefs, text: k })}>{t}</button>)}</div>
         </div>
@@ -87,6 +96,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
       </section>
 
       <section className="panel">
+        <h2 className="panel-title">Your data</h2>
         <div className="set-row"><span><strong>Back up or move your results</strong><em>Save a file, optionally locked with a passphrase</em></span>
           <button className="btn ghost" onClick={() => open("backup")}>Open</button></div>
         <div className="set-row"><span><strong>Delete everything</strong><em>Removes all results from this device</em></span>

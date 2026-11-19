@@ -23,7 +23,7 @@ function UsedPanel({ entries, open }) {
   const cols = Array.from({ length: 42 }, (_, i) => +today - (41 - i) * DAY);
   return (
     <section className="panel">
-      <div className="panel-h"><h2>What I used</h2><button className="link-btn" onClick={() => open("used")}>Log today</button></div>
+      <div className="panel-h"><h2>What I used</h2><button className="link-btn" onClick={() => open("used")}>Log</button></div>
       {ins.map((x) => (
         <p key={x.v} className={`insight ${x.change < 0 ? "better" : x.change > 0 ? "worse" : ""}`}>
           Since starting <b>{x.label}</b> on {fmtShort(x.first)}, your dry mouth score has {x.change < 0 ? "dropped" : x.change > 0 ? "risen" : "stayed"} {x.change ? `from ${x.before} to ${x.after}` : `at about ${x.after}`} on average.
@@ -61,7 +61,7 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 
   if (!all.length && !dailies.length && !anyUsed && !jaws.length) return (
     <div className="screen">
-      <header className="hero"><h1 className="display">My mouth tracker</h1></header>
+      <header className="hero"><h1 className="display">Tracker</h1></header>
       <section className="empty-card"><p>Your risk checks, dry mouth scores and pH results will appear here, with charts once you have a few.</p>
         <button className="btn primary big" onClick={() => open("risk")}>Check my risk</button></section>
     </div>
@@ -69,15 +69,15 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">My mouth tracker</h1>
+      <header className="hero"><h1 className="display">Tracker</h1>
         <p className="lede">Everything you've recorded, to look back on or show your dentist.</p></header>
 
       {dailies.length > 0 && (
         <section className="panel">
-          <div className="panel-h"><h2>Daily mouth check</h2><button className="link-btn" onClick={() => open("daily")}>Check today</button></div>
+          <div className="panel-h"><h2>Daily mouth check</h2><button className="link-btn" onClick={() => open("daily")}>Check now</button></div>
           <p className="big-read"><strong>{GRADES[dailies.at(-1).grade ?? 0].label}</strong></p><p className="panel-foot">Last checked {fmtShort(dailies.at(-1).ts)}</p>
           {dailies.length > 1 && <DotSeries points={dailies.slice(-21).map((d) => ({ v: d.pain ?? 0, label: fmtShort(d.ts) }))} min={0} max={10} tone="red" fmt={(v) => v} />}
-          <p className="panel-foot">Mouth pain, 0 (none) to 10. Mouth sores graded on the WHO scale from your answers.</p>
+          <p className="panel-foot">Mouth pain, 0 (none) to 10.</p>
         </section>
       )}
 
@@ -91,7 +91,7 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
       </section>
 
       <section className="panel">
-        <div className="panel-h"><h2>Saliva pH</h2><button className="link-btn" onClick={() => open("ph")}>Add a result</button></div>
+        <div className="panel-h"><h2>Saliva pH</h2><button className="link-btn" onClick={() => open("ph")}>Check now</button></div>
         {phs.length ? (<>
           <PhTimeline readings={phs} zones={PH_ZONES} color={phColor} fmt={fmtShort} max={14} />
           <p className="panel-foot">{phs.filter((p) => isAcidic(p.ph)).length} of {phs.length} results acidic (6.6 or lower).{phPattern(phs).level === "flag" ? " Your recent results are consistently acidic — show your dentist." : ""}</p>
@@ -111,7 +111,7 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 
       {risks.length > 0 && (
         <section className="panel">
-          <div className="panel-h"><h2>Dry mouth risk</h2><button className="link-btn" onClick={onShowRisk}>See details</button></div>
+          <div className="panel-h"><h2>Dry mouth risk</h2><button className="link-btn" onClick={onShowRisk}>See result</button></div>
           {risks.length > 1
             ? <DotSeries points={risks.map((r) => ({ v: r.score, label: fmtShort(r.ts) }))} min={0} max={Math.max(60, ...risks.map((r) => r.score))} tone="accent" />
             : <p className="big-read"><strong>{risks[0].score}</strong> · {RISK_BANDS.find((b) => b.id === risks[0].band)?.label.toLowerCase()} risk</p>}
@@ -120,7 +120,7 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 
       {decays.length > 0 && (
         <section className="panel">
-          <div className="panel-h"><h2>Tooth decay risk</h2><button className="link-btn" onClick={onShowDecay}>See my plan</button></div>
+          <div className="panel-h"><h2>Tooth decay risk</h2><button className="link-btn" onClick={onShowDecay}>See result</button></div>
           {decays.length > 1
             ? <DotSeries points={decays.map((r) => ({ v: r.score, label: fmtShort(r.ts) }))} min={0} max={Math.max(50, ...decays.map((r) => r.score))} tone="accent" />
             : <p className="big-read"><strong>{decays[0].score}</strong> · {DECAY_BANDS.find((b) => b.id === decays[0].band)?.label.toLowerCase()} risk</p>}

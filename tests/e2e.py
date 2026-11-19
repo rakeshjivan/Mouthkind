@@ -156,7 +156,7 @@ async def main():
         await shot("14-summary", True)
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(200)
 
-        await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(300)
+        await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(300)
         await shot("14b-care", True)
         await pg.click("nav >> text=Shop"); await pg.wait_for_timeout(300)
         await shot("14c-shop", True)
@@ -216,8 +216,10 @@ async def main():
         assert await pg.get_by_text("Daily mouth check").count() >= 1
         assert await pg.get_by_role("heading", name="Jaw opening").count() == 1
         await shot("22-tracker-cancer", True)
-        await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(300)
+        await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(300)
+        await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200)
         assert await pg.get_by_text("When to get help straight away").count() == 1
+        await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200)
         await shot("23-advice-cancer", True)
 
         # After the plan is built: a score that rose never pops up a question; the plan
@@ -235,7 +237,7 @@ async def main():
         }""")
         await pg.reload(); await pg.wait_for_timeout(500)
         assert await pg.locator(".ask").count() == 0 and await pg.locator(".setup-card").count() == 0
-        await pg.click("nav >> text=Advice"); await pg.wait_for_timeout(400)
+        await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(400)
         refine = pg.locator(".refine-line")
         assert "1 quick question" in await refine.inner_text()
         await shot("24-refine-link")

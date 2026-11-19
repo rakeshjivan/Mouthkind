@@ -89,14 +89,18 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
     triage?.level === "now" ? { tone: "red", icon: "alert", title: "Contact your treatment team now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
     : active && !dailyToday ? { tone: "accent", icon: "heart", title: `How's ${who ? `${who}'s` : "your"} mouth today?`, sub: "A 10-second check during treatment", act: "Check now", go: () => open("daily") }
     : triage?.level === "today" ? { tone: "amber", icon: "phone", title: "Let your treatment team know today", sub: triage.today[0], act: "See today's check", go: () => open("dailyresult") }
+    : pat.level === "flag" ? { tone: "amber", icon: "drop", id: "acid", title: "Your saliva has been acidic", sub: `${pat.acid} of your last ${pat.n} pH tests. Acid can put your teeth at risk — show your dentist.`, act: "What helps", go: () => go("advice", "plan") }
     : !r ? { tone: "accent", icon: "shield", title: "Start with your dry mouth risk", sub: "2 minutes · medicines, health and habits", act: "Start", go: () => open("risk") }
-    : sipNext?.due || !sip ? { tone: "accent", icon: "drop", title: "Your dry mouth check is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
+    : sipNext?.due || !sip ? { tone: "accent", icon: "drop", title: "Your dry mouth score is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
     : !phSkip && (phNext?.due || !ph) ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: "Log what I used today", go: () => open("used"), quiet: true };
   // Until the plan is built, the build card leads — unless something urgent comes first.
   const building = setup && !setup.built;
   const urgent = triage?.level === "now" || triage?.level === "today" || (active && !dailyToday);
   const buildCard = building && !urgent;
+  // Once the plan covers a high risk, show it calmly: red is kept for things to act on now.
+  const planned = setup?.built;
+  const calm = (tone) => (planned && tone === "red" ? "amber" : tone);
   const tx = cancer ? journey(profile).cards[0] : null;
   // After head and neck radiotherapy, the jaw opening test sits with the other checks.
   const jawCheck = (cancer && (profile.treatments || []).includes("rt_hn")) || [].concat(r ? risk.answers.cancer || [] : []).includes("rt_hn");
@@ -113,13 +117,6 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
         {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
       </header>
 
-      {pat.level === "flag" && (
-        <div className="alert-x amber home-alert">
-          <strong>Your saliva has been acidic in {pat.acid} of your last {pat.n} tests.</strong>
-          <p>Acidic saliva can put your teeth at risk, even if your mouth doesn't feel dry. Show your results to your dentist.</p>
-          <button className="btn primary" onClick={() => go("advice", "plan")}>What helps</button>
-        </div>
-      )}
 
       {buildCard ? <SetupCard setup={setup} onSetup={onSetup} /> : (
       <section className={`today t-${today.tone}`} aria-label="Today">
@@ -133,24 +130,24 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
 
 
       {ask}
-      <FocusList plan={plan.filter((it) => !it.id.startsWith("start"))} onOpen={() => go("advice", "plan")} />
+      <FocusList plan={plan.filter((it) => !it.id.startsWith("start") && !(profile.planDone || {})[it.id] && !it.kept)} skip={today.id ? [today.id] : []} onOpen={() => go("advice", "plan")} />
 
       <div className="boxes">
-        <Box kind="risk" title="My dry mouth risk" icon={<Icon name="shield" size={22} />}
-          value={r ? r.band.label : null} valueTone={r?.band.tone} sub={r ? `${r.factors.length} risk factor${r.factors.length === 1 ? "" : "s"}` : "Medicines, health and habits"}
-          status={r ? "See details" : "Start here · 2 min"} due={!r}
+        <Box kind="risk" title="Dry mouth risk" icon={<Icon name="shield" size={22} />}
+          value={r ? r.band.label : null} valueTone={r ? calm(r.band.tone) : null} sub={r ? `${r.factors.length} risk factor${r.factors.length === 1 ? "" : "s"}` : "Medicines, health and habits"}
+          status={r ? (planned && r.band.lo >= 25 ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!r}
           onClick={() => open(r ? "riskresult" : "risk")} />
-        <Box kind="decay" title="My tooth decay risk" icon={<Icon name="tooth" size={22} />}
-          value={d ? (d.noTeeth ? "No natural teeth" : d.band.label) : null} valueTone={d && !d.noTeeth ? d.band.tone : null}
+        <Box kind="decay" title="Tooth decay risk" icon={<Icon name="tooth" size={22} />}
+          value={d ? (d.noTeeth ? "No natural teeth" : d.band.label) : null} valueTone={d && !d.noTeeth ? calm(d.band.tone) : null}
           sub={d ? (d.noTeeth ? "Denture care" : `${d.factors.length} risk factor${d.factors.length === 1 ? "" : "s"}`) : "Food, cleaning and your teeth"}
-          status={d ? "See my plan" : "2 min"} due={!d}
+          status={d ? (planned && ["high", "veryhigh"].includes(d.band.id) ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!d}
           onClick={() => open(d ? "decayresult" : "decay")} />
-        <Box kind="sip" title="Dry mouth check" icon={<Icon name="drop" size={22} />}
+        <Box kind="sip" title="Dry mouth score" icon={<Icon name="drop" size={22} />}
           value={sip ? sipBand(sip.sip).label : null} valueTone={sip ? SIP_TONE[SIP_BANDS.indexOf(sipBand(sip.sip))] : null}
-          sub={sip ? `SIP score ${sip.sip} of 15` : "SIP score · 5 questions"}
+          sub={sip ? `${sip.sip} of 15${trend && !empty ? ` · ${trend.label.toLowerCase()}` : ""}` : "5 quick questions"}
           status={sipNext ? when(sipNext) : "Not done yet"} due={!sip || sipNext?.due}
           onClick={() => open("sip")} />
-        <Box kind="ph" title="Check my saliva pH" icon={<span className="tile-swatches">{[5.4, 6.2, 7.0].map((v) => <i key={v} style={{ background: phColor(v) }} />)}</span>}
+        <Box kind="ph" title="Saliva pH" icon={<span className="tile-swatches">{[5.4, 6.2, 7.0].map((v) => <i key={v} style={{ background: phColor(v) }} />)}</span>}
           value={ph ? `pH ${ph.ph.toFixed(1)}` : null} valueTone={ph ? phZone(ph.ph).tone : null} sub={ph ? phZone(ph.ph).label : "With a test strip"}
           status={phNext ? when(phNext) : "Not done yet"} due={!ph || phNext?.due}
           onClick={() => open("ph")} />
@@ -161,13 +158,6 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
             status={jawDue ? (jaw ? "Due this month" : "Not done yet") : "Once a month"} due={jawDue}
             onClick={() => open("jaw")} />
         )}
-        <Box kind="advice" title="Mouth care advice" icon={<Icon name="leaf" size={22} />}
-          value={null} sub={care.length ? `Start with: ${care[0].title.toLowerCase()}` : "Water, diet, teeth and more"}
-          status="Open" onClick={() => go("advice")} />
-        <Box kind="tracker" title="My mouth tracker" icon={<Icon name="chart" size={22} />}
-          value={trend ? trend.label : null} valueTone={trend?.tone}
-          sub={empty ? "Your results over time" : `${count} result${count === 1 ? "" : "s"} · last ${fmtShort(lastTs)}`}
-          status={empty ? "No results yet" : "See charts"} onClick={() => go("tracker")} />
       </div>
 
       {every && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}

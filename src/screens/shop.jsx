@@ -5,7 +5,7 @@ import { SHOP_FLAVOURS, SHOP_PRODUCTS, SHOP_SELLER, SHOP_URL, shopItem } from ".
 import { externalClick } from "../lib/external.js";
 import { ProductImage } from "../components/productImage.jsx";
 
-function ShopItem({ p }) {
+export function ShopItem({ p }) {
   const flavours = SHOP_FLAVOURS[p.id];
   const [fl, setFl] = useState(flavours?.[0].id);
   const { url, flavour } = shopItem(p.id, fl);
@@ -34,9 +34,12 @@ function ShopItem({ p }) {
   );
 }
 
-/** Products to buy. Each button opens the seller's page for that product. */
-export function Shop() {
+/** Products to buy. Each button opens the seller's page for that product.
+ *  Products in the person's plan come first, under "Recommended for you". */
+export function Shop({ forYou = [] }) {
   const items = SHOP_PRODUCTS.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
+  const mine = items.filter((p) => forYou.includes(p.id));
+  const rest = items.filter((p) => !forYou.includes(p.id));
   return (
     <div className="screen">
       <header className="hero"><h1 className="display">Shop</h1>
@@ -46,7 +49,10 @@ export function Shop() {
       ) : (
         <p className="soft-note shop-soon">Online ordering is coming soon. In the meantime, ask your pharmacy or dentist for these products.</p>
       )}
-      {items.map((p) => <ShopItem key={p.id} p={p} />)}
+      {mine.length > 0 && <h2 className="list-h first">Recommended for you</h2>}
+      {mine.map((p) => <ShopItem key={p.id} p={p} />)}
+      {mine.length > 0 && rest.length > 0 && <h2 className="list-h">Other products</h2>}
+      {rest.map((p) => <ShopItem key={p.id} p={p} />)}
     </div>
   );
 }
