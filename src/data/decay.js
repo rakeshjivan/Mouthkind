@@ -279,7 +279,7 @@ export function scoreDecay(answers = {}, ctx = decayContext()) {
  * What to use, by risk level (after CAMBRA's adult recommendations).
  * Returns ordered steps: { id, title, body, products?, refs? }
  */
-export function decayPlan(result, answers = {}) {
+export function decayPlan(result, answers = {}, { dry = false } = {}) {
   if (result.noTeeth) return [
     { id: "dentures", title: "Look after your gums and dentures", body: "Without natural teeth there's no tooth decay to worry about. Clean your dentures every day, take them out at night, and see your dentist once a year to check your gums and mouth." },
   ];
@@ -306,7 +306,7 @@ export function decayPlan(result, answers = {}) {
       products: ["gc-tmp", "gc-tm"], refs: ["featherstone2021", "agarwal2022"] });
 
   // Through the day, as needed: Tooth Mousse (no added fluoride) between the morning and night Tooth Mousse Plus.
-  if (hi || result.factors.some((f) => f.from === "sip" || f.q === "dry"))
+  if (hi || dry || result.factors.some((f) => f.from === "sip" || f.q === "dry"))
     out.push({ id: "tm", title: "Through the day: GC Tooth Mousse™, as needed",
       body: "Between your morning and night Tooth Mousse™ Plus, smear a little GC Tooth Mousse™ over your teeth after meals or whenever your mouth feels dry. It adds calcium and phosphate without extra fluoride, and you can mix it with GC Dry Mouth Gel.",
       products: ["gc-tm"], refs: ["featherstone2021"] });
