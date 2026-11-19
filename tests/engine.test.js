@@ -319,3 +319,10 @@ test("Sjögren's keeps its capital in the summary", () => {
   const e = [{ id: "r1", kind: "risk", ts: NOW, answers: { conditions: ["sjogren"] } }];
   assert.match(summary(model({}, e)).join(" "), /mostly from Sjögren's syndrome/);
 });
+
+test("the milk-protein allergy question is asked of everyone with natural teeth, even at low risk", () => {
+  const low = model({}, [{ id: "d1", kind: "decay", ts: NOW, answers: { teeth: "yes" } }, { id: "s1", kind: "sip", ts: NOW, sip: 6 }]);
+  assert.ok(openQuestions(low).some((q) => q.id === "allergy"));
+  const none = model({}, [{ id: "d1", kind: "decay", ts: NOW, answers: { teeth: "none" } }, { id: "s1", kind: "sip", ts: NOW, sip: 6 }]);
+  assert.ok(!openQuestions(none).some((q) => q.id === "allergy"));
+});

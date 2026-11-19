@@ -110,7 +110,9 @@ export const FOLLOWUPS = [
     why: "GC Tooth Mousse™ contains milk protein (casein), and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
     refs: [],
     options: [{ v: "milk", label: "Milk protein (casein)" }, { v: "hb", label: "Hydroxybenzoates (parabens)" }, { v: "none", label: "Neither" }],
-    when: (m) => atRisk(m),
+    // Tooth Mousse is recommended to everyone with natural teeth, so everyone with teeth is asked;
+    // the gel is only suggested for dryness, which atRisk already covers.
+    when: (m) => atRisk(m) || (!!m.decay && !m.noTeeth),
   },
   {
     id: "dentistSeen", pri: () => 96,
