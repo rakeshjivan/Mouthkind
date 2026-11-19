@@ -6,7 +6,7 @@
 export const SETUP_STEPS = [
   { id: "risk", label: "Dry mouth risk check", short: "Dry mouth risk", sheet: "risk" },
   { id: "decay", label: "Tooth decay check", short: "Tooth decay", sheet: "decay" },
-  { id: "sip", label: "Dry mouth check", short: "Dry mouth check", sheet: "sip" },
+  { id: "sip", label: "Dry mouth score", short: "Dry mouth score", sheet: "sip" },
   { id: "ph", label: "Saliva pH test", short: "pH test", sheet: "ph", optional: true },
   { id: "questions", label: "A few questions about you", short: "A few questions", sheet: "setupq" },
 ];

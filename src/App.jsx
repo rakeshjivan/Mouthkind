@@ -26,7 +26,7 @@ import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js
 const TABS = [
   { id: "home", label: "Home", icon: "home" },
   { id: "tracker", label: "Tracker", icon: "chart" },
-  { id: "advice", label: "Advice", icon: "leaf" },
+  { id: "advice", label: "Plan", icon: "leaf" },
   { id: "shop", label: "Shop", icon: "cart" },
   { id: "me", label: "Me", icon: "user" },
 ];
@@ -115,8 +115,8 @@ export default function App() {
     <div className="app">
       <main className="main" id="main">
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} careCtx={careCtx} open={open} go={go} plan={building ? [] : plan} ask={ask(false)} setup={setup} onSetup={continueSetup} />}
-        {tab === "shop" && <Shop />}
-        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} plan={building ? [] : plan} sum={building ? [] : sum} ask={ask(false)} refine={refine} profile={profile} open={open} setup={building ? setup : null} onSetup={continueSetup} />}
+        {tab === "shop" && <Shop forYou={building ? [] : [...new Set(plan.flatMap((it) => it.products || []))]} />}
+        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} plan={building ? [] : plan} sum={building ? [] : sum} ask={ask(false)} refine={refine} profile={profile} setProfile={setProfile} open={open} setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} />}
         {tab === "tracker" && <Results entries={view} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
