@@ -300,16 +300,15 @@ export function decayPlan(result, answers = {}) {
 
   // Everyone with natural teeth: fluoride and Tooth Mousse for daily prevention.
   out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse™ Plus" : "Add GC Tooth Mousse™ Plus, morning and night",
-      body: lvl === "veryhigh"
-        ? "After brushing in the morning and at night, smear a pea-sized amount over your teeth and don't rinse. With a very dry mouth, you can also use it after lunch."
-        : has("mouth", "braces")
+      body: has("mouth", "braces")
           ? "After brushing in the morning and at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
           : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse™ adds calcium and phosphate; Tooth Mousse™ Plus provides additional protection, fortified with 900 ppm fluoride.",
       products: ["gc-tmp", "gc-tm"], refs: ["featherstone2021", "agarwal2022"] });
 
-  if (hi)
-    out.push({ id: "tm", title: "During the day: GC Tooth Mousse™",
-      body: "If you're using a high-fluoride toothpaste, GC Tooth Mousse™ — calcium and phosphate without added fluoride — can go on during the day for extra protection. Your dentist can tell you which suits you.",
+  // Through the day, as needed: Tooth Mousse (no added fluoride) between the morning and night Tooth Mousse Plus.
+  if (hi || result.factors.some((f) => f.from === "sip" || f.q === "dry"))
+    out.push({ id: "tm", title: "Through the day: GC Tooth Mousse™, as needed",
+      body: "Between your morning and night Tooth Mousse™ Plus, smear a little GC Tooth Mousse™ over your teeth after meals or whenever your mouth feels dry. It adds calcium and phosphate without extra fluoride, and you can mix it with GC Dry Mouth Gel.",
       products: ["gc-tm"], refs: ["featherstone2021"] });
 
   if (result.factors.some((f) => f.q === "sugar"))

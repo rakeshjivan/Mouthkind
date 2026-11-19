@@ -176,7 +176,7 @@ test("products already in use are praised, not recommended as new", () => {
   const rt = plan.find((i) => i.id === "rtFluoride");
   assert.match(rt.body, /already using GC Tooth Mousse™ Plus — keep going/);
   const acid = [6.0, 5.8, 6.2].map((ph, i) => ({ id: `p${i}`, kind: "ph", ph, ts: NOW - (5 - i) * D }))
-    .concat([{ id: "u2", kind: "used", items: ["gc-tmp", "gc-tm"], ts: NOW - D }]);
+    .concat([{ id: "u2", kind: "used", items: ["gc-tmp", "gc-tm"], ts: NOW - D }, { id: "d1", kind: "decay", answers: { teeth: "yes" }, ts: NOW - D }]);
   const kept = buildPlan(model({}, acid)).filter((i) => i.kept);
   assert.ok(kept.length >= 1);
   for (const k of kept) { assert.match(k.title, /^Keep going with/); assert.match(k.body, /^You're already doing the right thing/); assert.ok(k.pri <= 45); }
@@ -305,4 +305,17 @@ test("HRT brands are found in the medicine look-up and fall in the HRT group", a
   const { searchMedicines } = await import("../src/data/medicines.js");
   for (const q of ["Estalis", "Estrogel", "Livial", "Femoston"]) assert.equal(searchMedicines(q, 1)[0]?.m.c, "medTypes.hrt", q);
   assert.equal(searchMedicines("Vagifem", 1)[0]?.m.c, null);
+});
+
+test("plan order: Tooth Mousse Plus morning and night first, then gel and Tooth Mousse through the day", () => {
+  const e = [{ id: "r1", kind: "risk", ts: NOW - 3 * D, answers: { conditions: ["sjogren"] } },
+    { id: "d1", kind: "decay", ts: NOW - 3 * D, answers: { teeth: "yes", recent: "one" }, ctx: { sjogren: true } },
+    { id: "s2", kind: "sip", ts: NOW - 2 * D, sip: 12 }, { id: "p1", kind: "ph", ts: NOW - 2 * D, ph: 6.2 }];
+  const ids = buildPlan(model({ fu: { allergy: { v: ["none"] }, dentures: { v: "no" } } }, e)).map((i) => i.id);
+  assert.deepEqual(ids.slice(0, 3), ["decay.tmp", "gel", "decay.tm"]);
+});
+
+test("Sjögren's keeps its capital in the summary", () => {
+  const e = [{ id: "r1", kind: "risk", ts: NOW, answers: { conditions: ["sjogren"] } }];
+  assert.match(summary(model({}, e)).join(" "), /mostly from Sjögren's syndrome/);
 });
