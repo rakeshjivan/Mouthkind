@@ -289,3 +289,20 @@ test("the plan doesn't repeat itself: one dentist visit item, no 'check your dry
   const ids = buildPlan(buildModel({ profile: {}, entries: e })).map((i) => i.id);
   assert.ok(ids.includes("decay.visit")); assert.ok(!ids.includes("risk.dentist")); assert.ok(!ids.includes("risk.track"));
 });
+
+test("HRT: its own medicine group, light weighting, and menopause advice", async () => {
+  const { scoreRisk, riskAdvice, MED_PURPOSES } = await import("../src/data/risk.js");
+  assert.ok(MED_PURPOSES.some((p) => p.v === "menopause" && p.g === "hrt"));
+  const r = scoreRisk({ medTypes: ["hrt"] });
+  const f = r.factors.find((x) => x.v === "hrt");
+  assert.ok(f && f.pts <= 2, "HRT is counted, lightly");
+  const adv = riskAdvice(r, { medTypes: ["hrt"] });
+  const m = adv.find((a) => a.id === "menopause");
+  assert.ok(m); assert.match(m.body, /Don't stop it yourself/);
+});
+
+test("HRT brands are found in the medicine look-up and fall in the HRT group", async () => {
+  const { searchMedicines } = await import("../src/data/medicines.js");
+  for (const q of ["Estalis", "Estrogel", "Livial", "Femoston"]) assert.equal(searchMedicines(q, 1)[0]?.m.c, "medTypes.hrt", q);
+  assert.equal(searchMedicines("Vagifem", 1)[0]?.m.c, null);
+});

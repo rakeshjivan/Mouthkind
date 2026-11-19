@@ -192,6 +192,19 @@ export const CARE_TOPICS = [
     products: ["oranurse"], refs: ["adaPregnancy", "adaAusGums", "pbbTeeth"],
   },
   {
+    id: "menopause", icon: "user", title: "Menopause and your mouth",
+    short: "Lower oestrogen can mean less saliva and more decay.",
+    forYou: (c) => has(c, "conditions.menopause", "medTypes.hrt"),
+    steps: [
+      "Saliva glands respond to oestrogen, so after menopause many women notice a drier mouth, burning or a change in taste.",
+      "Gums can become more sensitive, and decay is more common after menopause.",
+      "Brush twice a day with fluoride toothpaste, clean between your teeth, and keep up regular check-ups.",
+      "HRT improves saliva for many women, but the evidence is mixed and some still notice dryness. If your mouth got drier after starting or changing HRT, talk to your GP. Don't stop it yourself.",
+      "Tell your dentist about menopause and any HRT, and mention a burning mouth if you have one.",
+    ],
+    refs: ["butera2026", "arealquecuty2025", "lago2015", "oliveira2025"],
+  },
+  {
     id: "medicines", icon: "doc", title: "Check your medicines",
     short: "Many medicines dry the mouth. Some can be changed.",
     forYou: (c) => [...c.f].some((i) => i.startsWith("medTypes.") || i === "meds.5" || i === "meds.10"),

@@ -26,7 +26,7 @@ const GROUP_PURPOSE = {
   antihist: ["allergy", "sleep", "stomach"], allergy: ["allergy"], opioid: ["pain"], seizure: ["nerve", "pain", "mood"],
   stimulant: ["adhd"], parkinson: ["parkinsons"], relaxant: ["muscle", "pain"], migraine: ["migraine"], cannabis: ["pain", "sleep", "other"],
   bladder: ["bladder"], glp1: ["weight", "diabetes"], weightloss: ["weight"], bp: ["bp"], prostate: ["prostate", "bp"],
-  inhaler: ["breathing"], gut: ["stomach"], acne: ["acne"], smoking: ["smoking"], decong: ["allergy"], "cancer.immuno": ["other"],
+  inhaler: ["breathing"], gut: ["stomach"], acne: ["acne"], smoking: ["smoking"], decong: ["allergy"], hrt: ["menopause"], "cancer.immuno": ["other"],
 };
 const M = (g, b, c, p) => ({ g, b, c, p: p || GROUP_PURPOSE[c] || ["other"] });
 const N = (g, b, p) => ({ g, b, c: null, p });
@@ -147,7 +147,13 @@ const LIST = [
   N("mometasone nasal spray", ["Nasonex"], ["allergy"]), N("budesonide nasal spray", ["Rhinocort"], ["allergy"]),
   // Thyroid, hormones, bones
   N("levothyroxine", ["Oroxine", "Eutroxsig"], ["other"]), N("carbimazole", ["Neo-Mercazole"], ["other"]),
-  N("prednisolone", ["Panafcortelone", "Solone"], ["other"]), N("estradiol (HRT)", ["Estrogel", "Estradot", "Climara"], ["other"]),
+  N("prednisolone", ["Panafcortelone", "Solone"], ["other"]), 
+  // Menopause hormone therapy: evidence is mixed (it often improves saliva), so it carries little weight.
+  M("estradiol (HRT)", ["Estrogel", "Estradot", "Climara", "Sandrena", "Progynova", "Zumenon"], "hrt"),
+  M("estradiol with progestogen (combined HRT)", ["Estalis", "Femoston", "Kliogest", "Kliovance", "Trisequens", "Angeliq"], "hrt"),
+  M("tibolone", ["Livial"], "hrt"), M("conjugated oestrogens", ["Premarin", "Duavive"], "hrt"),
+  M("progesterone (micronised)", ["Prometrium"], "hrt"), M("medroxyprogesterone", ["Provera"], "hrt"), M("dydrogesterone", ["Duphaston"], "hrt"),
+  N("vaginal oestrogen", ["Vagifem", "Ovestin", "Estring"], ["menopause"]),
   N("contraceptive pill", [], ["other"]), N("alendronate", ["Fosamax"], ["other"]), N("risedronate", ["Actonel"], ["other"]),
   N("denosumab", ["Prolia"], ["other"]), N("vitamin D", ["Ostelin"], ["other"]), N("calcium", ["Caltrate"], ["other"]),
   N("iron", ["Ferro-Grad", "Maltofer", "Ferro-tab"], ["other"]), N("vitamin B12", [], ["other"]), N("fish oil", [], ["other"]),

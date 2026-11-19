@@ -37,6 +37,7 @@ export const MED_PURPOSES = [
   { v: "nerve", label: "Epilepsy or nerve pain", g: "seizure" },
   { v: "bp", label: "Blood pressure, heart or fluid", g: "bp" },
   { v: "bladder", label: "Bladder urgency or leaking", g: "bladder" },
+  { v: "menopause", label: "Menopause symptoms (HRT)", hint: "e.g. Estrogel, Estradot, Estalis, Femoston, Livial", g: "hrt" },
   { v: "prostate", label: "Prostate", g: "prostate" },
   { v: "breathing", label: "Asthma or COPD", g: "inhaler" },
   { v: "allergy", label: "Allergies or hay fever, most days", g: "allergy" },
@@ -160,6 +161,7 @@ export const RISK_QUESTIONS = [
     hint: "Groups that match the medicines you added are already ticked.", none: "None of these, or not sure",
     options: [
       { v: "bladder", label: "Bladder tablets for urgency or leaking", hint: "e.g. oxybutynin, solifenacin (Vesicare), tolterodine", pts: 10, why: "Bladder medicines that block acetylcholine cause dry mouth in nearly half of the people who take them.", refs: ["usmani2019", "wolff2017"] },
+      { v: "hrt", label: "Menopause hormone therapy (HRT)", hint: "e.g. estradiol (Estrogel, Estradot, Climara), Estalis, Femoston, tibolone (Livial), progesterone (Prometrium)", pts: 1, why: "The evidence is mixed: several studies find HRT improves saliva after menopause, but some women taking it still report a dry mouth. Menopause itself is the bigger factor.", refs: ["oliveira2025", "lago2015", "butera2026"] },
       { v: "glp1", label: "Weight-loss or diabetes injections (GLP-1)", hint: "e.g. Ozempic, Wegovy, Mounjaro, Trulicity, Saxenda", pts: 4, why: "Dry mouth is reported with these medicines, especially semaglutide, often alongside nausea, reflux and drinking less.", refs: ["massarotto2026", "mawardi2023", "alzawawi2026"] },
       { v: "weightloss", label: "Weight-loss tablets", hint: "e.g. phentermine (Duromine), Contrave", pts: 4, why: "Appetite suppressants commonly dry the mouth.", refs: ["wolff2017"] },
       { v: "bp", label: "Fluid tablets, or clonidine-type blood pressure tablets", hint: "e.g. furosemide (Lasix), clonidine, moxonidine, beta-blockers", pts: 4, why: "Fluid tablets and several blood pressure medicines reduce saliva.", refs: ["wolff2017", "villa2016"] },
@@ -350,6 +352,12 @@ export function riskAdvice(result, answers = {}) {
   const out = [];
   if (result.band.lo >= 10)
     out.push({ id: "track", title: "Check how dry your mouth actually is", body: "Risk factors don't always mean symptoms. The five-question dry mouth score (SIP) shows how much dryness is affecting you, and tracking it shows whether it's changing." });
+  if (has("conditions", "menopause") || has("medTypes", "hrt"))
+    out.push({ id: "menopause", title: "Menopause and your mouth",
+      body: has("medTypes", "hrt")
+        ? "Lower oestrogen after menopause can mean less saliva, sorer gums and more decay. HRT improves saliva for many women, so if your mouth got drier after starting or changing it, tell your GP — a different dose or type may suit you better. Don't stop it yourself. Keep up fluoride toothpaste twice a day and regular check-ups."
+        : "Lower oestrogen after menopause can mean less saliva, sorer gums and more decay. Keep up fluoride toothpaste twice a day and regular check-ups, and tell your GP and dentist if your mouth feels dry or burns. If you're considering HRT, studies suggest it can improve saliva for many women — ask your GP whether it suits you.",
+      refs: ["butera2026", "arealquecuty2025", "lago2015", "eliasson2003"] });
   if (medPts >= 8)
     out.push({ id: "meds", title: "Ask for a medicine review", body: "Your pharmacist or GP may be able to change the dose, timing or type of a medicine that dries the mouth. Never stop a medicine without asking first.", refs: ["wolff2017"] });
   if (result.band.lo >= 10)
@@ -393,6 +401,8 @@ export const RISK_GROUPS = [
 export function riskBreakdown(result) {
   return RISK_GROUPS.map((g) => {
     const fs = result.factors.filter((f) => g.qs.includes(f.q));
-    return { ...g, factors: fs, pts: fs.reduce((s, f) => s + f.pts, 0) };
+    const onlyHrt = g.id === "meds" && fs.length > 0 && fs.every((f) => f.q === "medTypes" && f.v === "hrt");
+    return { ...g, factors: fs, pts: fs.reduce((s, f) => s + f.pts, 0),
+      ...(onlyHrt ? { actNote: "If your mouth got drier after starting or changing HRT, tell your GP. Don't stop it yourself." } : {}) };
   }).filter((g) => g.pts > 0);
 }
