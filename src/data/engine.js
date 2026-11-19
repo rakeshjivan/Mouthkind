@@ -338,6 +338,15 @@ const RULES = [
     refs: ["gcSalivaCheck", "bratthall2005", "featherstone2021"],
     act: { label: "Add to my questions", addQ: SALIVA_TEST_Q },
   },
+  // A gentle toothpaste for anyone having cancer treatment or with a dry mouth.
+  (m) => !m.noTeeth && (m.cancer || sipNow(m) >= 8 || dryRecent(m) || soreDays(m) >= 1) && {
+    id: "oranurse", pri: 64,
+    title: T(m, "Brush with a gentle toothpaste: OraNurse", "Brush with a gentle toothpaste: OraNurse"),
+    body: "OraNurse is unflavoured and free of SLS (the foaming agent), so it's gentle on a dry or sore mouth, and it has everyday fluoride. Brush twice a day with a soft brush; spit, don't rinse. If your dentist prescribes a high-fluoride toothpaste, use that as they direct, and keep OraNurse for times your mouth is too sore for it.",
+    because: [m.cancer ? "Cancer treatment can leave the mouth dry and sore, and mint or foaming toothpaste can sting."
+      : sipNow(m) >= 8 ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.` : "Your mouth has been dry or sore lately."],
+    refs: ["hong2024", "walsh2019"], products: ["oranurse"],
+  },
   // Repeat an early pH test.
   (m) => m.ph && isAcidic(m.ph.ph) && m.fu.phTiming?.key === m.ph.id && m.fu.phTiming.v !== "yes" && {
     id: "phRetest", pri: 79, title: "Repeat your pH test before breakfast",
@@ -505,7 +514,7 @@ const RULES = [
 const COVERED = {
   "risk.track": ["startSip"], "risk.dentist": ["decay.visit"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
   "risk.drink": ["water", "riseDrink"], "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
-  "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride"], "decay.tmp": ["rtFluoride"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
+  "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride", "oranurse"], "decay.tmp": ["rtFluoride"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
 };
 const DECAY_PRI = { veryhigh: 66, high: 60, moderate: 42, low: 22 };
 function checkAdvice(m) {
@@ -515,9 +524,13 @@ function checkAdvice(m) {
     const base = DECAY_PRI[r.band.id] ?? 30;
     // Tooth Mousse Plus morning and night leads the plan (after anything urgent); Tooth Mousse through
     // the day follows straight after the gel.
-    const order = (a, i) => a.id === "tmp" ? (r.band.id === "low" ? base + 5 : 70) : a.id === "tm" ? 65 : base - i;
-    decayPlan(r, m.decayE.answers).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: order(a, i),
+    // Cancer treatment or a dry mouth puts Tooth Mousse Plus first whatever the decay band.
+    const dryOrCancer = m.cancer || sipNow(m) >= 8;
+    const order = (a, i) => a.id === "tmp" ? (r.band.id === "low" && !dryOrCancer ? base + 5 : 70) : a.id === "tm" ? 65 : base - i;
+    decayPlan(r, m.decayE.answers, { dry: dryOrCancer }).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: order(a, i),
       because: [r.noTeeth ? "You don't have natural teeth."
+        : (a.id === "tmp" || a.id === "tm") && r.band.id === "low" && dryOrCancer
+          ? (m.cancer ? "Cancer treatment can dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`)
         : a.id === "tmp" && r.band.id === "low" ? "Daily prevention: calcium, phosphate and fluoride for your teeth every day."
         : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }

@@ -326,3 +326,21 @@ test("the milk-protein allergy question is asked of everyone with natural teeth,
   const none = model({}, [{ id: "d1", kind: "decay", ts: NOW, answers: { teeth: "none" } }, { id: "s1", kind: "sip", ts: NOW, sip: 6 }]);
   assert.ok(!openQuestions(none).some((q) => q.id === "allergy"));
 });
+
+test("OraNurse is in the plan for everyone having cancer treatment or with a dry mouth", () => {
+  const cancer = model({ situation: ["cancer"], treatments: ["chemo"] }, [{ id: "d1", kind: "decay", ts: NOW, answers: { teeth: "yes" } }]);
+  assert.ok(buildPlan(cancer).some((i) => i.id === "oranurse" && i.products.includes("oranurse")));
+  const dry = model({}, [{ id: "d1", kind: "decay", ts: NOW, answers: { teeth: "yes" } }, { id: "s1", kind: "sip", ts: NOW, sip: 9 }]);
+  const plan = buildPlan(dry);
+  assert.ok(plan.some((i) => i.id === "oranurse"));
+  assert.equal(plan.filter((i) => i.products.includes("oranurse")).length, 1, "only one OraNurse item");
+  const fine = model({}, [{ id: "d1", kind: "decay", ts: NOW, answers: { teeth: "yes" } }, { id: "s1", kind: "sip", ts: NOW, sip: 6 }]);
+  assert.ok(!buildPlan(fine).some((i) => i.id === "oranurse"));
+});
+
+test("cancer or a dry mouth: Tooth Mousse Plus leads, then gel, Tooth Mousse through the day and OraNurse", () => {
+  const p = { situation: ["cancer"], treatments: ["chemo"], fu: { allergy: { v: ["none"] }, dentures: { v: "no" } } };
+  const e = [{ id: "d1", kind: "decay", ts: NOW, answers: { teeth: "yes" } }, { id: "s1", kind: "sip", ts: NOW, sip: 10 }];
+  const ids = buildPlan(model(p, e)).map((i) => i.id).filter((id) => ["decay.tmp", "gel", "decay.tm", "oranurse"].includes(id));
+  assert.deepEqual(ids, ["decay.tmp", "gel", "decay.tm", "oranurse"]);
+});
