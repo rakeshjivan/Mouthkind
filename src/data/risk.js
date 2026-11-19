@@ -357,13 +357,13 @@ export function riskAdvice(result, answers = {}) {
   if (result.band.lo >= 25 || result.major)
     out.push({ id: "moist", title: "Keep your mouth moist", body: "Sip water often, and use a saliva gel such as GC Dry Mouth Gel before meals and at bedtime. Sugar-free gum can help your own saliva flow.", refs: ["mercadante2021", "nuchit2020"], products: ["gc-dmg"] });
   if (has("breathing", "cpap"))
-    out.push({ id: "cpap", title: "Ask about your CPAP set-up", body: "A heated humidifier, a chin strap or a full-face mask can stop air drying your mouth overnight. Your sleep clinic can adjust it.", refs: ["raoof2023"] });
+    out.push({ id: "cpap", title: "Ask about your CPAP set-up", body: "A heated humidifier reduces dry mouth on CPAP, and your sleep clinic can check for air leaking from your mouth.", refs: ["mador2005", "kennedy2019"] });
   if (has("breathing", "mouth"))
     out.push({ id: "nose", title: "Find out why you mouth-breathe", body: "A blocked nose, allergies or sleep apnoea are common causes. Your GP can check, and treating the cause helps the dryness." });
   if (has("habits", "smoke") || has("habits", "vape"))
     out.push({ id: "smoke", title: "Smoking and vaping", body: "Both dry the mouth. Quitting helps your saliva and your teeth — Quitline (13 78 48 in Australia, 0800 778 778 in New Zealand) is free." });
   if (has("water", "low") || has("habits", "caffeine") || has("habits", "alcohol"))
-    out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day. Cut back on alcohol and caffeine, and avoid mouthwashes that contain alcohol." });
+    out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day. Cut back on alcohol, and on caffeine if it dries your mouth, and use an alcohol-free mouthwash." });
   if (has("conditions", "pregnant") || has("conditions", "pregnantSick"))
     out.push({ id: "pregnant", title: "Looking after your mouth in pregnancy", body: "Tell your dentist you're pregnant — check-ups and most treatment are safe, and the second trimester is often the most comfortable time. Gums often swell and bleed more in pregnancy: keep brushing gently twice a day and clean between your teeth. Keep sweet snacks to mealtimes.", refs: ["adaPregnancy", "pbbTeeth"] });
   if (result.factors.some((f) => f.acid) || has("medTypes", "glp1"))

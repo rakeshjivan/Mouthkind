@@ -86,7 +86,7 @@ export function journey(p, now = Date.now()) {
     { t: "If you're having chemotherapy as well, or you're tired and eating less, keep brushing twice a day with fluoride toothpaste and sip water often.", refs: ["ccaMouth2025"] },
   ] });
   if (hasTx(p, "immuno")) out.cards.push({ id: "immuno", title: "Immunotherapy", when: "Any time during or after", items: [
-    { t: "Immunotherapy can cause a dry mouth or dry eyes at any point, even months in. It's an immune side effect your team can treat.", refs: ["bitoun2024"] },
+    { t: "Immunotherapy can cause a dry mouth or dry eyes at any point, even months in. It's an immune side effect your team can treat.", refs: ["bitoun2024", "villa2024"] },
     { t: "Tell your team early if your mouth or eyes become dry — don't wait for your next appointment." },
   ] });
   if (hasTx(p, "rai")) out.cards.push({ id: "rai", title: "Radioactive iodine", when: "In the weeks after", items: [
@@ -94,7 +94,7 @@ export function journey(p, now = Date.now()) {
     { t: "Do your dry mouth check now and again in a few months, so you can see any change." },
   ] });
   if (hasTx(p, "bone")) out.cards.push({ id: "bone", title: "Bone-strengthening medicines", when: "During and for years after", items: [
-    { t: "These medicines protect bones, but rarely the jaw bone can fail to heal after a tooth is taken out (osteonecrosis of the jaw).", refs: ["yarom2019"] },
+    { t: "These medicines protect bones, but rarely the jaw bone can fail to heal after a tooth is taken out (osteonecrosis of the jaw).", refs: ["yarom2019", "ruggiero2022"] },
     { t: "See your dentist before starting if you can, so any problem teeth are treated first.", refs: ["yarom2019"] },
     { t: "Tell every dentist you take them, before any extraction or implant. Show them your dental alert card.", refs: ["yarom2019"] },
     { t: "Keep your teeth and gums healthy so extractions aren't needed: fluoride toothpaste twice a day and regular check-ups." },
@@ -156,7 +156,7 @@ function chemoCard(p, now) {
   const always = [{ t: "A temperature of 38°C or more is an emergency during chemotherapy. Call your treatment team or go to the emergency department straight away.", refs: ["ccaMouth2025"] }];
   if (d == null) return { ...base, when: "Each cycle", items: [
     { t: "Mouth sores usually start 3 to 4 days after a dose and are worst between days 7 and 14, then settle.", refs: ["nciPdqHp"] },
-    { t: "Add your treatment dates (Me › My treatment) and the app will tell you which days to watch." },
+    { t: "Add your treatment dates (Me › Situation and treatment) and the app will tell you which days to watch." },
     { t: "Rinse at least 4 times a day and brush gently with a soft brush.", refs: ["canberraHN", "elad2020"] },
   ], always };
   if (d <= 2) return { ...base, when: `Day ${d} after treatment`, items: [

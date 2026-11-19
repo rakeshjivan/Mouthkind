@@ -301,8 +301,8 @@ export function decayPlan(result, answers = {}) {
 
   if (result.factors.some((f) => f.q === "sugar"))
     out.push({ id: "sugar", title: "Keep sugar to mealtimes",
-      body: "How often matters more than how much. Have sweet things with meals, drink water between meals, and finish with a piece of cheese or sugar-free gum.",
-      refs: ["moynihan2014", "featherstone2021"] });
+      body: "How much sugar you have and how often both matter. Have less, keep sweet things to mealtimes, drink water between meals, and finish with sugar-free gum or a piece of cheese.",
+      refs: ["bernabe2016", "moynihan2014", "featherstone2021"] });
 
   if (result.dryStrong || result.factors.some((f) => f.from === "ph"))
     out.push({ id: "dry", title: "Help your saliva",
@@ -322,7 +322,7 @@ export const DECAY_GROUPS = [
   { id: "clean", label: "Cleaning", qs: ["brush", "between", "dentist"], act: true, actNote: "Twice-daily fluoride toothpaste and regular check-ups." },
   { id: "teeth", label: "Your teeth", qs: ["mouth"], act: false },
   { id: "saliva", label: "Saliva", qs: ["dry", "ctx"], act: true, actNote: "Saliva gel, water and sugar-free gum help." },
-  { id: "acid", label: "Stomach acid", qs: ["acid"], act: true, actNote: "After vomiting, rinse with water and wait about an hour before brushing." },
+  { id: "acid", label: "Stomach acid", qs: ["acid"], act: true, actNote: "After vomiting, rinse with water or a bicarbonate rinse and wait at least 30 minutes before brushing." },
   { id: "habits", label: "Habits", qs: ["habits"], act: true, actNote: "Small changes here make a real difference." },
   { id: "about", label: "Age", qs: ["age"], act: false },
 ];

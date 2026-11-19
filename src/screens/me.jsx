@@ -104,7 +104,15 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
             : <button className="btn ghost" onClick={() => setSure(true)}>Delete</button>}</div>
       </section>
 
-      <p className="foot-note">Mouthkind {__APP_VERSION__} · Made by Dr Rakesh Jivan. General information only, not a diagnosis — talk to your dentist, GP or pharmacist about your results.</p>
+      <section className="panel about">
+        <h2 className="panel-title">About Mouthkind</h2>
+        <p><strong>Who made it.</strong> Dr Rakesh Jivan, a dentist with over 25 years in practice. He is Scientific Affairs Manager at GC Australasia, which makes GC Tooth Mousse, GC Tooth Mousse Plus, GC Dry Mouth Gel and GC Saliva-Check BUFFER. Those products are recommended where they fit, alongside other brands and non-product advice.</p>
+        <p><strong>How the checks work.</strong> The dry mouth score is the GC SIP-SCORE, which uses the five questions of the Summated Xerostomia Inventory, a validated measure of dry mouth. The dry mouth and tooth decay risk checks add up known risk factors from published research and guidelines (including CAMBRA); they are clinical judgement, not yet validated against saliva tests or dental examinations.</p>
+        <p><strong>Where the advice comes from.</strong> Guidelines and studies are listed under "Sources" on each piece of advice.</p>
+        <p><strong>Your privacy.</strong> Everything stays on this device. Nothing is sent anywhere unless you choose to share or back it up.</p>
+      </section>
+
+      <p className="foot-note">Mouthkind {__APP_VERSION__} · General information only, not a diagnosis — talk to your dentist, GP or pharmacist about your results.</p>
     </div>
   );
 }

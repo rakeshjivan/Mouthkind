@@ -5,8 +5,8 @@
 
 // Live data key. Changed at each reset (mc: until 4.5.0, mk: in 4.5.0–4.6.0) so every
 // tester starts fresh; old keys are removed below. Testing uses its own key ("mkt:").
-const PREFIX = "mk3:";
-const OLD_PREFIXES = ["mc:", "mk:", "mk2:"];
+const PREFIX = "mk4:";
+const OLD_PREFIXES = ["mc:", "mk:", "mk2:", "mk3:"];
 try {
   for (const k of Object.keys(localStorage)) if (OLD_PREFIXES.some((p) => k.startsWith(p))) localStorage.removeItem(k);
 } catch { /* storage unavailable */ }

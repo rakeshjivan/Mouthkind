@@ -43,7 +43,8 @@ export function Shop({ forYou = [] }) {
   return (
     <div className="screen">
       <header className="hero"><h1 className="display">Shop</h1>
-        <p className="lede">Products that help a dry or acidic mouth and protect your teeth.</p></header>
+        <p className="lede">Products that help a dry or acidic mouth and protect your teeth.</p>
+        <p className="soft-note">GC products are made by GC Australasia, where the app's author works. Other brands are shown where they're the right choice.</p></header>
       {SHOP_URL ? (
         <p className="soft-note shop-soon">Available in Australia. Each button opens the seller's website.</p>
       ) : (
