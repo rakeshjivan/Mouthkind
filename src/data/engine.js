@@ -529,6 +529,8 @@ function checkAdvice(m) {
     const order = (a, i) => a.id === "tmp" ? (r.band.id === "low" && !dryOrCancer ? base + 5 : 70) : a.id === "tm" ? 65 : base - i;
     decayPlan(r, m.decayE.answers, { dry: dryOrCancer }).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: order(a, i),
       because: [r.noTeeth ? "You don't have natural teeth."
+        : (a.id === "tmp" || a.id === "tm") && r.band.id === "low" && dryOrCancer
+          ? (m.cancer ? "Cancer treatment can dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`)
         : a.id === "tmp" && r.band.id === "low" ? "Daily prevention: calcium, phosphate and fluoride for your teeth every day."
         : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }
