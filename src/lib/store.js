@@ -3,10 +3,10 @@
 // localStorage is fine for the web build; the native builds should swap
 // `driver` for Capacitor Preferences or SQLite without touching callers.
 
-// Live data key. Changed from "mc:" in 4.5.0, so every tester starts fresh;
-// the old data is removed below. Testing uses its own key ("mkt:").
-const PREFIX = "mk:";
-const OLD_PREFIXES = ["mc:"];
+// Live data key. Changed at each reset (mc: until 4.5.0, mk: in 4.5.0–4.6.0) so every
+// tester starts fresh; old keys are removed below. Testing uses its own key ("mkt:").
+const PREFIX = "mk2:";
+const OLD_PREFIXES = ["mc:", "mk:"];
 try {
   for (const k of Object.keys(localStorage)) if (OLD_PREFIXES.some((p) => k.startsWith(p))) localStorage.removeItem(k);
 } catch { /* storage unavailable */ }
