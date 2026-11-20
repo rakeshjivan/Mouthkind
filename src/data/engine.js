@@ -369,7 +369,7 @@ const RULES = [
   (m) => atRisk(m) && !m.noTeeth && {
     id: "salivaTest", pri: ["flag", "watch"].includes(m.phPat.level) || sipNow(m) >= 11 ? 58 : 46,
     title: T(m, "Ask your dentist for a saliva test", "Ask the dentist for a saliva test"),
-    body: "A pH test shows how acidic saliva is at rest. Your dentist can also measure how much saliva you make when chewing (stimulated flow) and how well it neutralises acid (buffering capacity), for example with GC Saliva-Check BUFFER. Low flow or weak buffering means less protection from decay and erosion, so it helps your dentist decide how much extra protection you need.",
+    body: "A pH strip shows how acidic your saliva is at rest. Your dentist can also test how much saliva you make when you chew, and how well it fights acid, for example with GC Saliva-Check BUFFER. The results show how much extra protection your teeth need.",
     because: [
       sipNow(m) >= 8 ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`
         : ["flag", "watch"].includes(m.phPat.level) ? "Some of your saliva results are acidic."
@@ -385,7 +385,7 @@ const RULES = [
   (m) => !m.noTeeth && (m.cancer || sipNow(m) >= 8 || dryRecent(m) || soreDays(m) >= 1) && {
     id: "oranurse", pri: 64,
     title: T(m, "Brush with a gentle toothpaste: OraNurse", "Brush with a gentle toothpaste: OraNurse"),
-    body: "OraNurse is unflavoured and free of SLS (the foaming agent), so it's gentle on a dry or sore mouth, and it has everyday fluoride. Brush twice a day with a soft brush; spit, don't rinse. If your dentist prescribes a high-fluoride toothpaste, use that as they direct, and keep OraNurse for times your mouth is too sore for it.",
+    body: "OraNurse has no flavour and no foaming agent (SLS), so it's gentle on a dry or sore mouth, and it has everyday fluoride. Brush twice a day with a soft brush. Spit, don't rinse. If your dentist gives you a high-fluoride toothpaste, use that instead, and keep OraNurse for days your mouth is too sore.",
     because: [m.cancer ? "Cancer treatment can leave the mouth dry and sore, and mint or foaming toothpaste can sting."
       : sipNow(m) >= 8 ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.` : "Your mouth has been dry or sore lately."],
     refs: ["hong2024", "walsh2019"], products: ["oranurse"],

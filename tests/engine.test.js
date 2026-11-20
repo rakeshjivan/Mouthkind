@@ -232,7 +232,7 @@ test("people see low, moderate or high — never 'Very high' or a number out of 
 test("people at risk are asked to get a saliva flow and buffering test from their dentist", () => {
   const atRisk = buildPlan(buildModel({ profile: {}, entries: [{ id: "s1", kind: "sip", ts: Date.now(), sip: 9 }] }));
   const it = atRisk.find((i) => i.id === "salivaTest");
-  assert.ok(it); assert.match(it.body, /stimulated flow/); assert.match(it.body, /buffering/);
+  assert.ok(it); assert.match(it.body, /saliva you make when you chew/); assert.match(it.body, /fights acid/);
   assert.ok(it.act.addQ);
   const low = buildPlan(buildModel({ profile: {}, entries: [{ id: "s1", kind: "sip", ts: Date.now(), sip: 6 }] }));
   assert.ok(!low.some((i) => i.id === "salivaTest"));
