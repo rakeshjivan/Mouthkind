@@ -6,7 +6,7 @@ export function questionsText(profile) {
   const who = profile.carer ? `${name || profile.carerFor || "the person I care for"}${profile.carerName ? ` (carer: ${profile.carerName})` : ""}` : name;
   const todo = qs.filter((q) => !asked.includes(q)), done = qs.filter((q) => asked.includes(q));
   return [
-    `Questions for my treatment team${who ? ` — ${who}` : ""}`,
+    `Questions for my care team${who ? ` — ${who}` : ""}`,
     new Date().toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" }),
     "",
     ...(todo.length ? ["To ask:", ...todo.map((q, i) => `${i + 1}. ${q}`)] : []),

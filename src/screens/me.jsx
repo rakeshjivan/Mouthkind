@@ -1,3 +1,4 @@
+import { careContacts, openQuestionCount } from "../data/careTeam.js";
 import { useState } from "react";
 import { Icon } from "../components/ui.jsx";
 import { freqFor } from "../data/schedule.js";
@@ -69,11 +70,10 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
 
       <section className="panel">
         <h2 className="panel-title">Care team</h2>
-        {(profile.situation || []).includes("cancer") && (<>
-          <label className="field"><span>Treatment team</span><input value={profile.team?.name || ""} onChange={(e) => set({ team: { ...profile.team, name: e.target.value } })} /></label>
-          <label className="field"><span>Team's 24-hour number</span><input type="tel" inputMode="tel" value={profile.team?.phone24 || ""} onChange={(e) => set({ team: { ...profile.team, phone24: e.target.value } })} /></label>
-        </>)}
-        <label className="field"><span>Dentist's phone</span><input type="tel" inputMode="tel" value={profile.dentist?.phone || ""} onChange={(e) => set({ dentist: { ...profile.dentist, phone: e.target.value } })} /></label>
+        <div className="set-row"><span><strong>Contacts</strong><em>{careContacts(profile).map((c) => c.role.replace(/^My /, "")).join(", ") || "None added yet"}</em></span>
+          <button className="btn ghost" onClick={() => open("careteam")}>Edit</button></div>
+        <div className="set-row"><span><strong>Questions for my care team</strong><em>{(profile.ownQuestions || []).length ? `${openQuestionCount(profile)} to ask` : "None yet"}</em></span>
+          <button className="btn ghost" onClick={() => open("questions")}>Open</button></div>
       </section>
 
       <h2 className="me-group">App settings</h2>

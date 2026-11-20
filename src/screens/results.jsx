@@ -1,5 +1,5 @@
 import { USED, usedDays, usedInsights } from "../data/used.js";
-import { GRADES } from "../data/daily.js";
+import { GRADES, painBand } from "../data/daily.js";
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
 import { DotSeries, PhTimeline, levelId } from "../components/kit.jsx";
@@ -81,8 +81,10 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 
       {dailies.length > 0 && (
         <section className="panel">
-          <div className="panel-h"><h2>Daily mouth check</h2><button className="link-btn" onClick={() => open("daily")}>Check now</button></div>
-          <p className="big-read"><strong>{GRADES[dailies.at(-1).grade ?? 0].label}</strong></p><p className="panel-foot">Last checked {fmtShort(dailies.at(-1).ts)}</p>
+          <div className="panel-h"><h2>Mouth pain and daily check</h2><button className="link-btn" onClick={() => open("daily")}>Add today</button></div>
+          {(() => { const d = dailies.at(-1), b = painBand(d.pain ?? 0); return (
+            <p className="big-read"><strong>{d.pain ? `Pain ${d.pain} out of 10` : "No pain"}</strong>{d.pain ? <> · {b.label}</> : null}{d.sores != null && <> · {GRADES[d.grade ?? 0].label.toLowerCase()}</>}</p>); })()}
+          <p className="panel-foot">Last logged {fmtShort(dailies.at(-1).ts)}</p>
           {dailies.length > 1 && <DotSeries points={dailies.slice(-21).map((d) => ({ v: d.pain ?? 0, label: fmtShort(d.ts) }))} min={0} max={10} tone="red" fmt={(v) => v} />}
           <p className="panel-foot">Mouth pain, 0 (none) to 10.</p>
         </section>
