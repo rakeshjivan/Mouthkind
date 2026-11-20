@@ -1459,3 +1459,6 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .team-edit { border: 0; padding: 0; margin: 0 0 16px; }
 .team-edit legend { font-weight: 700; font-size: calc(16px * var(--s)); padding: 0; margin-bottom: 2px; }
 .team-edit .small { margin: 0 0 6px; }
+.ct-sec h3 { margin: 14px 0 6px; font-size: calc(16px * var(--s)); color: var(--accent); }
+.ct-sec:first-child h3 { margin-top: 2px; }
+.learn-link { display: block; margin: 16px 0 4px; text-align: left; }

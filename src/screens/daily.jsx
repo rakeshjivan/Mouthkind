@@ -60,7 +60,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
   );
 }
 
-export function DailyResult({ entry, profile, onClose, onUsed, followUp }) {
+export function DailyResult({ entry, profile, onClose, onUsed, followUp, onLearn }) {
   const cancer = inCancerCare(profile);
   const t = dailyTriage(entry, { cancer });
   const g = GRADES[entry.grade ?? mucositisGrade(entry)];
@@ -101,6 +101,9 @@ export function DailyResult({ entry, profile, onClose, onUsed, followUp }) {
           <ul className="tip-list">{tips.map((x) => <li key={x.t}>{milkAllergic(profile) ? milkFree(x.t) : x.t}</li>)}</ul>
           <Sources refs={[...new Set(tips.flatMap((x) => x.refs))]} />
         </section>
+      )}
+      {onLearn && cancer && ((entry.grade ?? mucositisGrade(entry)) >= 1) && (
+        <button type="button" className="link-btn learn-link" onClick={onLearn}>Read about mouth sores from treatment (mucositis)</button>
       )}
     </Sheet>
   );

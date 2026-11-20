@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Icon, Sources } from "../components/ui.jsx";
-import { CARE_TOPICS } from "../data/care.js";
+import { CARE_TOPICS, topicSections } from "../data/care.js";
 import { PRODUCTS } from "../data/products.js";
 import { ProductImage } from "../components/productImage.jsx";
 import { PlanBlock } from "./plan.jsx";
@@ -27,7 +27,9 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
         </button>
         {on && (
           <div className="ctopic-body">
-            <ul>{t.steps.map((s) => milkAllergic(profile) ? milkFree(s) : s).map((s) => <li key={s}>{s}</li>)}</ul>
+            {t.sections ? topicSections(t, ctx).map((x) => (
+              <div key={x.h} className="ct-sec"><h3>{x.h}</h3><ul>{x.steps.map((s) => <li key={s}>{s}</li>)}</ul></div>
+            )) : <ul>{t.steps.map((s) => milkAllergic(profile) ? milkFree(s) : s).map((s) => <li key={s}>{s}</li>)}</ul>}
             {t.products && (
               <div className="prod-cards">
                 {t.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean).map((p) => (

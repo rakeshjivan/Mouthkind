@@ -145,7 +145,7 @@ export default function App() {
       {sheet === "report" && <Summary entries={view} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
       {sheet === "daily" && <DailyCheck profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} followUp={ask(true)} />}
-      {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onClose={close} onUsed={() => setSheet("used")} followUp={ask(true)} />}
+      {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onLearn={() => go("advice", "sore")} onClose={close} onUsed={() => setSheet("used")} followUp={ask(true)} />}
       {(sheet === "setupq" || sheet === "refineq") && <SetupQuestions q={q} m={model} left={qs.length} refining={sheet === "refineq"} profile={profile} setProfile={setProfile} onClose={close} onPlan={() => go("advice", "plan")} />}
       {sheet === "used" && <UsedLog onClose={close} onSave={addEntry} last={lastUsed?.items} />}
       {sheet === "journey" && <Journey profile={profile} onClose={close} openTool={setSheet} onEdit={() => setSheet("situation")} />}

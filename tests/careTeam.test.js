@@ -21,3 +21,12 @@ test("open questions exclude the ones already asked", () => {
   assert.equal(openQuestionCount({ ownQuestions: ["a", "b", "c"], asked: ["b"] }), 2);
   assert.equal(openQuestionCount({}), 0);
 });
+
+test("mucositis topic shows only the options tested in the person's treatment", async () => {
+  const { CARE_TOPICS, topicSections } = await import("../src/data/care.js");
+  const t = CARE_TOPICS.find((x) => x.id === "sore");
+  const txt = (tx) => topicSections(t, { tx }).flatMap((s) => s.steps).join(" ");
+  assert.match(txt(["chemo"]), /Ice chips/); assert.doesNotMatch(txt(["chemo"]), /Benzydamine|Chlorhexidine|Honey/);
+  assert.match(txt(["rt_hn"]), /Benzydamine/); assert.match(txt(["rt_hn"]), /Chlorhexidine/); assert.doesNotMatch(txt(["rt_hn"]), /Ice chips/);
+  assert.ok(t.steps.length > 15);
+});
