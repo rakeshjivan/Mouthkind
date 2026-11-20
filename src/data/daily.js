@@ -6,10 +6,9 @@
 // that won't stop.
 
 export const DAILY = [
-  { id: "pain", text: "Mouth pain right now", options: [
-    { v: 0, label: "None" }, { v: 2, label: "Mild" }, { v: 5, label: "Moderate" }, { v: 8, label: "Severe" },
-  ] },
-  { id: "control", text: "Is pain relief keeping it bearable?", when: (p, a) => a.pain === 8, options: [
+  // 0–10 numeric rating scale (Hjermstad 2011); bands from Serlin 1995: 1–4 mild, 5–6 moderate, 7–10 severe.
+  { id: "pain", text: "Mouth pain right now", scale: true, refs: ["hjermstad2011", "serlin1995"], options: Array.from({ length: 11 }, (_, v) => ({ v, label: String(v) })) },
+  { id: "control", text: "Is pain relief keeping it bearable?", when: (p, a) => (a.pain ?? 0) >= 7, options: [
     { v: "yes", label: "Yes" }, { v: "no", label: "No" }, { v: "none", label: "Not taking any" },
   ] },
   { id: "eat", text: "Eating and drinking", options: [
@@ -37,6 +36,11 @@ export const DAILY = [
 
 export const dailyQuestions = (p = {}, a = {}) => DAILY.filter((q) => !q.when || q.when(p, a));
 
+/** Pain bands on the 0–10 scale. */
+export const painBand = (n) => n == null ? null : n === 0 ? { id: "none", label: "No pain", tone: "good" }
+  : n <= 4 ? { id: "mild", label: "Mild", tone: "good" } : n <= 6 ? { id: "moderate", label: "Moderate", tone: "amber" }
+  : { id: "severe", label: "Severe", tone: "red" };
+
 /** WHO-style oral mucositis grade, 0–4, from the person's own answers. */
 export function mucositisGrade(a) {
   if (a.eat === "none") return 4;
@@ -60,28 +64,37 @@ export const GRADES = [
  * now   = contact the treatment team now or go to the emergency department
  * today = tell the team today
  */
-export function dailyTriage(a) {
-  const now = [], today = [], tips = [];
-  if (a.urgent === "breath") now.push("Trouble breathing or swallowing your own saliva is an emergency. Call 000 if you can't reach your team straight away.");
+export function dailyTriage(a, { cancer = true } = {}) {
+  const now = [], today = [], notes = [], tips = [];
+  const pain = a.pain ?? 0;
+  const team = cancer ? "your team" : "your dentist or doctor";
+  if (a.urgent === "breath") now.push(`Trouble breathing or swallowing your own saliva is an emergency. Call 000 if you can't reach ${team} straight away.`);
   if (a.urgent === "swell") now.push("Swelling of the face or neck can be a spreading infection and needs to be seen today.");
   if (a.fever === "yes") now.push("A temperature of 38°C or more during chemotherapy is an emergency.");
   if (a.eat === "none") now.push("Not being able to eat or drink needs help today — you can quickly become dehydrated.");
   if (a.sores === "bleed") now.push("Bleeding in the mouth that won't stop needs to be seen.");
-  // Severe pain is expected at times (late radiotherapy, chemotherapy days 7–14). It's an
-  // emergency when pain relief isn't keeping it bearable; otherwise the team should know today.
-  if ((a.pain ?? 0) >= 8 && a.control !== "yes") now.push("Severe pain that pain relief isn't controlling needs treating now — you don't have to put up with it.");
-  if ((a.pain ?? 0) >= 8 && a.control === "yes") today.push("Severe pain, even with pain relief — tell your team today so they can review it.");
+  if (cancer) {
+    // Severe pain is expected at times (late radiotherapy, chemotherapy days 7–14). It's an
+    // emergency when pain relief isn't keeping it bearable; otherwise the team should know today.
+    if (pain >= 7 && a.control !== "yes") now.push("Severe pain that pain relief isn't controlling needs treating now — you don't have to put up with it.");
+    if (pain >= 7 && a.control === "yes") today.push("Severe pain, even with pain relief — tell your team today so they can review it.");
+    if (pain >= 5 && pain < 7) today.push("Moderate pain — ask about pain relief to take before meals.");
+  } else {
+    // Outside cancer care, severe mouth pain is usually a dental problem: same-day care, not an emergency
+    // unless there's swelling, fever or trouble swallowing (asked separately).
+    if (pain >= 7) today.push("Severe mouth pain should be seen by a dentist today. Go to an emergency department if your face or neck swells, or you have a fever or trouble swallowing.");
+    if (pain >= 5 && pain < 7) notes.push("Moderate mouth pain — if it lasts more than a day or two, or keeps coming back, see your dentist.");
+  }
   if (a.bone === "yes") today.push("Bone showing in the mouth needs to be seen by your dentist or team within days. Make sure no tooth is taken out nearby until they've checked.");
   if (a.bone === "unsure") today.push("If you can see something hard and white or yellow in the gum, show your dentist or team.");
-  if (a.white === "yes") today.push("White patches can be thrush, which is easy to treat with drops or gel from your team. Taking warfarin? Tell them — miconazole gel can interact with it.");
+  if (a.white === "yes") today.push(`White patches can be thrush, which is easy to treat with drops or gel from ${cancer ? "your team" : "your pharmacist, dentist or doctor"}. Taking warfarin? Tell them — miconazole gel can interact with it.`);
   if (a.eat === "liquid") today.push("Liquids only for more than a day or two means you may need help with nutrition.");
-  if ((a.pain ?? 0) >= 5 && (a.pain ?? 0) < 8) today.push("Moderate pain — ask about pain relief to take before meals.");
-  if (a.sores === "ulcers") today.push("Ulcers are common during treatment. Let your team know so they can check them.");
+  if (a.sores === "ulcers") (cancer ? today : notes).push(cancer ? "Ulcers are common during treatment. Let your team know so they can check them." : "A mouth ulcer that hasn't healed within 2 weeks should be checked by your dentist or doctor.");
   if (a.fever === "unsure") today.push("If you feel hot, shivery or unwell, check your temperature.");
-  if (a.sores !== "none" || (a.pain ?? 0) > 0) tips.push("rinse", "gentle");
-  if ((a.pain ?? 0) >= 2 || a.eat === "soft" || a.eat === "liquid") tips.push("soft");
-  if (a.dry !== "none") tips.push("gel");
-  return { level: now.length ? "now" : today.length ? "today" : "ok", now, today, tips: [...new Set(tips)] };
+  if ((a.sores && a.sores !== "none") || pain > 0) tips.push("rinse", "gentle");
+  if (pain >= 3 || a.eat === "soft" || a.eat === "liquid") tips.push("soft");
+  if (a.dry && a.dry !== "none") tips.push("gel");
+  return { level: now.length ? "now" : today.length ? "today" : "ok", now, today, notes, tips: [...new Set(tips)] };
 }
 
 export const DAILY_TIPS = {

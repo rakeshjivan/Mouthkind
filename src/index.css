@@ -1407,3 +1407,58 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .ph-num { font-size: calc(14px * var(--s)); }
 .ds-wd { font-size: calc(14px * var(--s)); }
 .tile-num, .score-num, .big-num, .ph-num, .tile-value { font-variant-numeric: tabular-nums; }
+
+/* Daily pain log (0–10). Buttons are at least 48px for easy tapping; the scale reads
+   left to right with its end points named, as a numeric rating scale should. */
+.painscale-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.ps-btn { min-height: 48px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink);
+  font: inherit; font-size: calc(18px * var(--s)); font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; }
+.ps-btn:hover { border-color: var(--gc60); }
+.ps-btn.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.ps-btn.ps-moderate.on { background: var(--amber); border-color: var(--amber); color: #fff; }
+.ps-btn.ps-severe.on { background: var(--red); border-color: var(--red); color: #fff; }
+.painscale-ends { display: flex; justify-content: space-between; margin-top: 8px; font-size: calc(14px * var(--s)); color: var(--ink3); }
+.paincard { border: 1.5px solid var(--gc30); border-radius: 20px; padding: 18px 16px; margin: 0 0 18px; background: var(--card); }
+.paincard h2 { margin: 0 0 4px; font-size: calc(19px * var(--s)); line-height: 1.3; }
+.paincard .lede.tight { margin: 0 0 14px; }
+.paincard.logged { padding: 14px 16px; }
+.paincard-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.paincard-row p { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.paincard-row span { font-size: calc(14px * var(--s)); color: var(--ink3); font-weight: 600; }
+.paincard-row strong { font-size: calc(18px * var(--s)); }
+.paincard.t-amber .paincard-row strong { color: var(--amber); }
+.paincard.t-red .paincard-row strong { color: var(--red); }
+.paincard-q { margin-top: 12px; }
+.paincard-msg { margin: 12px 0 0; line-height: 1.5; }
+.paincard-msg.soft { color: var(--ink2); }
+.paincard-more { margin-top: 12px; width: 100%; }
+[data-theme="dark"] .ps-btn.ps-moderate.on, [data-theme="dark"] .ps-btn.ps-severe.on { color: #111; }
+
+/* Home: contact my care team — every number and the questions list in one box */
+.team-card { border: 1.5px solid var(--gc30); border-radius: 20px; padding: 16px; margin: 0 0 18px; background: var(--card); }
+.team-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.team-head h2 { margin: 0; font-size: calc(19px * var(--s)); display: flex; align-items: center; gap: 8px; color: var(--ink); }
+.team-head h2 svg { color: var(--accent); flex: none; }
+.team-list { list-style: none; margin: 0; padding: 0; }
+.team-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.team-list li:last-child { border-bottom: 0; }
+.team-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team-who strong { font-size: calc(16px * var(--s)); line-height: 1.3; }
+.team-who em { font-style: normal; color: var(--ink2); font-size: calc(15px * var(--s)); overflow-wrap: anywhere; }
+.team-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.team-call { flex: none; min-height: 44px; padding-inline: 14px; text-decoration: none; }
+.team-empty { margin: 0 0 4px; color: var(--ink2); line-height: 1.5; }
+.team-qs { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 10px; padding: 12px 14px; border: 0; border-radius: 14px;
+  background: var(--gc10, var(--soft)); color: var(--ink); font: inherit; text-align: left; cursor: pointer; min-height: 56px; }
+.team-qs > svg:first-child { color: var(--accent); flex: none; }
+.team-qs > svg:last-child { margin-left: auto; flex: none; color: var(--ink3); }
+.team-qs span { display: flex; flex-direction: column; gap: 2px; }
+.team-qs strong { font-size: calc(16px * var(--s)); }
+.team-qs em { font-style: normal; color: var(--ink2); font-size: calc(14px * var(--s)); }
+.team-qs:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.team-edit { border: 0; padding: 0; margin: 0 0 16px; }
+.team-edit legend { font-weight: 700; font-size: calc(16px * var(--s)); padding: 0; margin-bottom: 2px; }
+.team-edit .small { margin: 0 0 6px; }
+.ct-sec h3 { margin: 14px 0 6px; font-size: calc(16px * var(--s)); color: var(--accent); }
+.ct-sec:first-child h3 { margin-top: 2px; }
+.learn-link { display: block; margin: 16px 0 4px; text-align: left; }

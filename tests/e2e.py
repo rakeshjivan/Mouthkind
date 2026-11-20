@@ -196,7 +196,8 @@ async def main():
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
         assert await pg.locator(".tx-line", has_text="Week 3 of 7").count() == 1
         await pg.locator(".today").get_by_role("button", name="Check now").click(); await pg.wait_for_timeout(300)
-        for q, a in [("Mouth pain right now", "Moderate"), ("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),
+        await dlg.locator(".painscale").get_by_role("radio", name="5", exact=True).click()
+        for q, a in [("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),
                      ("Swelling, breathing or swallowing", "No problems"), ("Bone showing in the mouth", "No"),
                      ("Dryness", "A lot"), ("White patches or coating", "No"), ("Temperature of 38°C or more", "Yes")]:
             await dlg.get_by_role("radiogroup", name=q).get_by_role("radio", name=a, exact=True).click()
@@ -214,7 +215,7 @@ async def main():
         assert await dlg.get_by_text("may not be opening fully").count() == 1
         await btn("Done").click(); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
-        assert await pg.get_by_text("Daily mouth check").count() >= 1
+        assert await pg.get_by_text("Mouth pain and daily check").count() >= 1
         assert await pg.get_by_role("heading", name="Jaw opening").count() == 1
         await shot("22-tracker-cancer", True)
         await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(300)

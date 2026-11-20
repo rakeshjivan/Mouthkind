@@ -26,23 +26,53 @@ export const CARE_TOPICS = [
       "You can't eat or drink.",
       "Bleeding in your mouth that won't stop.",
       "You can't open your mouth, your face is swelling, or it's hard to breathe.",
-      "Keep your team's 24-hour number in Me, so it's on the screen when you need it.",
+      "Add your team's 24-hour number to Contact my care team on Home, so it's one tap away.",
     ],
     refs: ["healthdirectFN", "ccaMouth2025"],
   },
   {
-    id: "sore", icon: "heart", title: "A sore mouth during treatment", cancer: true,
-    short: "Rinse, brush gently, and take pain relief before meals.",
+    // Oral mucositis. Prevention and treatment from MASCC/ISOO 2020 (Elad 2020): each option
+    // is shown only for the treatments it was tested in. Basic oral care is suggested for all.
+    id: "sore", icon: "heart", title: "Mouth sores from treatment (mucositis)", cancer: true,
+    short: "What to expect, what helps every day, and what to ask your team about.",
     forYou: (c) => !!c.cancer && (c.active || tx(c, "rt_hn", "chemo", "transplant")),
-    steps: [
-      "Rinse at least 4 times a day with a bland rinse, such as ¼ teaspoon bicarbonate of soda in a cup of warm water. Swish for 30 seconds, then spit.",
-      "Keep brushing with a soft brush and mild fluoride toothpaste, after meals and at bedtime. A clean mouth heals better.",
-      "If brushing is too sore, ask your team which mouthwash or swabs to use instead.",
-      "Ask about pain relief. Take it before meals so eating is easier.",
-      "Skip alcohol and alcohol mouthwashes, and spicy, acidic, crunchy or very hot food.",
-      "If you wear dentures, leave them out except to eat.",
+    sections: [
+      { h: "What it is", steps: [
+        "Chemotherapy and radiotherapy can make the lining of the mouth red, sore and ulcerated. This is called oral mucositis.",
+        { t: "After chemotherapy it usually starts a few days after treatment, is worst in the second week, then settles.", for: ["chemo", "transplant"] },
+        { t: "With head and neck radiotherapy it builds from about week 2, can be worst at the end, and heals over the weeks after.", for: ["rt_hn"] },
+        "It does heal. But it can make eating, drinking and swallowing hard, so tell your team early rather than waiting.",
+        "Log your mouth pain each day on Home. It shows you and your team how it's changing.",
+      ] },
+      { h: "Every day", steps: [
+        "Brush gently with a soft brush and mild fluoride toothpaste, after meals and at bedtime. A clean mouth heals better.",
+        "Rinse at least 4 times a day with a bland rinse: ¼ teaspoon bicarbonate of soda or salt in a cup of warm water. Swish for 30 seconds, then spit.",
+        "If brushing is too sore, ask your team what to use instead.",
+        "Take pain relief before meals, so eating is easier.",
+        "Sip water often and keep your lips moist.",
+        "Skip alcohol, smoking, alcohol mouthwashes, and spicy, acidic, crunchy or very hot food.",
+        "If you wear dentures, leave them out except to eat.",
+      ] },
+      { h: "Ask your team about", steps: [
+        { t: "Ice chips: sucking ice for 30 minutes during the infusion helps prevent sores with some chemotherapy (5-FU given as a quick injection, or high-dose melphalan before a stem cell transplant). Only if your team says it suits your treatment.", for: ["chemo", "transplant"] },
+        { t: "Benzydamine mouthwash, to help prevent sores during head and neck radiotherapy.", for: ["rt_hn"] },
+        { t: "Light therapy (photobiomodulation, a low-level laser inside the mouth), where your clinic offers it.", for: ["rt_hn", "transplant"] },
+        { t: "Honey, which may help prevent sores during head and neck radiotherapy. It's sugary, so rinse with water afterwards and keep up your fluoride.", for: ["rt_hn"] },
+        { t: "Morphine mouthwash, for painful sores during head and neck chemoradiotherapy.", for: ["rt_hn"] },
+        "Stronger pain relief if your usual pain relief isn't enough.",
+      ] },
+      { h: "Best avoided", steps: [
+        { t: "Chlorhexidine mouthwash doesn't help prevent sores during head and neck radiotherapy. Use it only if your team prescribes it for an infection.", for: ["rt_hn"] },
+        "Mouthwashes with alcohol: they sting and dry the mouth.",
+      ] },
+      { h: "Call your team the same day if", steps: [
+        "Pain relief isn't keeping the pain bearable.",
+        "You can't eat or drink, or it hurts to swallow.",
+        "You see white patches, or the sores are bleeding.",
+        "You have a temperature of 38°C or more: call straight away.",
+      ] },
     ],
-    refs: ["elad2020", "elad2015", "canberraHN", "ccaMouth2025"],
+    refs: ["elad2020", "elad2015", "lalla2008", "nciPdqHp", "canberraHN", "ccaMouth2025"],
   },
   {
     id: "eating", icon: "leaf", title: "Eating with a sore or dry mouth", cancer: true,
@@ -231,4 +261,12 @@ export const CARE_TOPICS = [
 /** Build the context `forYou` needs from saved results and the person's situation. */
 export function careContext({ factors = [], sip = null, ph = "none", risk = null, decay = null, cancer = false, tx = [], active = false }) {
   return { f: new Set(factors.map((x) => `${x.q}.${x.v}`)), sip, ph, risk, decay, cancer, tx, active };
+}
+
+for (const t of CARE_TOPICS) if (t.sections && !t.steps) t.steps = t.sections.flatMap((x) => x.steps.map((y) => (typeof y === "string" ? y : y.t)));
+
+/** A topic's sections with steps kept only for the treatments they apply to (none known → all). */
+export function topicSections(t, ctx = {}) {
+  const txs = ctx.tx || [];
+  return (t.sections || []).map((x) => ({ h: x.h, steps: x.steps.filter((y) => typeof y === "string" || !txs.length || y.for.some((v) => txs.includes(v))).map((y) => (typeof y === "string" ? y : y.t)) })).filter((x) => x.steps.length);
 }

@@ -97,6 +97,17 @@ test("radiotherapy somewhere else is an option, with its own card", () => {
 
 test("the questions list shares as plain text, still-to-ask first", () => {
   const t = questionsText({ firstName: "Ann", ownQuestions: ["A?", "B?", "C?"], asked: ["B?"] });
-  assert.match(t, /^Questions for my treatment team — Ann/);
+  assert.match(t, /^Questions for my care team — Ann/);
   assert.ok(t.indexOf("1. A?") < t.indexOf("2. C?") && t.indexOf("2. C?") < t.indexOf("✓ B?"));
+});
+test("pain is 0–10 with standard bands, and wording fits people not in cancer care", async () => {
+  const { painBand, DAILY } = await import("../src/data/daily.js");
+  assert.equal(DAILY.find((q) => q.id === "pain").options.length, 11);
+  assert.equal(painBand(0).id, "none"); assert.equal(painBand(4).id, "mild"); assert.equal(painBand(6).id, "moderate"); assert.equal(painBand(7).id, "severe");
+  // Cancer care: severe uncontrolled pain is urgent.
+  assert.equal(dailyTriage({ pain: 8 }, { cancer: true }).level, "now");
+  // Not in cancer care: severe pain is a same-day dental visit, not an emergency, and never mentions a treatment team.
+  const t = dailyTriage({ pain: 8 }, { cancer: false });
+  assert.equal(t.level, "today"); assert.match(t.today[0], /dentist today/); assert.doesNotMatch(JSON.stringify(t), /your team/);
+  assert.equal(dailyTriage({ pain: 5 }, { cancer: false }).level, "ok");
 });

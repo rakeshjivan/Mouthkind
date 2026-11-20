@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { milkAllergic, milkFree } from "../data/allergy.js";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
-import { hasTx, journey } from "../data/journey.js";
+import { hasTx, inCancerCare, journey } from "../data/journey.js";
 import { CallTeam } from "./daily.jsx";
 import { questionsText } from "../data/questions.js";
 
@@ -28,7 +28,7 @@ export function Journey({ profile, onClose, openTool, onEdit }) {
         {chemo && <button className="btn ghost" onClick={() => openTool("chemoday")}><Icon name="plus" size={18} /> I had treatment today</button>}
         {hasTx(profile, "rt_hn") && <button className="btn ghost" onClick={() => openTool("jaw")}>Jaw opening check</button>}
         {(hasTx(profile, "rt_hn") || hasTx(profile, "bone")) && <button className="btn ghost" onClick={() => openTool("rtcard")}>My dental alert card</button>}
-        <button className="btn ghost" onClick={() => openTool("questions")}>Questions for my team</button>
+        <button className="btn ghost" onClick={() => openTool("questions")}>Questions for my care team</button>
         <button className="link-btn" onClick={onEdit}>Change my treatment details</button>
       </div>
       <CallTeam profile={profile} />
@@ -130,7 +130,7 @@ export function RtCard({ profile, onClose }) {
 }
 
 // ─── Questions for my team ─────────────────────────────────────────────────
-const SUGGESTED = [
+const SUGGESTED_CANCER = [
   "Do I need to see a dentist before treatment starts?",
   "What can I take for mouth pain, and when?",
   "Which mouthwash should I use, and how often?",
@@ -138,6 +138,15 @@ const SUGGESTED = [
   "Who do I call if I can't eat or drink?",
   "Will my dry mouth get better?",
   "Should I be doing jaw exercises?",
+  "What should I do if I get mouth ulcers?",
+];
+const SUGGESTED_OTHER = [
+  "Could any of my medicines be causing my dry mouth?",
+  "Is there a different medicine that's less drying?",
+  "Should I use a high-fluoride toothpaste?",
+  "How often should I have a dental check-up?",
+  "Should I be tested for Sjögren's?",
+  "What can I use for a sore or burning mouth?",
 ];
 export function Questions({ profile, setProfile, onClose }) {
   const [text, setText] = useState("");
@@ -145,13 +154,14 @@ export function Questions({ profile, setProfile, onClose }) {
   const qs = profile.ownQuestions || [];
   const asked = profile.asked || [];
   const save = (o) => setProfile({ ...profile, ...o });
+  const SUGGESTED = inCancerCare(profile) ? SUGGESTED_CANCER : SUGGESTED_OTHER;
   const add = (q) => { const t = q.trim(); if (t && !qs.includes(t)) save({ ownQuestions: [...qs, t] }); setText(""); };
   return (
-    <Sheet title="Questions for my team" onClose={onClose} footer={<>
+    <Sheet title="Questions for my care team" onClose={onClose} footer={<>
       {qs.length > 0 && <button className="btn ghost" onClick={() => share(profile)}><Icon name="doc" size={18} /> Share or email</button>}
       <button className="btn primary big" onClick={onClose}>Done</button>
     </>}>
-      <h2 className="q">Questions for my team</h2>
+      <h2 className="q">Questions for my care team</h2>
       <p className="lede tight">Jot them down as they come to you, then tick them off at your appointment.</p>
       <div className="medlook-row">
         <label className="medlook-box"><input value={text} onChange={(e) => setText(e.target.value)} placeholder="Type a question" aria-label="New question"
@@ -192,7 +202,7 @@ export function Questions({ profile, setProfile, onClose }) {
 /** Phone share sheet (Mail, Messages, Notes…) where there is one; otherwise a new email. */
 async function share(profile) {
   const body = questionsText(profile);
-  const subject = "Questions for my treatment team";
+  const subject = "Questions for my care team";
   if (navigator.share) { try { await navigator.share({ title: subject, text: body }); return; } catch (e) { if (e?.name === "AbortError") return; } }
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
