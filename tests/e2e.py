@@ -195,7 +195,7 @@ async def main():
         await pg.reload(); await pg.wait_for_timeout(500)
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
         assert await pg.locator(".tx-line", has_text="Week 3 of 7").count() == 1
-        await pg.locator(".today").get_by_role("button", name="Check now").click(); await pg.wait_for_timeout(300)
+        await pg.locator(".today").get_by_role("button", name="Log today").click(); await pg.wait_for_timeout(300)
         await dlg.locator(".painscale").nth(0).get_by_role("radio", name="8", exact=True).click()
         await dlg.locator(".painscale").nth(1).get_by_role("radio", name="5", exact=True).click()
         for q, a in [("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),

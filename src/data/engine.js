@@ -308,7 +308,8 @@ const RULES = [
     const extra = "Go before treatment starts, and take your start date. Radiotherapy can make the mouth slower to heal, so if a tooth does need to come out, it's done at least 2 weeks before.";
     return a === "booked"
       ? { id: "dentalRT", pri: 62, ...checkup({ title: "Take your radiotherapy dates to your dental check", extra }), because, refs: ["peterson2024", "elad2015"] }
-      : { id: "dentalRT", pri: 95, ...checkup({ title: "See your dentist before radiotherapy starts", extra, note: a === "none" ? NO_DENTIST : "Ask your team for a referral if you need one." }), because, refs: ["peterson2024", "elad2015", "hong2018"] };
+      : { id: "dentalRT", pri: 95, ...checkup({ title: "See your dentist before radiotherapy starts", extra, note: a === "none" ? NO_DENTIST : "Ask your team for a referral if you need one." }), because, refs: ["peterson2024", "elad2015", "hong2018"],
+        ...(a === "none" ? { act: { label: "Find a dentist near me", open: "careteam" } } : {}) };
   },
   // Chemotherapy or a stem cell transplant: a check-up before, and team-led dental care during.
   (m) => {
@@ -325,7 +326,7 @@ const RULES = [
     return { id: "dentalPre", pri: pre ? (a === "booked" ? 60 : 93) : 54,
       ...checkup({ title: a === "booked" ? `Take your ${tr === "chemotherapy" ? "treatment" : "transplant"} dates to your dental check` : pre ? `See your dentist before ${tr} starts` : "Book a check-up, with your cancer team's OK",
         extra, note: a === "none" ? NO_DENTIST : "" }),
-      because, refs: ["elad2015", "hong2018", "hong2010", "elad2020"] };
+      because, refs: ["elad2015", "hong2018", "hong2010", "elad2020"], ...(a === "none" ? { act: { label: "Find a dentist near me", open: "careteam" } } : {}) };
   },
   // A new tooth or gum problem in the symptom log: see the dentist, with the full check-up.
   (m) => {

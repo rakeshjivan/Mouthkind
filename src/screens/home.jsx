@@ -11,7 +11,7 @@ import { firstName } from "../data/person.js";
 import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
 import { sameDay, triageFor } from "../data/daily.js";
 import { FocusList, SetupCard } from "./plan.jsx";
-import { PainToday } from "./daily.jsx";
+import { MouthToday } from "./daily.jsx";
 import { CareTeamCard } from "./careTeam.jsx";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
@@ -80,6 +80,20 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
   // Dry mouth trend over the last four checks (SIP: higher is drier).
   const recent = sips.slice(-4).map((x) => x.sip);
   const change = recent.length > 1 ? recent.at(-1) - recent[0] : 0;
+  // One line of progress since they started: the dry mouth score band, else the dryness log.
+  const progress = (() => {
+    if (sips.length >= 2) {
+      const a = sipLevel(sips[0].sip), z = sipLevel(sip.sip);
+      if (a.id !== z.id) return { good: z.lo < a.lo, text: `Your dry mouth score has ${z.lo < a.lo ? "improved" : "gone up"} from ${a.label.toLowerCase()} to ${z.label.toLowerCase()} since you started.` };
+    }
+    const logs = entries.filter((e) => e.kind === "daily" && e.dryness != null).sort((x, y) => x.ts - y.ts);
+    if (logs.length >= 8) {
+      const avg = (xs) => Math.round(xs.reduce((n, e) => n + e.dryness, 0) / xs.length);
+      const first = avg(logs.slice(0, 7)), last = avg(logs.slice(-7));
+      if (first !== last) return { good: last < first, text: `Dryness has averaged ${last} out of 10 this week, ${last < first ? "down" : "up"} from ${first} when you started logging.` };
+    }
+    return null;
+  })();
   // The one thing to do today, most important first.
   const cancer = inCancerCare(profile);
   const active = activeTreatment(profile);
@@ -89,7 +103,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
   const who = profile.carer && profile.carerFor ? profile.carerFor : null;
   const today =
     triage?.level === "now" ? { tone: "red", icon: "alert", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
-    : active && !dailyToday ? { tone: "accent", icon: "heart", title: `How's ${who ? `${who}'s` : "your"} mouth today?`, sub: "A 10-second check during treatment", act: "Check now", go: () => open("daily") }
+    : active && !dailyToday ? { tone: "accent", icon: "heart", title: `How's ${who ? `${who}'s` : "your"} mouth today?`, sub: "Under a minute, during treatment", act: "Log today", go: () => open("daily") }
     : triage?.level === "today" ? { tone: "amber", icon: "phone", title: cancer ? "Let your treatment team know today" : "See a dentist or doctor today", sub: triage.today[0], act: "See today's check", go: () => open("dailyresult") }
     : pat.level === "flag" ? { tone: "amber", icon: "drop", id: "acid", title: "Your saliva has been acidic", sub: `${pat.acid} of your last ${pat.n} pH tests. Acid can put your teeth at risk — show your dentist.`, act: "What helps", go: () => go("advice", "plan") }
     : !r ? { tone: "accent", icon: "shield", title: "Start with your dry mouth risk", sub: "2 minutes · medicines, health and habits", act: "Start", go: () => open("risk") }
@@ -125,6 +139,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
         <p className="brand"><BrandMark size={26} />Mouthkind <span className="brand-sub">Dry Mouth Care</span> <span className="test-badge">Testing</span></p>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {who && <p className="carer-line">Looking after {who}'s mouth</p>}
+        {progress && !(setup && !setup.built) && <p className={`progress-line${progress.good ? " good" : ""}`}>{progress.text}</p>}
         {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
       </header>
 
@@ -135,11 +150,10 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
 
 
       {ask}
-      {/* Daily pain log for everyone once the plan exists. During active treatment the Today card asks for
-          the full daily check first; once it's done, this shows today's pain. */}
-      {!building && onLog && (!(active && !dailyToday)) && (
-        <PainToday profile={profile} entry={dailyToday ? daily : null} onLog={onLog}
-          onDetail={() => open("daily")} onResult={() => open("dailyresult")} />
+      {/* Today's mouth log for everyone once the plan exists. During active treatment the Today card
+          asks for it first; once it's done, this shows today's answers. */}
+      {!building && (!(active && !dailyToday)) && (
+        <MouthToday profile={profile} entry={dailyToday ? daily : null} onOpen={() => open("daily")} />
       )}
       {/* Who to call, and what to ask them: one box. Cancer care sees it from day one. */}
       {(!building || cancer) && <CareTeamCard profile={profile} onEdit={() => open("careteam")} onQuestions={() => open("questions")} />}

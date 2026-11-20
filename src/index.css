@@ -1490,3 +1490,10 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .sym-now li { padding: 6px 12px; border-radius: 999px; background: var(--tint); font-weight: 650; font-size: calc(15px * var(--s)); }
 .sym-legend > span.item { display: inline-flex; align-items: center; gap: 6px; }
 .sym-legend .k { margin-right: 0; }
+.progress-line { margin: 4px 0 10px; color: var(--ink2); font-size: calc(16px * var(--s)); line-height: 1.45; } .progress-line.good { color: var(--good); font-weight: 600; } .sym-now li.t-red { background: var(--redbg); color: var(--red); } .sym-now li.t-amber { background: var(--amberbg); color: var(--amber); }
+.find-btn { margin-top: 8px; width: 100%; justify-content: center; }
+.find-near { margin-top: 10px; padding: 12px; border-radius: 14px; background: var(--tint); }
+.find-near .field { margin-bottom: 8px; }
+.find-go { width: 100%; justify-content: center; text-decoration: none; }
+.find-go.disabled { opacity: .5; pointer-events: auto; cursor: not-allowed; }
+.find-near .small { margin: 8px 0 0; }

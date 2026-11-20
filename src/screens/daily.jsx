@@ -158,47 +158,32 @@ export function UsedLog({ onClose, onSave, last }) {
 }
 
 /** Home: log today's mouth pain in one tap, for everyone once the plan is built. */
-export function PainToday({ profile, entry, onLog, onDetail, onResult }) {
-  const [edit, setEdit] = useState(false);
-  const cancer = inCancerCare(profile);
+/** Home: today's mouth log. Not logged yet → one button into the log. Logged → today's
+ *  dryness, pain and sores at a glance, with a way to update. Urgent advice is in the Today card. */
+export function MouthToday({ profile, entry, onOpen }) {
   const who = profile.carer && profile.carerFor ? `${profile.carerFor}'s` : "your";
-  const log = (patch) => {
-    const base = entry && !edit ? entry : entry ? { ...entry, control: undefined } : null;
-    const e = { ...(base || {}), id: base?.id || `dl_${Date.now()}`, ts: Date.now(), kind: "daily", ...patch };
-    onLog({ ...e, grade: mucositisGrade(e) });
-    setEdit(false);
-  };
-  if (!entry || entry.pain == null || edit) {
-    return (
-      <section className="paincard" aria-label="Mouth pain today">
-        <h2>How much does {who} mouth hurt today?</h2>
-        <p className="lede tight">Tap a number. 0 is no pain; 10 is the worst you can imagine.</p>
-        <PainScale value={entry?.pain} onPick={(n) => log({ pain: n })} />
-      </section>
-    );
-  }
-  const b = painBand(entry.pain);
+  if (!entry) return (
+    <section className="paincard" aria-label="Today's mouth log">
+      <h2>How's {who} mouth today?</h2>
+      <p className="lede tight">Dryness, pain and anything new. It takes under a minute.</p>
+      <button type="button" className="btn primary big" onClick={onOpen}><Icon name="plus" size={20} stroke={2.6} /> Log today</button>
+    </section>
+  );
   const t = triageFor(entry, profile);
-  const needControl = entry.pain >= 7 && entry.control == null;
+  const b = entry.pain != null ? painBand(entry.pain) : null;
   return (
-    <section className={`paincard logged t-${b.tone}`} aria-label="Mouth pain today">
+    <section className="paincard logged" aria-label="Today's mouth log">
       <div className="paincard-row">
-        <p><span>Mouth pain today</span><strong>{entry.pain} out of 10 · {b.label}</strong></p>
-        <button type="button" className="link-btn" onClick={() => setEdit(true)}>Change</button>
+        <p><span>Today's mouth log</span></p>
+        <button type="button" className="link-btn" onClick={onOpen}>Update</button>
       </div>
-      {needControl && (
-        <div className="paincard-q">
-          <p className="daily-legend">Is pain relief keeping it bearable?</p>
-          <div className="dseg" role="radiogroup" aria-label="Is pain relief keeping it bearable?">
-            {[["yes", "Yes"], ["no", "No"], ["none", "Not taking any"]].map(([v, l]) => (
-              <button key={v} type="button" role="radio" aria-checked={false} className="dseg-btn" onClick={() => log({ control: v })}>{l}</button>
-            ))}
-          </div>
-        </div>
-      )}
-      {/* Anything urgent shows in the Today card above, so it isn't repeated here. */}
-      {!needControl && t.level === "ok" && t.notes[0] && <p className="paincard-msg soft">{t.notes[0]}</p>}
-      {!needControl && !entry.full && <button type="button" className="btn ghost paincard-more" onClick={onDetail}>Add sores, eating and dryness</button>}
+      <ul className="sym-now">
+        {entry.dryness != null && <li>Dryness {entry.dryness} of 10</li>}
+        {b && <li className={`t-${b.tone}`}>{entry.pain ? `Pain ${entry.pain} of 10 · ${b.label.toLowerCase()}` : "No pain"}</li>}
+        {entry.sores != null && <li>{GRADES[entry.grade ?? mucositisGrade(entry)].label}</li>}
+        {teethFlags(entry).length > 0 && <li className="t-amber">{teethFlags(entry).map((v) => TEETH_FLAGS.find((f) => f.v === v)?.label).join(", ")}</li>}
+      </ul>
+      {t.level === "ok" && t.notes[0] && <p className="paincard-msg soft">{t.notes[0]}</p>}
     </section>
   );
 }
