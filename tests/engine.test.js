@@ -182,19 +182,25 @@ test("products already in use are praised, not recommended as new", () => {
   for (const k of kept) { assert.match(k.title, /^Keep going with/); assert.match(k.body, /^You're already doing the right thing/); assert.ok(k.pri <= 45); }
 });
 
-test("the plan is built step by step: checks first, questions last, then the plan", async () => {
+test("the plan is built step by step: risk, dry mouth score, care team, questions, then the plan", async () => {
   const { setupState } = await import("../src/data/setup.js");
   const s0 = setupState({ entries: [], profile: {}, openQs: 0 });
-  assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built);
-  const checks = [{ kind: "risk" }, { kind: "decay" }, { kind: "sip", sip: 10 }];
+  assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built); assert.equal(s0.minsLeft, 5);
+  const checks = [{ kind: "risk" }, { kind: "sip", sip: 10 }];
   const s1 = setupState({ entries: checks, profile: {}, openQs: 2 });
-  assert.equal(s1.next.id, "ph");
-  const s2 = setupState({ entries: checks, profile: { phSkip: true }, openQs: 2 });
+  assert.equal(s1.next.id, "team");
+  const s2 = setupState({ entries: checks, profile: { teamAsked: true }, openQs: 2 });
   assert.equal(s2.next.id, "questions"); assert.ok(!s2.built);
-  const s3 = setupState({ entries: checks, profile: { phSkip: true }, openQs: 0 });
+  const s3 = setupState({ entries: checks, profile: { dentist: { phone: "07 1111 2222" } }, openQs: 0 });
   assert.ok(s3.all && s3.built && !s3.next);
   // Once built, a new question doesn't take the plan away.
-  assert.ok(setupState({ entries: checks, profile: { phSkip: true, planBuilt: true }, openQs: 1 }).built);
+  assert.ok(setupState({ entries: checks, profile: { teamAsked: true, planBuilt: true }, openQs: 1 }).built);
+});
+
+test("without the decay check, a dry mouth still gets the Tooth Mousse routine", () => {
+  const plan = buildPlan(model({}, [{ id: "s", kind: "sip", sip: 12, ts: NOW - D }]));
+  const ids = plan.map((i) => i.id);
+  assert.ok(ids.includes("decay.tmp") && ids.includes("decay.tm"));
 });
 
 test("pregnancy with morning sickness: moderate dry mouth risk, and the decay check counts the acid", async () => {

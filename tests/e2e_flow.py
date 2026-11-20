@@ -31,23 +31,7 @@ async def main():
     await dlg.get_by_role("button", name="Woman or female").click(); await pg.wait_for_timeout(600)
     await pg.screenshot(path=S+"2-risk-result.png")
     nxt=dlg.locator(".sheet-foot .btn.primary"); print("risk next:", await nxt.inner_text())
-    await nxt.click(); await pg.wait_for_timeout(400)
-    # decay
-    await btn("Yes").click(); await pg.wait_for_timeout(350)
-    for t in ["No","Rarely or never"]:
-      await dlg.get_by_role("button", name=t).first.click(); await pg.wait_for_timeout(350)
-    await dlg.get_by_role("button", name="Twice a day or more").click(); await pg.wait_for_timeout(350)
-    await dlg.get_by_role("button", name="Every day").click(); await pg.wait_for_timeout(350)
-    await btn("None of these").click(); await pg.wait_for_timeout(250)
-    await btn("None of these").click(); await pg.wait_for_timeout(250)
-    # remaining one-choice questions: dentist etc → pick first option until "None of these" for protect
-    for _ in range(4):
-      if await dlg.locator(".sheet-foot .btn.primary", has_text="Next:").count(): break
-      if await btn("None of these").count(): await btn("None of these").click()
-      else: await dlg.locator(".pick-row").first.click()
-      await pg.wait_for_timeout(450)
-    await pg.screenshot(path=S+"3-decay-result.png")
-    nxt=dlg.locator(".sheet-foot .btn.primary"); print("decay next:", await nxt.inner_text())
+    assert "Dry mouth score" in await nxt.inner_text()
     await nxt.click(); await pg.wait_for_timeout(400)
     # frequency then SIP
     await pg.screenshot(path=S+"4-freq.png")
@@ -57,9 +41,11 @@ async def main():
       await dlg.get_by_role("button", name=v).first.click(); await pg.wait_for_timeout(350)
     await pg.wait_for_timeout(300); await pg.screenshot(path=S+"5-sip-result.png")
     nxt=dlg.locator(".sheet-foot .btn.primary"); print("sip next:", await nxt.inner_text())
+    assert "Care team" in await nxt.inner_text()
     await nxt.click(); await pg.wait_for_timeout(400)
-    await pg.screenshot(path=S+"6-ph.png")
-    await dlg.get_by_role("button", name="No strips — skip").click(); await pg.wait_for_timeout(500)
+    await pg.screenshot(path=S+"6-team.png")
+    await dlg.get_by_label("Phone").nth(1).fill("07 5444 1234")
+    await btn("Save and continue").click(); await pg.wait_for_timeout(500)
     await pg.screenshot(path=S+"7-questions.png")
     n=0
     while await dlg.locator(".ask").count() and n<12:
@@ -74,7 +60,8 @@ async def main():
     await btn("See my plan").click(); await pg.wait_for_timeout(500)
     await pg.screenshot(path=S+"9-plan.png")
     await pg.click("nav >> text=Home"); await pg.wait_for_timeout(400)
-    await pg.screenshot(path=S+"10-home-after.png")
+    await pg.screenshot(path=S+"10-home-after.png", full_page=True)
+    assert await pg.locator(".team-list li").count() == 1
     assert await pg.locator(".focus").count() == 1 and await pg.locator(".ask").count() == 0 and await pg.locator(".setup-card").count() == 0
     assert n >= 1
     print("errors:", errs)

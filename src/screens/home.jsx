@@ -53,7 +53,7 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, e
   );
 }
 
-export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip, onLog }) {
+export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const decay = latestOf(entries, "decay");
@@ -108,7 +108,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
     : pat.level === "flag" ? { tone: "amber", icon: "drop", id: "acid", title: "Your saliva has been acidic", sub: `${pat.acid} of your last ${pat.n} pH tests. Acid can put your teeth at risk — show your dentist.`, act: "What helps", go: () => go("advice", "plan") }
     : !r ? { tone: "accent", icon: "shield", title: "Start with your dry mouth risk", sub: "2 minutes · medicines, health and habits", act: "Start", go: () => open("risk") }
     : sipNext?.due || !sip ? { tone: "accent", icon: "drop", title: "Your dry mouth score is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
-    : !phSkip && (phNext?.due || !ph) ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
+    : !phSkip && ph && phNext?.due ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: "Log what I used today", go: () => open("used"), quiet: true };
   // Until the plan is built, the build card leads — unless something urgent comes first.
   const building = setup && !setup.built;
@@ -178,7 +178,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
           onClick={() => open("sip")} />
         <Box kind="ph" title="Saliva pH" icon={<span className="tile-swatches">{[5.4, 6.2, 7.0].map((v) => <i key={v} style={{ background: phColor(v) }} />)}</span>}
           value={ph ? `pH ${ph.ph.toFixed(1)}` : null} valueTone={ph ? phZone(ph.ph).tone : null} sub={ph ? phZone(ph.ph).label : "With a test strip"}
-          status={phNext ? when(phNext) : "Not done yet"} due={!ph || phNext?.due}
+          status={ph ? (phNext ? when(phNext) : "See results") : "Optional"} due={!!ph && !!phNext?.due}
           onClick={() => open("ph")} />
         {jawCheck && (
           <Box kind="jaw" wide title="Jaw opening" icon={<Icon name="jaw" size={22} />}

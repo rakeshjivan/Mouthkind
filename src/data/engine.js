@@ -578,6 +578,14 @@ function checkAdvice(m) {
         : a.id === "tmp" && r.band.id === "low" ? "Daily prevention: calcium, phosphate and fluoride for your teeth every day."
         : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }
+  else if (atRisk(m) || m.cancer) {
+    // No tooth decay check yet (it's optional after setup): a dry mouth or cancer treatment still
+    // gets the daily Tooth Mousse routine, assuming natural teeth until the check says otherwise.
+    const r = scoreDecay({ teeth: "yes" });
+    const why = m.cancer ? "Cancer treatment can dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`;
+    decayPlan(r, { teeth: "yes" }, { dry: true }).filter((a) => a.id === "tmp" || a.id === "tm")
+      .forEach((a) => out.push({ ...a, id: `decay.${a.id}`, pri: a.id === "tmp" ? 70 : 65, because: [why] }));
+  }
   if (m.risk) for (const a of riskAdvice(m.risk, m.answers)) {
     const top = m.risk.factors[0];
     out.push({ ...a, id: `risk.${a.id}`, pri: a.id === "dentist" ? 41 : 38, because: [`Your dry mouth risk is ${m.risk.band.label.toLowerCase()}${top ? `, mostly from ${lc(top.label)}` : ""}.`] });

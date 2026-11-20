@@ -192,7 +192,7 @@ export function SetupCard({ setup, onSetup, slim }) {
   if (!n) return null;
   if (slim) return (
     <button type="button" className="setup-line" onClick={onSetup}>
-      <span>Build your plan · step {setup.at + 1} of {setup.total}</span><b>{n.label} <Icon name="chev" size={15} /></b>
+      <span>Build your plan · step {setup.at + 1} of {setup.total} · about {setup.minsLeft} min</span><b>{n.label} <Icon name="chev" size={15} /></b>
     </button>
   );
   return (
@@ -207,7 +207,8 @@ export function SetupCard({ setup, onSetup, slim }) {
         ))}
       </ol>
       <button className="btn primary big" onClick={onSetup}>{setup.at ? "Continue" : "Start"}</button>
-      <p className="setup-note">Your plan appears when you've finished. About 6 minutes in all.</p>
+      <p className="setup-note">Step {setup.at + 1} of {setup.total} · about {setup.minsLeft} minute{setup.minsLeft === 1 ? "" : "s"} left. Your plan appears when you've finished.</p>
     </section>
   );
 }
+

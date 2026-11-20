@@ -116,7 +116,7 @@ export default function App() {
   return (
     <div className="app">
       <main className="main" id="main">
-        {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} careCtx={careCtx} open={open} go={go} plan={building ? [] : plan} ask={ask(false)} setup={setup} onSetup={continueSetup} onLog={addEntry} />}
+        {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} careCtx={careCtx} open={open} go={go} plan={building ? [] : plan} ask={ask(false)} setup={setup} onSetup={continueSetup} />}
         {tab === "shop" && <Shop forYou={building ? [] : [...new Set(plan.flatMap((it) => it.products || []))]} />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} plan={building ? [] : plan} sum={building ? [] : sum} ask={ask(false)} refine={refine} profile={profile} setProfile={setProfile} open={open} setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} />}
         {tab === "tracker" && <Results entries={view} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
@@ -155,7 +155,11 @@ export default function App() {
       {sheet === "journey" && <Journey profile={profile} onClose={close} openTool={setSheet} onEdit={() => setSheet("situation")} />}
       {sheet === "jaw" && <JawTool entries={entries} onClose={close} onSave={addEntry} />}
       {sheet === "rtcard" && <RtCard profile={profile} onClose={close} />}
-      {sheet === "careteam" && <CareTeamEdit profile={profile} setProfile={setProfile} onClose={close} />}
+      {sheet === "careteam" && <CareTeamEdit profile={profile} setProfile={setProfile} onClose={close}
+        setup={building && setup.next?.id === "team" ? {
+          // In setup: saving or skipping marks the step done and moves on to the questions (or the plan).
+          done: (p) => { setProfile({ ...p, teamAsked: true }); setSheet(qs.length ? "setupq" : null); if (!qs.length) go("advice", "plan"); },
+        } : null} />}
       {sheet === "questions" && <Questions profile={profile} setProfile={setProfile} onClose={close} />}
       {sheet === "chemoday" && <ChemoToday profile={profile} setProfile={setProfile} onClose={() => setSheet("journey")} />}
       {(showWelcome || sheet === "situation") && <Welcome profile={profile} onDone={(p) => { setProfile(p); close(); }} />}

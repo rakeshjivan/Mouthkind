@@ -35,14 +35,18 @@ export function CareTeamCard({ profile, onEdit, onQuestions }) {
 }
 
 /** Edit every contact in one sheet. */
-export function CareTeamEdit({ profile, setProfile, onClose }) {
+export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
   const [p, setP] = useState(profile);
   const set = (id, patch) => setP((x) => setContact(x, id, patch));
+  const save = () => (setup ? setup.done(p) : (setProfile(p), onClose()));
   return (
-    <Sheet title="My care team" onClose={onClose}
-      footer={<button className="btn primary big" onClick={() => { setProfile(p); onClose(); }}>Save</button>}>
-      <h2 className="q">My care team</h2>
-      <p className="lede tight">Add whoever you might need to call. Leave any you don't have blank.</p>
+    <Sheet title={setup ? "Build your plan" : "My care team"} onClose={onClose}
+      footer={setup ? <>
+        <button className="btn ghost" onClick={() => setup.done(profile)}>Skip for now</button>
+        <button className="btn primary big" onClick={save}>Save and continue</button>
+      </> : <button className="btn primary big" onClick={save}>Save</button>}>
+      <h2 className="q">{setup ? "Your care team's numbers" : "My care team"}</h2>
+      <p className="lede tight">{setup ? "Add the one or two you'd most likely call, so they're one tap away on Home. You can add the rest later." : "Add whoever you might need to call. Leave any you don't have blank."}</p>
       {contactRoles(p).map((r) => {
         const c = getContact(p, r.id);
         return (
