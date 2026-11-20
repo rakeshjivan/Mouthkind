@@ -38,6 +38,32 @@ export function Reminder({ every, onClose }) {
   );
 }
 
+/** A daily reminder to log, in the phone's calendar, at the time they choose. */
+export function LogReminder({ prefs, setPrefs, onClose }) {
+  const [hour, setHour] = useState(prefs.logRemind?.hour ?? 19);
+  const [done, setDone] = useState(false);
+  const times = [{ v: 9, label: "Morning, 9 am" }, { v: 13, label: "Lunchtime, 1 pm" }, { v: 19, label: "Evening, 7 pm" }];
+  return (
+    <Sheet title="Daily log reminder" onClose={onClose}
+      footer={done ? <button className="btn primary big" onClick={onClose}>Done</button>
+        : <button className="btn primary big" onClick={() => {
+          downloadText("mouthkind-log-reminder.ics", reminderIcs(1, hour, Date.now(), "log"), "text/calendar");
+          setPrefs({ ...prefs, logRemind: { hour, ts: Date.now() } }); setDone(true);
+        }}><Icon name="bell" /> Add to my calendar</button>}>
+      <div className="intro">
+        <div className="intro-mark dry"><Icon name="bell" size={28} /></div>
+        <h2 className="q">{done ? "Open the file to add it" : "A reminder to log each day"}</h2>
+        <p className="lede">{done
+          ? `Your phone will offer to add it to your calendar. It repeats every day at ${times.find((t) => t.v === hour).label.split(", ")[1]}.`
+          : "Logging most days shows you and your team how your mouth is changing. Pick a time that suits you."}</p>
+      </div>
+      {!done && <div className="dseg remind-times" role="radiogroup" aria-label="Reminder time">
+        {times.map((t) => <button key={t.v} type="button" role="radio" aria-checked={hour === t.v} className={`dseg-btn${hour === t.v ? " on" : ""}`} onClick={() => setHour(t.v)}>{t.label}</button>)}
+      </div>}
+    </Sheet>
+  );
+}
+
 // ─── GC SIP-SCORE: five questions ──────────────────────────────────────────
 export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp, next }) {
   const f = freqFor(every);

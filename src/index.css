@@ -1507,3 +1507,9 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .me-line em { font-style: normal; color: var(--ink2); font-size: calc(14px * var(--s)); }
 .me-line:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .team-head .link-btn { white-space: nowrap; flex: none; } .team-head h2 { min-width: 0; }
+.remind-nudge { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; margin: 12px 0 4px; padding: 12px 14px; border-radius: 14px; background: var(--tint); color: var(--ink); min-height: 56px; }
+.remind-nudge > svg:first-child { color: var(--accent); flex: none; } .remind-nudge > svg:last-child { margin-left: auto; color: var(--ink3); flex: none; }
+.remind-nudge span { display: flex; flex-direction: column; gap: 2px; } .remind-nudge em { font-style: normal; color: var(--ink2); font-size: calc(14px * var(--s)); }
+.remind-nudge:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.paincard .link-btn.paincard-more { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; }
+.remind-times { margin-top: 18px; }

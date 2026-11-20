@@ -23,7 +23,7 @@ export function PainScale({ value, onPick, label = "Mouth pain, 0 to 10", kind =
 }
 
 /** The symptom log: one screen of taps, then what to do. Logging again the same day updates the entry. */
-export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, onShop }) {
+export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, onShop, onRemind }) {
   const [a, setA] = useState(() => {
     if (!initial) return {};
     const { id, ts, kind, grade, full, ...rest } = initial;
@@ -40,7 +40,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
     setA({ ...a, [q.id]: cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v] });
   };
 
-  if (done) return <DailyResult entry={done} profile={profile} onClose={onClose} onUsed={onUsed} followUp={followUp} onLearn={onLearn} noTeeth={noTeeth} onShop={onShop} />;
+  if (done) return <DailyResult entry={done} profile={profile} onClose={onClose} onUsed={onUsed} followUp={followUp} onLearn={onLearn} noTeeth={noTeeth} onShop={onShop} onRemind={onRemind} />;
   return (
     <Sheet title={`How's ${who} mouth today?`} onClose={onClose}
       footer={<button className="btn primary big" disabled={!ready} onClick={() => {
@@ -76,7 +76,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
   );
 }
 
-export function DailyResult({ entry, profile, onClose, onUsed, followUp, onLearn, noTeeth, onShop }) {
+export function DailyResult({ entry, profile, onClose, onUsed, followUp, onLearn, noTeeth, onShop, onRemind }) {
   const cancer = inCancerCare(profile);
   const t = triageFor(entry, profile, { noTeeth });
   const g = GRADES[entry.grade ?? mucositisGrade(entry)];
@@ -120,6 +120,11 @@ export function DailyResult({ entry, profile, onClose, onUsed, followUp, onLearn
           <Sources refs={[...new Set(tips.flatMap((x) => x.refs))]} />
         </section>
       )}
+      {onRemind && (
+        <button type="button" className="remind-nudge" onClick={onRemind}>
+          <Icon name="bell" size={20} /><span><strong>Get a daily reminder to log</strong><em>Add it to your phone's calendar, at a time that suits you</em></span><Icon name="chev" size={16} />
+        </button>
+      )}
       {onLearn && cancer && ((entry.grade ?? mucositisGrade(entry)) >= 1) && (
         <button type="button" className="link-btn learn-link" onClick={onLearn}>Read about mouth sores from treatment (mucositis)</button>
       )}
@@ -161,13 +166,14 @@ export function UsedLog({ onClose, onSave, last }) {
 /** Home: log today's mouth pain in one tap, for everyone once the plan is built. */
 /** Home: today's mouth log. Not logged yet → one button into the log. Logged → today's
  *  dryness, pain and sores at a glance, with a way to update. Urgent advice is in the Today card. */
-export function MouthToday({ profile, entry, onOpen }) {
+export function MouthToday({ profile, entry, onOpen, since, onRemind }) {
   const who = profile.carer && profile.carerFor ? `${profile.carerFor}'s` : "your";
   if (!entry) return (
     <section className="paincard" aria-label="Today's mouth log">
       <h2>How's {who} mouth today?</h2>
-      <p className="lede tight">Dryness, pain and anything new. It takes under a minute.</p>
+      <p className="lede tight">{since >= 2 ? `Your last log was ${since} days ago. Logging most days shows how your mouth is changing.` : "Dryness, pain and anything new. It takes under a minute."}</p>
       <button type="button" className="btn primary big" onClick={onOpen}><Icon name="plus" size={20} stroke={2.6} /> Log today</button>
+      {onRemind && since != null && <button type="button" className="link-btn paincard-more" onClick={onRemind}><Icon name="bell" size={16} /> Remind me each day</button>}
     </section>
   );
   const t = triageFor(entry, profile);

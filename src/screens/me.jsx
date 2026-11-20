@@ -83,6 +83,8 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
           <button className="btn ghost" onClick={() => open("freq")}>Change</button></div>
         <div className="set-row"><span><strong>Reminder</strong><em>Add a repeating reminder to your calendar</em></span>
           <button className="btn ghost" aria-label="Add a reminder to my calendar" onClick={() => open(prefs.sipEvery ? "remind" : "freq")}><Icon name="bell" size={18} /></button></div>
+        <div className="set-row"><span><strong>Daily mouth log</strong><em>{prefs.logRemind ? `Reminder added for ${prefs.logRemind.hour === 9 ? "9 am" : prefs.logRemind.hour === 13 ? "1 pm" : "7 pm"} each day` : "A daily reminder to log how your mouth feels"}</em></span>
+          <button className="btn ghost" aria-label="Add a daily log reminder to my calendar" onClick={() => open("logremind")}><Icon name="bell" size={18} /></button></div>
       </section>
 
       <section className="panel">

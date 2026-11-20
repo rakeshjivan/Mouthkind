@@ -138,3 +138,13 @@ test("log tips add GC Dry Mouth Gel and the Tooth Mousse routine when they fit",
   assert.deepEqual(triageFor({ dryness: 6 }, {}, { noTeeth: true }).tips, ["gel"]);
   assert.deepEqual(triageFor({ dryness: 6 }, { fu: { allergy: { v: ["milk"] } } }).tips, ["gel"]);
 });
+
+test("log reminder: a daily calendar event, and days since the last log", async () => {
+  const { reminderIcs, daysSinceLog } = await import("../src/data/schedule.js");
+  const ics = reminderIcs(1, 19, new Date("2026-11-21T08:00:00").getTime(), "log");
+  assert.match(ics, /RRULE:FREQ=DAILY/); assert.match(ics, /DTSTART:20261121T190000/); assert.match(ics, /log your mouth today/);
+  const now = new Date("2026-11-21T08:00:00").getTime();
+  assert.equal(daysSinceLog([], now), null);
+  assert.equal(daysSinceLog([{ kind: "daily", ts: now - 3 * 864e5 }], now), 3);
+  assert.equal(daysSinceLog([{ kind: "daily", ts: now - 3600e3 }], now), 0);
+});

@@ -31,7 +31,12 @@ export function dueWords(n) {
  * computer (open it to add to Calendar); the phone app will replace this with
  * its own notifications.
  */
-export function reminderIcs(everyDays, hour = 9, from = Date.now()) {
+const ICS_KIND = {
+  sip: { uid: "sip", summary: "Mouthkind: dry mouth check", description: "Five quick questions (SIP score), and a pH strip if you use them.", alarm: "Time for your dry mouth check" },
+  log: { uid: "log", summary: "Mouthkind: log your mouth today", description: "Dryness, pain and anything new. Under a minute: open Mouthkind and tap +.", alarm: "Time to log how your mouth feels" },
+};
+export function reminderIcs(everyDays, hour = 9, from = Date.now(), kind = "sip") {
+  const k = ICS_KIND[kind];
   const d = new Date(from);
   d.setDate(d.getDate() + (d.getHours() >= hour ? 1 : 0));
   const pad = (n) => String(n).padStart(2, "0");
@@ -40,9 +45,17 @@ export function reminderIcs(everyDays, hour = 9, from = Date.now()) {
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
   return [
     "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Mouthkind//Dry mouth check//EN", "CALSCALE:GREGORIAN",
-    "BEGIN:VEVENT", `UID:mouthkind-sip-${everyDays}@mouthkind`, `DTSTAMP:${stamp}`, `DTSTART:${local}`, "DURATION:PT5M",
-    `RRULE:${rule}`, "SUMMARY:Mouthkind: dry mouth check", "DESCRIPTION:Five quick questions (SIP score), and a pH strip if you use them.",
-    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:Time for your dry mouth check", "TRIGGER:PT0M", "END:VALARM",
+    "BEGIN:VEVENT", `UID:mouthkind-${k.uid}-${everyDays}@mouthkind`, `DTSTAMP:${stamp}`, `DTSTART:${local}`, "DURATION:PT5M",
+    `RRULE:${rule}`, `SUMMARY:${k.summary}`, `DESCRIPTION:${k.description}`,
+    "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${k.alarm}`, "TRIGGER:PT0M", "END:VALARM",
     "END:VEVENT", "END:VCALENDAR", "",
   ].join("\r\n");
+}
+
+/** Days since the last mouth log (0 = today), or null if never logged. */
+export function daysSinceLog(entries = [], now = Date.now()) {
+  const last = entries.filter((e) => e.kind === "daily").reduce((m, e) => Math.max(m, e.ts), 0);
+  if (!last) return null;
+  const day = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  return Math.round((day(now) - day(last)) / 864e5);
 }

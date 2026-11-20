@@ -5,7 +5,7 @@ import { phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
 import { scoreDecay } from "../data/decay.js";
 import { CARE_TOPICS } from "../data/care.js";
-import { nextCheck } from "../data/schedule.js";
+import { daysSinceLog, nextCheck } from "../data/schedule.js";
 import { fmtShort } from "../lib/store.js";
 import { firstName } from "../data/person.js";
 import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
@@ -53,7 +53,7 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, e
   );
 }
 
-export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip, onMe }) {
+export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip, onMe, logRemind }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const decay = latestOf(entries, "decay");
@@ -156,7 +156,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
       {/* Today's mouth log for everyone once the plan exists. During active treatment the Today card
           asks for it first; once it's done, this shows today's answers. */}
       {!building && (!(active && !dailyToday)) && (
-        <MouthToday profile={profile} entry={dailyToday ? daily : null} onOpen={() => open("daily")} />
+        <MouthToday profile={profile} entry={dailyToday ? daily : null} onOpen={() => open("daily")} since={daysSinceLog(entries)} onRemind={logRemind ? null : () => open("logremind")} />
       )}
       {/* Who to call, and what to ask them: one box. Cancer care sees it from day one. */}
       {(!building || cancer) && <CareTeamCard profile={profile} onEdit={() => open("careteam")} onQuestions={() => open("questions")} />}
