@@ -149,16 +149,16 @@ test("log reminder: a daily calendar event, and days since the last log", async 
   assert.equal(daysSinceLog([{ kind: "daily", ts: now - 3600e3 }], now), 0);
 });
 
-test("GC routine shows for a dry mouth, all cancer care and a Moderate or High decay risk", async () => {
+test("Tooth Mousse for a dry mouth, cancer care and decay risk; the gel for a dry mouth and cancer care only", async () => {
   const { triageFor } = await import("../src/data/daily.js");
   const { buildModel, buildPlan } = await import("../src/data/engine.js");
   const calm = { dryness: 0, night: "no", sores: "none" };
   assert.deepEqual(triageFor(calm, {}).tips, []);
-  assert.deepEqual(triageFor(calm, {}, { decayRisk: true }).tips, ["tmp", "gel", "tm"]);
+  assert.deepEqual(triageFor(calm, {}, { decayRisk: true }).tips, ["tmp", "tm"]);
   assert.deepEqual(triageFor(calm, { situation: ["cancer"], treatments: ["chemo"] }).tips, ["tmp", "gel", "tm"]);
   const now = Date.now();
   const gel = (p, e) => buildPlan(buildModel({ profile: p, entries: e, now })).some((i) => i.id === "gel");
   assert.ok(gel({ situation: ["cancer"], treatments: ["chemo"] }, [{ id: "s", kind: "sip", sip: 6, ts: now - 864e5 }]));
-  assert.ok(gel({}, [{ id: "d", kind: "decay", ts: now - 864e5, answers: { teeth: "yes", recent: "yes", sugar: "3", dentist: "more" }, ctx: {} }]));
+  assert.ok(!gel({}, [{ id: "d", kind: "decay", ts: now - 864e5, answers: { teeth: "yes", recent: "yes", sugar: "3", dentist: "more" }, ctx: {} }]));
   assert.ok(!gel({}, [{ id: "s", kind: "sip", sip: 6, ts: now - 864e5 }]));
 });

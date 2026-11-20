@@ -488,13 +488,12 @@ const RULES = [
   // Saliva gel: try one, or use it better.
   (m) => {
     const a = answered(m, "gelTried");
-    // For a dry mouth, all cancer care, and a Moderate or High decay risk.
-    const dry = sipNow(m) >= 8, decayRisk = !!m.decay && m.decay.band.id !== "low";
-    if (!(dry || m.cancer || decayRisk) || m.usedNow.has("gc-dmg") || a === "helps") return;
+    // For a dry mouth and all cancer care (not decay risk alone: the gel has no decay benefit of its own).
+    const dry = sipNow(m) >= 8;
+    if (!(dry || m.cancer) || m.usedNow.has("gc-dmg") || a === "helps") return;
     const night = answered(m, "dryTime") === "night";
     const because = [dry ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`
-      : m.cancer ? "Cancer treatment can dry the mouth, and a moist mouth is more comfortable and heals better."
-      : `Your tooth decay risk is ${m.decay.band.label.toLowerCase()}, and a moist mouth helps saliva protect your teeth.`];
+      : "Cancer treatment can dry the mouth, and a moist mouth is more comfortable and heals better."];
     if (night) because.push("Your mouth is driest at night.");
     if (a === "meh") return { id: "gel", pri: 50, title: "Get more from your saliva gel", body: "Use a pea-sized amount spread over the tongue, cheeks and gums with a clean finger — before meals, at bedtime and whenever you need it. Water alone wears off within minutes.", because: [...because, "You said gel didn't help much."], refs: ["nuchit2020"], products: ["gc-dmg"] };
     return { id: "gel", pri: 66, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Through the day: GC Dry Mouth Gel, as needed", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals, at bedtime and whenever your mouth feels dry. It lasts longer than water." + ([].concat(answered(m, "allergy") || []).includes("milk") ? "" : " You can mix it with GC Tooth Mousse™ or Tooth Mousse™ Plus before you put it on."), because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
