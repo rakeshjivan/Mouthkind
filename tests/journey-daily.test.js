@@ -133,7 +133,7 @@ test("log tips add GC Dry Mouth Gel and the Tooth Mousse routine when they fit",
   const { triageFor } = await import("../src/data/daily.js");
   const cancer = { situation: ["cancer"], treatments: ["chemo"] };
   assert.deepEqual(triageFor({ dryness: 6, sores: "none" }, {}).tips, ["tmp", "gel", "tm"]);
-  assert.deepEqual(triageFor({ dryness: 0, night: "no", sores: "sore", pain: 1 }, cancer).tips, ["rinse", "gentle", "tmp", "tm"]);
+  assert.deepEqual(triageFor({ dryness: 0, night: "no", sores: "sore", pain: 1 }, cancer).tips, ["rinse", "gentle", "tmp", "gel", "tm"]);
   assert.deepEqual(triageFor({ dryness: 0, night: "no", sores: "none" }, {}).tips, []);
   assert.deepEqual(triageFor({ dryness: 6 }, {}, { noTeeth: true }).tips, ["gel"]);
   assert.deepEqual(triageFor({ dryness: 6 }, { fu: { allergy: { v: ["milk"] } } }).tips, ["gel"]);
@@ -147,4 +147,18 @@ test("log reminder: a daily calendar event, and days since the last log", async 
   assert.equal(daysSinceLog([], now), null);
   assert.equal(daysSinceLog([{ kind: "daily", ts: now - 3 * 864e5 }], now), 3);
   assert.equal(daysSinceLog([{ kind: "daily", ts: now - 3600e3 }], now), 0);
+});
+
+test("GC routine shows for a dry mouth, all cancer care and a Moderate or High decay risk", async () => {
+  const { triageFor } = await import("../src/data/daily.js");
+  const { buildModel, buildPlan } = await import("../src/data/engine.js");
+  const calm = { dryness: 0, night: "no", sores: "none" };
+  assert.deepEqual(triageFor(calm, {}).tips, []);
+  assert.deepEqual(triageFor(calm, {}, { decayRisk: true }).tips, ["tmp", "gel", "tm"]);
+  assert.deepEqual(triageFor(calm, { situation: ["cancer"], treatments: ["chemo"] }).tips, ["tmp", "gel", "tm"]);
+  const now = Date.now();
+  const gel = (p, e) => buildPlan(buildModel({ profile: p, entries: e, now })).some((i) => i.id === "gel");
+  assert.ok(gel({ situation: ["cancer"], treatments: ["chemo"] }, [{ id: "s", kind: "sip", sip: 6, ts: now - 864e5 }]));
+  assert.ok(gel({}, [{ id: "d", kind: "decay", ts: now - 864e5, answers: { teeth: "yes", recent: "yes", sugar: "3", dentist: "more" }, ctx: {} }]));
+  assert.ok(!gel({}, [{ id: "s", kind: "sip", sip: 6, ts: now - 864e5 }]));
 });

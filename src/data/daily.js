@@ -133,10 +133,11 @@ export function dailyTriage(a, opts = {}) {
   if (a.night === "more") notes.push("Waking with a dry mouth: use GC Dry Mouth Gel at bedtime and keep water by the bed.");
   const dry = a.dryness != null ? dryWord(a.dryness) : a.dry;
   const isDry = (dry && dry !== "none") || a.night === "once" || a.night === "more";
-  if (isDry) tips.push("gel");
-  // Teeth need more protection when the mouth is dry or during cancer care: the daily
-  // Tooth Mousse routine, unless there are no natural teeth or a milk protein allergy.
-  if ((isDry || cancer) && !opts.noTeeth && !opts.milk) tips.push("tmp", "tm");
+  // The GC routine for a dry mouth, all cancer care and a Moderate or High decay risk:
+  // Dry Mouth Gel, and Tooth Mousse unless there are no natural teeth or a milk protein allergy.
+  const routine = isDry || cancer || !!opts.decayRisk;
+  if (routine) tips.push("gel");
+  if (routine && !opts.noTeeth && !opts.milk) tips.push("tmp", "tm");
   // The GC routine order: Tooth Mousse Plus morning and night, then gel and Tooth Mousse through the day.
   const ORDER = ["rinse", "gentle", "tmp", "gel", "tm", "soft"];
   tips.sort((x, y) => ORDER.indexOf(x) - ORDER.indexOf(y));
