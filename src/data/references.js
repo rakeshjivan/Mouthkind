@@ -116,6 +116,18 @@ export const REFS = {
     where: "Oral Surg Oral Med Oral Pathol Oral Radiol Endod 2011;112:322–7",
     url: "https://doi.org/10.1016/j.tripleo.2011.03.024",
   },
+  hong2010: {
+    short: "Hong 2010",
+    title: "A systematic review of dental disease in patients undergoing cancer therapy (MASCC/ISOO)",
+    where: "Support Care Cancer 2010;18:1007–21",
+    url: "https://doi.org/10.1007/s00520-010-0873-2",
+  },
+  hong2018: {
+    short: "Hong 2018",
+    title: "A systematic review of dental disease management in cancer patients (MASCC/ISOO)",
+    where: "Support Care Cancer 2018;26:155–74",
+    url: "https://doi.org/10.1007/s00520-017-3829-y",
+  },
   elad2015: {
     short: "Elad 2015",
     title: "Basic oral care for haematology–oncology patients and HSCT recipients: MASCC/ISOO/EBMT position paper",

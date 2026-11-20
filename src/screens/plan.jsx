@@ -73,6 +73,8 @@ export function PlanItem({ it, profile, open, done, onTick, onProduct, startOpen
       {on && (
         <div className="pitem-body">
           <p>{it.body}</p>
+          {it.list && <ul className="pitem-list">{it.list.map((x) => <li key={x}>{x}</li>)}</ul>}
+          {it.note && <p>{it.note}</p>}
           {it.because.length > 1 && (<>
             <button type="button" className="pwhy-btn" aria-expanded={why} onClick={() => setWhy(!why)}>
               {why ? "Fewer reasons" : `${it.because.length - 1} more reason${it.because.length > 2 ? "s" : ""}`} <Icon name="chev" size={14} className={why ? "rot" : ""} />

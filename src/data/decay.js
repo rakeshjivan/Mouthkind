@@ -1,3 +1,4 @@
+import { checkup } from "./dental.js";
 // ─── Tooth Decay Risk ──────────────────────────────────────────────────────
 // A patient-answered caries risk check, built on the CAMBRA framework
 // (Featherstone 2021): disease indicators, risk factors and protective
@@ -281,7 +282,8 @@ export function scoreDecay(answers = {}, ctx = decayContext()) {
  */
 export function decayPlan(result, answers = {}, { dry = false } = {}) {
   if (result.noTeeth) return [
-    { id: "dentures", title: "Look after your gums and dentures", body: "Without natural teeth there's no tooth decay to worry about. Clean your dentures every day, take them out at night, and see your dentist once a year to check your gums and mouth." },
+    { id: "dentures", title: "Look after your gums and dentures", body: "Without natural teeth there's no tooth decay to worry about. Clean your dentures every day and take them out at night." },
+    { id: "visit", ...checkup({ title: "See your dentist once a year", dentures: true }), refs: ["felton2011"] },
   ];
   const lvl = result.band.id;
   const uses = (v) => (answers.protect || []).includes(v);
@@ -321,9 +323,18 @@ export function decayPlan(result, answers = {}, { dry = false } = {}) {
       body: "Sip water often, chew sugar-free gum to get saliva flowing, and use GC Dry Mouth Gel before meals and at bedtime.",
       products: ["gc-dmg"], refs: ["featherstone2021"] });
 
-  out.push({ id: "visit", title: hi ? "See your dentist every 3 to 6 months" : lvl === "moderate" ? "See your dentist every 6 to 12 months" : "Keep up your regular check-ups",
-    body: hi ? "Ask for fluoride varnish at each visit. Early decay found at a check-up can often be stopped without a filling." : "Show your dentist this result. Early decay found at a check-up can often be stopped without a filling.",
-    refs: hi ? ["slayton2018", "featherstone2021"] : ["featherstone2021"] });
+  // The full check-up: how often depends on the decay result; overdue if more than a year.
+  const overdue = ["2", "more", "pain"].includes(answers.dentist);
+  const every = hi ? "every 3 to 6 months" : lvl === "moderate" ? "every 6 to 12 months" : "every 12 to 24 months";
+  const extra = [
+    overdue ? "It's been a while, so a full check-up is a good idea now." : "",
+    dry ? "A dry mouth makes decay more likely, so check-ups matter more." : "",
+  ].filter(Boolean).join(" ");
+  out.push({ id: "visit", ...checkup({
+      title: overdue ? "Book a full check-up with your dentist" : hi || lvl === "moderate" ? `See your dentist ${every}` : "Keep up your regular check-ups",
+      extra,
+      note: `${overdue ? `After that, ${every} suits your result.` : ""}${hi ? " Ask for fluoride varnish at each visit, and show your dentist this result." : " Show your dentist this result."}`.trim() }),
+    refs: hi ? ["slayton2018", "featherstone2021", "niceRecall"] : ["featherstone2021", "niceRecall"] });
   return out;
 }
 

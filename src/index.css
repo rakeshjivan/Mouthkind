@@ -1462,3 +1462,4 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .ct-sec h3 { margin: 14px 0 6px; font-size: calc(16px * var(--s)); color: var(--accent); }
 .ct-sec:first-child h3 { margin-top: 2px; }
 .learn-link { display: block; margin: 16px 0 4px; text-align: left; }
+.pitem-list { margin: 6px 0 10px; padding-left: 20px; line-height: 1.5; } .pitem-list li { margin: 3px 0; }

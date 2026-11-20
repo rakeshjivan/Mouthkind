@@ -22,6 +22,7 @@ import { usedInsights } from "./used.js";
 import { PRODUCTS } from "./products.js";
 import { activeTreatment, chemoDay, hasTx, inCancerCare, rtStage } from "./journey.js";
 import { GRADES, dailyTriage, mucositisGrade } from "./daily.js";
+import { checkup, NO_DENTIST } from "./dental.js";
 
 const DAY = 86400000;
 const fmt = (t) => new Date(t).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" });
@@ -87,6 +88,11 @@ const dryRecent = (m) => m.last3.some((e) => e.dry === "lot");
 const hasArr = (v, x) => [].concat(v || []).includes(x);
 // Questions say "you", or the name of the person being cared for.
 const T = (m, you, them) => (m.who ? them.replace(/\$/g, m.who) : you);
+// When a dental check matters most in cancer care.
+const preRT = (m) => !!m.rt && (m.rt.stage === "before" || (m.rt.stage === "during" && m.rt.week <= 1));
+const chemoTx = (m) => m.cancer && (m.tx.includes("chemo") || m.tx.includes("transplant"));
+const preChemo = (m) => chemoTx(m) && m.profile.stage === "before" && m.chemo == null;
+const duringChemo = (m) => chemoTx(m) && !preChemo(m) && m.active;
 const fresh = (m, id, days) => m.fu[id] && m.now - m.fu[id].ts < days * DAY;
 
 // ── Follow-up questions ─────────────────────────────────────────────────────
@@ -117,10 +123,10 @@ export const FOLLOWUPS = [
   {
     id: "dentistSeen", pri: () => 96,
     text: (m) => T(m, "Have you had a dental check since your cancer diagnosis?", "Has $ had a dental check since the cancer diagnosis?"),
-    why: "Any tooth that might cause trouble is best treated before radiotherapy starts, so the mouth can heal first.",
-    refs: ["peterson2024"],
-    options: [{ v: "yes", label: "Yes" }, { v: "booked", label: "It's booked" }, { v: "no", label: "Not yet" }],
-    when: (m) => m.rt && (m.rt.stage === "before" || (m.rt.stage === "during" && m.rt.week <= 1)),
+    why: "A check-up before or early in treatment finds small problems while they're simple to fix, so they don't flare up when your mouth is sore or your defences are low.",
+    refs: ["elad2015", "peterson2024"],
+    options: [{ v: "yes", label: "Yes" }, { v: "booked", label: "It's booked" }, { v: "no", label: "Not yet" }, { v: "none", label: "I don't have a dentist" }],
+    when: (m) => preRT(m) || preChemo(m) || duringChemo(m),
   },
   {
     id: "painRelief", pri: () => 90, again: 3,
@@ -281,23 +287,45 @@ export function snoozeQuestion(profile, q, now = Date.now(), days = 3) {
 // ── The plan ────────────────────────────────────────────────────────────────
 // Each rule returns an item or nothing. Items: { id, pri, title, body, because[], refs?, products?, act? }
 const RULES = [
-  // Bone-strengthening medicines: the dentist must know.
-  (m) => m.bone && answered(m, "boneDentist") !== "yes" && {
-    id: "boneDentist", pri: 75, title: answered(m, "boneDentist") === "none" ? "Find a dentist, and tell them about your bone medicine" : "Tell your dentist about your bone medicine",
-    body: "Extractions and implants need planning, because the jaw bone can fail to heal on these medicines. Show them your dental alert card, and keep up check-ups so extractions aren't needed.",
-    because: ["You take a bone-strengthening medicine (such as denosumab or zoledronic acid).", ...(answered(m, "boneDentist") ? ["Your dentist doesn't know yet."] : [])],
-    refs: ["yarom2019"], act: { label: "My dental alert card", open: "rtcard" },
-  },
-  // Before radiotherapy: the dental check.
+  // Bone-strengthening medicines: a full check-up, and the dentist must know.
   (m) => {
-    if (!m.rt || m.rt.stage !== "before" && !(m.rt.stage === "during" && m.rt.week <= 1)) return;
+    const a = answered(m, "boneDentist");
+    if (!m.bone || a === "yes") return;
+    return { id: "boneDentist", pri: 75, ...checkup({
+      title: a === "none" ? "Find a dentist, and tell them about your bone medicine" : "Book a check-up, and tell your dentist about your bone medicine",
+      extra: "Go before you start if you can, and show your dental alert card. Keeping teeth and gums healthy means fewer extractions later, which matters because the jaw bone can heal slowly on these medicines.",
+      note: a === "none" ? NO_DENTIST : "" }),
+      because: ["You take a bone-strengthening medicine (such as denosumab or zoledronic acid).", ...(a ? ["Your dentist doesn't know yet."] : [])],
+      refs: ["yarom2019", "elad2015"], act: { label: "My dental alert card", open: "rtcard" } };
+  },
+  // Before radiotherapy: the full check-up, timed to the start date.
+  (m) => {
+    if (!preRT(m)) return;
     const a = answered(m, "dentistSeen");
     if (a === "yes") return;
     const because = [m.rt.daysToGo != null ? `Radiotherapy starts in ${m.rt.daysToGo} day${m.rt.daysToGo === 1 ? "" : "s"}.` : "Radiotherapy is about to start."];
-    if (a === "no") because.push("You haven't had a dental check yet.");
+    if (a === "no" || a === "none") because.push("You haven't had a dental check yet.");
+    const extra = "Go before treatment starts, and take your start date. Radiotherapy can make the mouth slower to heal, so if a tooth does need to come out, it's done at least 2 weeks before.";
     return a === "booked"
-      ? { id: "dentalRT", pri: 62, title: "Take your radiotherapy dates to the dental check", body: "Your dentist needs the start date so any tooth that needs removing can come out at least 2 weeks before, and heal.", because, refs: ["peterson2024"] }
-      : { id: "dentalRT", pri: 95, title: "See a dentist before radiotherapy starts", body: "Any tooth that may need to come out is best removed at least 2 weeks before radiotherapy, so it can heal. Ask your team for a referral, or call your dentist this week.", because, refs: ["peterson2024"] };
+      ? { id: "dentalRT", pri: 62, ...checkup({ title: "Take your radiotherapy dates to your dental check", extra }), because, refs: ["peterson2024", "elad2015"] }
+      : { id: "dentalRT", pri: 95, ...checkup({ title: "See your dentist before radiotherapy starts", extra, note: a === "none" ? NO_DENTIST : "Ask your team for a referral if you need one." }), because, refs: ["peterson2024", "elad2015", "hong2018"] };
+  },
+  // Chemotherapy or a stem cell transplant: a check-up before, and team-led dental care during.
+  (m) => {
+    if (preRT(m) || !(preChemo(m) || duringChemo(m))) return;
+    const a = answered(m, "dentistSeen");
+    if (a === "yes") return;
+    const tr = m.tx.includes("transplant") ? "your transplant" : "chemotherapy";
+    const pre = preChemo(m);
+    const because = [pre ? `You're about to start ${tr}.` : `You're having ${tr}.`];
+    if (a === "no" || a === "none") because.push("You haven't had a dental check yet.");
+    const extra = pre
+      ? "Go before treatment starts if you can. Treatment can lower your defence against infection, so it's best to sort out anything that might flare up. If there isn't time, your dentist can fix just what matters most."
+      : "Before any dental treatment, check with your cancer team first: they'll tell you when your blood counts are safe.";
+    return { id: "dentalPre", pri: pre ? (a === "booked" ? 60 : 93) : 54,
+      ...checkup({ title: a === "booked" ? `Take your ${tr === "chemotherapy" ? "treatment" : "transplant"} dates to your dental check` : pre ? `See your dentist before ${tr} starts` : "Book a check-up, with your cancer team's OK",
+        extra, note: a === "none" ? NO_DENTIST : "" }),
+      because, refs: ["elad2015", "hong2018", "hong2010", "elad2020"] };
   },
   // Immunotherapy with dry mouth and dry eyes.
   (m) => m.immuno && answered(m, "dryEyes") === "yes" && {
@@ -376,7 +404,7 @@ const RULES = [
   (m) => {
     if (!m.rtHN || (m.rt && m.rt.stage === "before")) return;
     const f = [].concat(answered(m, "rtFluoride") || []);
-    if (f.includes("hf") || f.includes("tray")) return { id: "rtFluoride", pri: 30, title: "Keep up your daily fluoride, for life", body: "You're doing the most important thing. See your dentist every 3 to 6 months.", because: ["You've had radiotherapy to the head or neck."], refs: ["peterson2024"] };
+    if (f.includes("hf") || f.includes("tray")) return { id: "rtFluoride", pri: 30, title: "Keep up your daily fluoride, for life", body: "You're doing the most important thing. See your dentist every 3 to 6 months, for life, and tell every dentist about your radiotherapy before any treatment.", because: ["You've had radiotherapy to the head or neck."], refs: ["peterson2024"] };
     return { id: "rtFluoride", pri: 83, title: "Use high-strength fluoride every day, for life",
       body: "Brush with a high-fluoride toothpaste (5,000 ppm) twice a day — spit, don't rinse. After brushing, morning and night, add GC Tooth Mousse™ Plus (fortified with 900 ppm fluoride) or GC Tooth Mousse™.",
       because: ["You've had radiotherapy to the head or neck. Teeth can decay very fast afterwards.",
@@ -514,6 +542,7 @@ const RULES = [
 const COVERED = {
   "risk.track": ["startSip"], "risk.dentist": ["decay.visit"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
   "risk.drink": ["water", "riseDrink"], "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
+  "decay.visit": ["dentalRT", "dentalPre", "boneDentist"],
   "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride", "oranurse"], "decay.tmp": ["rtFluoride"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
 };
 const DECAY_PRI = { veryhigh: 66, high: 60, moderate: 42, low: 22 };
