@@ -1,38 +1,63 @@
-// ─── The daily mouth check (10 seconds) ────────────────────────────────────
-// For days of active cancer treatment. Five taps; a mucositis grade after the
-// WHO scale (0–4: soreness → ulcers → liquids only → can't eat or drink), and
-// red flags from Cancer Council Australia (2025): a temperature of 38°C or more
-// on chemotherapy, pain that can't be controlled, can't eat or drink, bleeding
-// that won't stop.
+// ─── The symptom log (under a minute) ───────────────────────────────────────
+// One log for everyone, opened from the Log button. The core six (dryness, pain,
+// eating, sores, night waking, taste) every time; tooth and gum problems for anyone
+// with teeth or dentures; red flags shown to those they apply to.
+// Dryness and pain on 0–10 numeric rating scales (Hjermstad 2011); pain bands from
+// Serlin 1995 (1–4 mild, 5–6 moderate, 7–10 severe). Sores and eating give a WHO-style
+// oral mucositis grade (0–4). Red flags from Cancer Council Australia (2025): a
+// temperature of 38°C or more on chemotherapy, pain that can't be controlled, can't eat
+// or drink, bleeding that won't stop.
+
+export const TEETH_FLAGS = [
+  { v: "ache", label: "Toothache" },
+  { v: "broken", label: "Broken tooth or filling" },
+  { v: "gums", label: "Bleeding gums" },
+  { v: "swell", label: "Gum swelling or a bad taste" },
+  { v: "denture", label: "Denture rubbing" },
+];
 
 export const DAILY = [
-  // 0–10 numeric rating scale (Hjermstad 2011); bands from Serlin 1995: 1–4 mild, 5–6 moderate, 7–10 severe.
-  { id: "pain", text: "Mouth pain right now", scale: true, refs: ["hjermstad2011", "serlin1995"], options: Array.from({ length: 11 }, (_, v) => ({ v, label: String(v) })) },
+  { id: "dryness", text: "How dry is your mouth right now?", scale: "dry", core: true, refs: ["hjermstad2011"], options: Array.from({ length: 11 }, (_, v) => ({ v, label: String(v) })) },
+  { id: "pain", text: "Mouth pain right now", scale: "pain", core: true, refs: ["hjermstad2011", "serlin1995"], options: Array.from({ length: 11 }, (_, v) => ({ v, label: String(v) })) },
   { id: "control", text: "Is pain relief keeping it bearable?", when: (p, a) => (a.pain ?? 0) >= 7, options: [
     { v: "yes", label: "Yes" }, { v: "no", label: "No" }, { v: "none", label: "Not taking any" },
   ] },
-  { id: "eat", text: "Eating and drinking", options: [
+  { id: "eat", text: "Eating and drinking", core: true, options: [
     { v: "normal", label: "As usual" }, { v: "soft", label: "Soft foods only" }, { v: "liquid", label: "Liquids only" }, { v: "none", label: "Can't eat or drink" },
   ] },
-  { id: "sores", text: "Sores or ulcers", options: [
+  { id: "sores", text: "Sores or ulcers", core: true, options: [
     { v: "none", label: "None" }, { v: "sore", label: "Sore or red, no ulcers" }, { v: "ulcers", label: "Ulcers" }, { v: "bleed", label: "Bleeding that won't stop" },
   ] },
-  { id: "urgent", text: "Swelling, breathing or swallowing", options: [
-    { v: "none", label: "No problems" }, { v: "swell", label: "Face or neck swelling" }, { v: "breath", label: "Hard to breathe or swallow saliva" },
+  { id: "night", text: "Did dryness wake you last night?", core: true, options: [
+    { v: "no", label: "No" }, { v: "once", label: "Once" }, { v: "more", label: "More than once" },
   ] },
-  { id: "bone", text: "Bone showing in the mouth", when: (p) => (p.treatments || []).some((t) => t === "rt_hn" || t === "bone"), options: [
-    { v: "no", label: "No" }, { v: "yes", label: "Yes" }, { v: "unsure", label: "Not sure" },
+  { id: "taste", text: "Taste", core: true, options: [
+    { v: "normal", label: "Normal" }, { v: "changed", label: "Changed" }, { v: "lost", label: "Hard to taste anything" },
   ] },
-  { id: "dry", text: "Dryness", options: [
-    { v: "none", label: "None" }, { v: "some", label: "Some" }, { v: "lot", label: "A lot" },
-  ] },
+  { id: "teeth", text: "Anything new with your teeth or gums?", many: true, none: "Nothing new", options: TEETH_FLAGS },
   { id: "white", text: "White patches or coating", options: [
     { v: "no", label: "No" }, { v: "yes", label: "Yes" },
   ] },
   { id: "fever", text: "Temperature of 38°C or more", when: (p) => (p.treatments || []).some((t) => t === "chemo" || t === "transplant"), options: [
     { v: "no", label: "No" }, { v: "yes", label: "Yes" }, { v: "unsure", label: "Haven't checked" },
   ] },
+  { id: "bone", text: "Bone showing in the mouth", when: (p) => (p.treatments || []).some((t) => t === "rt_hn" || t === "bone"), options: [
+    { v: "no", label: "No" }, { v: "yes", label: "Yes" }, { v: "unsure", label: "Not sure" },
+  ] },
+  { id: "urgent", text: "Swelling, breathing or swallowing", options: [
+    { v: "none", label: "No problems" }, { v: "swell", label: "Face or neck swelling" }, { v: "breath", label: "Hard to breathe or swallow saliva" },
+  ] },
 ];
+
+/** Dryness 0–10 as the older none/some/a lot, which the plan rules still read. */
+export const dryWord = (n) => n == null ? undefined : n === 0 ? "none" : n >= 7 ? "lot" : "some";
+export const teethFlags = (a = {}) => [].concat(a.teeth || []).filter((v) => v !== "none");
+
+/** Triage for this person: cancer care, and chemotherapy or a transplant. */
+export const triageFor = (a, p = {}) => dailyTriage(a, {
+  cancer: (p.situation || []).includes("cancer"),
+  chemo: (p.situation || []).includes("cancer") && (p.treatments || []).some((t) => t === "chemo" || t === "transplant"),
+});
 
 export const dailyQuestions = (p = {}, a = {}) => DAILY.filter((q) => !q.when || q.when(p, a));
 
@@ -64,7 +89,8 @@ export const GRADES = [
  * now   = contact the treatment team now or go to the emergency department
  * today = tell the team today
  */
-export function dailyTriage(a, { cancer = true } = {}) {
+export function dailyTriage(a, opts = {}) {
+  const { cancer = true } = opts;
   const now = [], today = [], notes = [], tips = [];
   const pain = a.pain ?? 0;
   const team = cancer ? "your team" : "your dentist or doctor";
@@ -93,7 +119,18 @@ export function dailyTriage(a, { cancer = true } = {}) {
   if (a.fever === "unsure") today.push("If you feel hot, shivery or unwell, check your temperature.");
   if ((a.sores && a.sores !== "none") || pain > 0) tips.push("rinse", "gentle");
   if (pain >= 3 || a.eat === "soft" || a.eat === "liquid") tips.push("soft");
-  if (a.dry && a.dry !== "none") tips.push("gel");
+  const flags = teethFlags(a);
+  const chemo = cancer && opts.chemo;
+  if (flags.includes("swell")) today.push(chemo
+    ? "Gum swelling or a bad taste can be an infection. Tell your team today, because infections need quick treatment during chemotherapy."
+    : `Gum swelling or a bad taste can be a gum or tooth infection. ${cancer ? "Tell your team, and see" : "See"} your dentist today or tomorrow.`);
+  if (flags.includes("ache")) notes.push("Toothache: book in with your dentist this week. If it's severe, or your face swells, go sooner.");
+  if (flags.includes("broken")) notes.push("A broken tooth or filling: book in with your dentist. Until then, sugar-free gum or dental wax can cover a sharp edge so it doesn't cut your cheek or tongue.");
+  if (flags.includes("gums")) notes.push(chemo ? "Bleeding gums: keep brushing gently with a soft brush. If it won't stop, or you have bruising elsewhere, call your team." : "Bleeding gums usually mean the gums are inflamed. Keep brushing gently along the gumline, and ask your dentist or hygienist to check them.");
+  if (flags.includes("denture")) notes.push("Denture rubbing: leave them out when you can, and see your dentist to ease the sore spot. A sore that hasn't healed in 2 weeks should be checked.");
+  if (a.night === "more") notes.push("Waking with a dry mouth: use GC Dry Mouth Gel at bedtime and keep water by the bed.");
+  const dry = a.dryness != null ? dryWord(a.dryness) : a.dry;
+  if (dry && dry !== "none") tips.push("gel");
   return { level: now.length ? "now" : today.length ? "today" : "ok", now, today, notes, tips: [...new Set(tips)] };
 }
 

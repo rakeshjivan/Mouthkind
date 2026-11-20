@@ -124,11 +124,15 @@ export default function App() {
       </main>
 
       <nav className="tabbar" aria-label="Main">
-        {TABS.map((t) => (
+        {TABS.flatMap((t, i) => [
+          // The symptom log: an action, not a tab — always one tap away, in the middle.
+          ...(i === 2 && profile.onboarded ? [<button key="log" type="button" className="tab tab-log" onClick={() => open("daily")} aria-label="Log how your mouth feels today">
+            <span className="tab-log-btn" aria-hidden="true"><Icon name="plus" size={26} stroke={2.6} /></span><span>Log</span>
+          </button>] : []),
           <button key={t.id} className={`tab${tab === t.id ? " on" : ""}`} onClick={() => go(t.id)} aria-current={tab === t.id ? "page" : undefined}>
             <Icon name={t.icon} stroke={tab === t.id ? 2.4 : 1.8} /><span>{t.label}</span>
-          </button>
-        ))}
+          </button>,
+        ])}
       </nav>
 
       {sheet === "risk" && <RiskFlow last={risk} model={dryModel(fromProfile)} plan={building ? null : plan} next={next} onClose={close} onSave={addEntry} onCare={() => go("advice", "plan")} />}
@@ -144,7 +148,7 @@ export default function App() {
       {sheet === "ph" && <PhFlow readings={phReadings(entries)} followUp={ask(true)} next={next} onSkip={building ? () => { setProfile({ ...profile, phSkip: true }); const ready = setup.steps.filter((s) => s.id !== "ph" && s.id !== "questions").every((s) => s.done); setSheet(ready && qs.length ? "setupq" : null); if (ready && !qs.length) go("advice", "plan"); } : null} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
       {sheet === "report" && <Summary entries={view} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
-      {sheet === "daily" && <DailyCheck profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} followUp={ask(true)} />}
+      {sheet === "daily" && <DailyCheck profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} followUp={ask(true)} onLearn={() => go("advice", "sore")} />}
       {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onLearn={() => go("advice", "sore")} onClose={close} onUsed={() => setSheet("used")} followUp={ask(true)} />}
       {(sheet === "setupq" || sheet === "refineq") && <SetupQuestions q={q} m={model} left={qs.length} refining={sheet === "refineq"} profile={profile} setProfile={setProfile} onClose={close} onPlan={() => go("advice", "plan")} />}
       {sheet === "used" && <UsedLog onClose={close} onSave={addEntry} last={lastUsed?.items} />}

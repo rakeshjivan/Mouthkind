@@ -21,7 +21,7 @@ import { medicineById } from "./medicines.js";
 import { usedInsights } from "./used.js";
 import { PRODUCTS } from "./products.js";
 import { activeTreatment, chemoDay, hasTx, inCancerCare, rtStage } from "./journey.js";
-import { GRADES, dailyTriage, mucositisGrade } from "./daily.js";
+import { GRADES, TEETH_FLAGS, dailyTriage, mucositisGrade, teethFlags } from "./daily.js";
 import { checkup, NO_DENTIST } from "./dental.js";
 
 const DAY = 86400000;
@@ -327,6 +327,20 @@ const RULES = [
         extra, note: a === "none" ? NO_DENTIST : "" }),
       because, refs: ["elad2015", "hong2018", "hong2010", "elad2020"] };
   },
+  // A new tooth or gum problem in the symptom log: see the dentist, with the full check-up.
+  (m) => {
+    const recent = m.dailies.filter((e) => m.now - e.ts < 7 * DAY);
+    const flags = [...new Set(recent.flatMap(teethFlags))];
+    if (!flags.length) return;
+    const names = flags.map((v) => lc(TEETH_FLAGS.find((f) => f.v === v)?.label || v));
+    const soon = flags.includes("swell") || flags.includes("ache");
+    const chemoNow = duringChemo(m);
+    return { id: "dentalFlag", pri: soon ? 87 : 72, ...checkup({
+      title: soon ? "See your dentist this week" : "Book in with your dentist",
+      extra: chemoNow ? "You're having chemotherapy, so check with your cancer team before any dental treatment." : "",
+      note: answered(m, "dentistSeen") === "none" ? NO_DENTIST : "" }),
+      because: [`You logged ${list(names)} in the last week.`], refs: ["elad2015", "featherstone2021"] };
+  },
   // Immunotherapy with dry mouth and dry eyes.
   (m) => m.immuno && answered(m, "dryEyes") === "yes" && {
     id: "sicca", pri: 89, title: "Tell your cancer team about the dry mouth and dry eyes",
@@ -542,7 +556,7 @@ const RULES = [
 const COVERED = {
   "risk.track": ["startSip"], "risk.dentist": ["decay.visit"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
   "risk.drink": ["water", "riseDrink"], "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
-  "decay.visit": ["dentalRT", "dentalPre", "boneDentist"],
+  "decay.visit": ["dentalRT", "dentalPre", "boneDentist", "dentalFlag"],
   "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride", "oranurse"], "decay.tmp": ["rtFluoride"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
 };
 const DECAY_PRI = { veryhigh: 66, high: 60, moderate: 42, low: 22 };
@@ -651,6 +665,8 @@ export function buildPlan(m) {
   for (let i = out.length - 1; i >= 0; i--) if (out[i].kept && out.findIndex((x) => x.title === out[i].title) < i) out.splice(i, 1);
   // A new medicine already says "ask your pharmacist"; don't say it twice.
   const dup = out.some((i) => i.id === "riseMed") ? new Set(["medReview"]) : new Set();
+  // A logged tooth or gum problem already asks for the check-up.
+  if (out.some((i) => i.id === "dentalFlag")) dup.add("dentalPre");
   return out.filter((i) => !dup.has(i.id)).sort((a, b) => b.pri - a.pri);
 }
 

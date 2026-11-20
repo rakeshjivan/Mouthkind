@@ -196,12 +196,15 @@ async def main():
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
         assert await pg.locator(".tx-line", has_text="Week 3 of 7").count() == 1
         await pg.locator(".today").get_by_role("button", name="Check now").click(); await pg.wait_for_timeout(300)
-        await dlg.locator(".painscale").get_by_role("radio", name="5", exact=True).click()
+        await dlg.locator(".painscale").nth(0).get_by_role("radio", name="8", exact=True).click()
+        await dlg.locator(".painscale").nth(1).get_by_role("radio", name="5", exact=True).click()
         for q, a in [("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),
+                     ("Did dryness wake you last night?", "Once"), ("Taste", "Changed"),
                      ("Swelling, breathing or swallowing", "No problems"), ("Bone showing in the mouth", "No"),
-                     ("Dryness", "A lot"), ("White patches or coating", "No"), ("Temperature of 38°C or more", "Yes")]:
+                     ("White patches or coating", "No"), ("Temperature of 38°C or more", "Yes")]:
             await dlg.get_by_role("radiogroup", name=q).get_by_role("radio", name=a, exact=True).click()
-        await btn("Done").click(); await pg.wait_for_timeout(300)
+        await dlg.get_by_role("group", name="Anything new with your teeth or gums?").get_by_role("button", name="Broken tooth or filling").click()
+        await btn("Save").click(); await pg.wait_for_timeout(300)
         assert await dlg.get_by_text("Contact your treatment team now").count() == 1
         assert await dlg.locator("a.call-btn").get_attribute("href") == "tel:0752020000"
         await shot("20-daily-red")
@@ -215,7 +218,7 @@ async def main():
         assert await dlg.get_by_text("may not be opening fully").count() == 1
         await btn("Done").click(); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
-        assert await pg.get_by_text("Mouth pain and daily check").count() >= 1
+        assert await pg.get_by_text("My mouth log").count() >= 1
         assert await pg.get_by_role("heading", name="Jaw opening").count() == 1
         await shot("22-tracker-cancer", True)
         await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(300)

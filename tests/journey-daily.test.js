@@ -111,3 +111,20 @@ test("pain is 0–10 with standard bands, and wording fits people not in cancer 
   assert.equal(t.level, "today"); assert.match(t.today[0], /dentist today/); assert.doesNotMatch(JSON.stringify(t), /your team/);
   assert.equal(dailyTriage({ pain: 5 }, { cancer: false }).level, "ok");
 });
+
+test("symptom log: dryness 0–10, tooth and gum problems, and the dentist item", async () => {
+  const { dryWord, teethFlags, triageFor, dailyQuestions } = await import("../src/data/daily.js");
+  const { buildModel, buildPlan } = await import("../src/data/engine.js");
+  assert.equal(dryWord(0), "none"); assert.equal(dryWord(4), "some"); assert.equal(dryWord(8), "lot");
+  const core = dailyQuestions({}).filter((q) => q.core).map((q) => q.id);
+  assert.deepEqual(core, ["dryness", "pain", "eat", "sores", "night", "taste"]);
+  assert.deepEqual(teethFlags({ teeth: ["none"] }), []);
+  const chemo = { situation: ["cancer"], treatments: ["chemo"] };
+  assert.equal(triageFor({ teeth: ["swell"] }, chemo).level, "today");
+  assert.match(triageFor({ teeth: ["swell"] }, chemo).today[0], /chemotherapy/);
+  assert.match(triageFor({ teeth: ["broken"] }, {}).notes[0], /dental wax/);
+  const now = Date.now();
+  const plan = buildPlan(buildModel({ profile: {}, entries: [{ id: "d", kind: "daily", ts: now - 3600e3, teeth: ["ache"] }], now }));
+  const it = plan.find((i) => i.id === "dentalFlag");
+  assert.equal(it.title, "See your dentist this week"); assert.match(it.because[0], /toothache/);
+});

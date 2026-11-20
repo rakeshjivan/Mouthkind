@@ -9,7 +9,7 @@ import { nextCheck } from "../data/schedule.js";
 import { fmtShort } from "../lib/store.js";
 import { firstName } from "../data/person.js";
 import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
-import { dailyTriage, sameDay } from "../data/daily.js";
+import { sameDay, triageFor } from "../data/daily.js";
 import { FocusList, SetupCard } from "./plan.jsx";
 import { PainToday } from "./daily.jsx";
 import { CareTeamCard } from "./careTeam.jsx";
@@ -85,7 +85,7 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
   const active = activeTreatment(profile);
   const daily = latestOf(entries, "daily");
   const dailyToday = daily && sameDay(daily.ts, Date.now());
-  const triage = dailyToday ? dailyTriage(daily, { cancer: inCancerCare(profile) }) : null;
+  const triage = dailyToday ? triageFor(daily, profile) : null;
   const who = profile.carer && profile.carerFor ? profile.carerFor : null;
   const today =
     triage?.level === "now" ? { tone: "red", icon: "alert", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
