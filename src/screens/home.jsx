@@ -53,7 +53,7 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, e
   );
 }
 
-export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip }) {
+export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip, onMe }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const decay = latestOf(entries, "decay");
@@ -140,6 +140,9 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
         {who && <p className="carer-line">Looking after {who}'s mouth</p>}
         {progress && !(setup && !setup.built) && <p className={`progress-line${progress.good ? " good" : ""}`}>{progress.text}</p>}
+        {onMe && <button type="button" className="me-line" onClick={onMe}>
+          <Icon name="user" size={20} /><span><strong>My details</strong><em>{profile.carer ? "Their details" : "About you"}, care team, reminders and backup</em></span><Icon name="chev" size={16} />
+        </button>}
         {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
       </header>
 

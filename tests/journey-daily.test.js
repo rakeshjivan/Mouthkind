@@ -128,3 +128,13 @@ test("symptom log: dryness 0–10, tooth and gum problems, and the dentist item"
   const it = plan.find((i) => i.id === "dentalFlag");
   assert.equal(it.title, "See your dentist this week"); assert.match(it.because[0], /toothache/);
 });
+
+test("log tips add GC Dry Mouth Gel and the Tooth Mousse routine when they fit", async () => {
+  const { triageFor } = await import("../src/data/daily.js");
+  const cancer = { situation: ["cancer"], treatments: ["chemo"] };
+  assert.deepEqual(triageFor({ dryness: 6, sores: "none" }, {}).tips, ["tmp", "gel", "tm"]);
+  assert.deepEqual(triageFor({ dryness: 0, night: "no", sores: "sore", pain: 1 }, cancer).tips, ["rinse", "gentle", "tmp", "tm"]);
+  assert.deepEqual(triageFor({ dryness: 0, night: "no", sores: "none" }, {}).tips, []);
+  assert.deepEqual(triageFor({ dryness: 6 }, {}, { noTeeth: true }).tips, ["gel"]);
+  assert.deepEqual(triageFor({ dryness: 6 }, { fu: { allergy: { v: ["milk"] } } }).tips, ["gel"]);
+});

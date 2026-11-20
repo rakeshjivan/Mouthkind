@@ -23,7 +23,7 @@ export function PainScale({ value, onPick, label = "Mouth pain, 0 to 10", kind =
 }
 
 /** The symptom log: one screen of taps, then what to do. Logging again the same day updates the entry. */
-export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn }) {
+export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, onShop }) {
   const [a, setA] = useState(() => {
     if (!initial) return {};
     const { id, ts, kind, grade, full, ...rest } = initial;
@@ -40,7 +40,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
     setA({ ...a, [q.id]: cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v] });
   };
 
-  if (done) return <DailyResult entry={done} profile={profile} onClose={onClose} onUsed={onUsed} followUp={followUp} onLearn={onLearn} />;
+  if (done) return <DailyResult entry={done} profile={profile} onClose={onClose} onUsed={onUsed} followUp={followUp} onLearn={onLearn} noTeeth={noTeeth} onShop={onShop} />;
   return (
     <Sheet title={`How's ${who} mouth today?`} onClose={onClose}
       footer={<button className="btn primary big" disabled={!ready} onClick={() => {
@@ -76,9 +76,9 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
   );
 }
 
-export function DailyResult({ entry, profile, onClose, onUsed, followUp, onLearn }) {
+export function DailyResult({ entry, profile, onClose, onUsed, followUp, onLearn, noTeeth, onShop }) {
   const cancer = inCancerCare(profile);
-  const t = triageFor(entry, profile);
+  const t = triageFor(entry, profile, { noTeeth });
   const g = GRADES[entry.grade ?? mucositisGrade(entry)];
   const phone = profile.team?.phone24;
   const tips = t.tips.map((k) => DAILY_TIPS[k]);
@@ -116,6 +116,7 @@ export function DailyResult({ entry, profile, onClose, onUsed, followUp, onLearn
         <section className="rblock plan">
           <h3>What helps today</h3>
           <ul className="tip-list">{tips.map((x) => <li key={x.t}>{milkAllergic(profile) ? milkFree(x.t) : x.t}</li>)}</ul>
+          {onShop && tips.some((x) => x.products) && <button type="button" className="btn ghost tip-shop" onClick={onShop}><Icon name="cart" size={18} /> See these products</button>}
           <Sources refs={[...new Set(tips.flatMap((x) => x.refs))]} />
         </section>
       )}

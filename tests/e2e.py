@@ -169,7 +169,7 @@ async def main():
         await pg.emulate_media(color_scheme="dark"); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Home"); await pg.wait_for_timeout(300)
         await shot("15-home-dark", True)
-        await pg.click("nav >> text=\"Me\""); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=\"Home\""); await pg.wait_for_timeout(200); await pg.get_by_role("button", name="My details").click(); await pg.wait_for_timeout(200)
         await pg.get_by_label("First name").fill("Alexandra")
         await pg.get_by_label("Last name").fill("Fitzgerald-Montgomery")
         await pg.locator("input[type=date]").fill("1958-03-14")

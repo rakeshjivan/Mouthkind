@@ -54,7 +54,9 @@ export const dryWord = (n) => n == null ? undefined : n === 0 ? "none" : n >= 7 
 export const teethFlags = (a = {}) => [].concat(a.teeth || []).filter((v) => v !== "none");
 
 /** Triage for this person: cancer care, and chemotherapy or a transplant. */
-export const triageFor = (a, p = {}) => dailyTriage(a, {
+export const triageFor = (a, p = {}, extra = {}) => dailyTriage(a, {
+  ...extra,
+  milk: [].concat(p.fu?.allergy?.v || []).includes("milk"),
   cancer: (p.situation || []).includes("cancer"),
   chemo: (p.situation || []).includes("cancer") && (p.treatments || []).some((t) => t === "chemo" || t === "transplant"),
 });
@@ -130,7 +132,14 @@ export function dailyTriage(a, opts = {}) {
   if (flags.includes("denture")) notes.push("Denture rubbing: leave them out when you can, and see your dentist to ease the sore spot. A sore that hasn't healed in 2 weeks should be checked.");
   if (a.night === "more") notes.push("Waking with a dry mouth: use GC Dry Mouth Gel at bedtime and keep water by the bed.");
   const dry = a.dryness != null ? dryWord(a.dryness) : a.dry;
-  if (dry && dry !== "none") tips.push("gel");
+  const isDry = (dry && dry !== "none") || a.night === "once" || a.night === "more";
+  if (isDry) tips.push("gel");
+  // Teeth need more protection when the mouth is dry or during cancer care: the daily
+  // Tooth Mousse routine, unless there are no natural teeth or a milk protein allergy.
+  if ((isDry || cancer) && !opts.noTeeth && !opts.milk) tips.push("tmp", "tm");
+  // The GC routine order: Tooth Mousse Plus morning and night, then gel and Tooth Mousse through the day.
+  const ORDER = ["rinse", "gentle", "tmp", "gel", "tm", "soft"];
+  tips.sort((x, y) => ORDER.indexOf(x) - ORDER.indexOf(y));
   return { level: now.length ? "now" : today.length ? "today" : "ok", now, today, notes, tips: [...new Set(tips)] };
 }
 
@@ -138,7 +147,9 @@ export const DAILY_TIPS = {
   rinse: { t: "Rinse at least 4 times a day with ¼ teaspoon bicarbonate of soda in a cup of warm water. Swish for 30 seconds, then spit.", refs: ["elad2020", "canberraHN"] },
   gentle: { t: "Keep brushing gently with a soft brush and mild fluoride toothpaste — a clean mouth heals better.", refs: ["elad2020", "ccaMouth2025"] },
   soft: { t: "Soft, moist foods are easiest: soup, yoghurt, custard, mashed vegetables. A straw can help. Avoid spicy, acidic, crunchy and very hot foods.", refs: ["ccaMouth2025"] },
-  gel: { t: "GC Dry Mouth Gel before meals and at bedtime eases dryness. Sip water often.", refs: ["ccaMouth2025"] },
+  gel: { t: "GC Dry Mouth Gel: spread a pea-sized amount over your tongue, cheeks and gums before meals, at bedtime and whenever your mouth feels dry. It lasts longer than sips of water.", refs: ["nuchit2020", "ccaMouth2025"], products: ["gc-dmg"] },
+  tmp: { t: "Morning and night, after brushing: GC Tooth Mousse™ Plus. Smear a pea-sized amount over your teeth, then don't rinse, eat or drink for 30 minutes.", refs: ["featherstone2021", "agarwal2022"], products: ["gc-tmp"] },
+  tm: { t: "Through the day: GC Tooth Mousse™ after meals or whenever your mouth feels dry. You can mix it with GC Dry Mouth Gel.", refs: ["featherstone2021"], products: ["gc-tm"] },
 };
 
 /** Done today? */
