@@ -73,6 +73,8 @@ export function PlanItem({ it, profile, open, done, onTick, onProduct, startOpen
       {on && (
         <div className="pitem-body">
           <p>{it.body}</p>
+          {it.list && <ul className="pitem-list">{it.list.map((x) => <li key={x}>{x}</li>)}</ul>}
+          {it.note && <p>{it.note}</p>}
           {it.because.length > 1 && (<>
             <button type="button" className="pwhy-btn" aria-expanded={why} onClick={() => setWhy(!why)}>
               {why ? "Fewer reasons" : `${it.because.length - 1} more reason${it.because.length > 2 ? "s" : ""}`} <Icon name="chev" size={14} className={why ? "rot" : ""} />
@@ -162,7 +164,7 @@ export function SetupQuestions({ q: nextQ, m, left, profile, setProfile, onClose
     <Sheet title={refining ? "Refine your plan" : "A few questions about you"} onClose={onClose}
       progress={q ? { of: total, at: asked, label: `${asked + 1} of ${total}` } : null}
       footer={q ? (back.length ? <button className="btn ghost" onClick={goBack}><Icon name="back" size={18} /> Back</button> : null)
-        : <button className="btn primary big" onClick={onPlan}>See my plan</button>}>
+        : <button className="btn primary big" onClick={onPlan}>{refining ? "See my plan" : "See my routine"}</button>}>
       {q ? (<>
         <p className="eyebrow-q">{refining ? "Your recent results raised a question" : "Last step · each answer tailors your plan"}</p>
         <AskCard key={q.id + (revisit ? ":again" : "")} flow q={q} m={m} profile={profile} setProfile={(p) => {
@@ -190,7 +192,7 @@ export function SetupCard({ setup, onSetup, slim }) {
   if (!n) return null;
   if (slim) return (
     <button type="button" className="setup-line" onClick={onSetup}>
-      <span>Build your plan · step {setup.at + 1} of {setup.total}</span><b>{n.label} <Icon name="chev" size={15} /></b>
+      <span>Build your plan · step {setup.at + 1} of {setup.total} · about {setup.minsLeft} min</span><b>{n.label} <Icon name="chev" size={15} /></b>
     </button>
   );
   return (
@@ -205,7 +207,8 @@ export function SetupCard({ setup, onSetup, slim }) {
         ))}
       </ol>
       <button className="btn primary big" onClick={onSetup}>{setup.at ? "Continue" : "Start"}</button>
-      <p className="setup-note">Your plan appears when you've finished. About 6 minutes in all.</p>
+      <p className="setup-note">Step {setup.at + 1} of {setup.total} · about {setup.minsLeft} minute{setup.minsLeft === 1 ? "" : "s"} left. Your plan appears when you've finished.</p>
     </section>
   );
 }
+

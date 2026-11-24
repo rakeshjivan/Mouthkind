@@ -4,8 +4,8 @@ import { careContacts, contactRoles, getContact, openQuestionCount, setContact }
 
 test("cancer care gets the 24-hour line, specialist and nurse; others don't see a treatment line", () => {
   const ids = (p) => contactRoles(p).map((r) => r.id);
-  assert.deepEqual(ids({ situation: ["cancer"] }), ["line24", "specialist", "nurse", "dentist", "gp"]);
-  assert.deepEqual(ids({ situation: ["meds"] }), ["specialist", "dentist", "gp"]);
+  assert.deepEqual(ids({ situation: ["cancer"] }), ["line24", "specialist", "nurse", "dentist", "pharmacy", "gp"]);
+  assert.deepEqual(ids({ situation: ["meds"] }), ["specialist", "dentist", "pharmacy", "gp"]);
 });
 
 test("older team and dentist numbers carry over, and only contacts with a number are listed", () => {
@@ -29,4 +29,12 @@ test("mucositis topic shows only the options tested in the person's treatment", 
   assert.match(txt(["chemo"]), /Ice chips/); assert.doesNotMatch(txt(["chemo"]), /Benzydamine|Chlorhexidine|Honey/);
   assert.match(txt(["rt_hn"]), /Benzydamine/); assert.match(txt(["rt_hn"]), /Chlorhexidine/); assert.doesNotMatch(txt(["rt_hn"]), /Ice chips/);
   assert.ok(t.steps.length > 15);
+});
+
+test("postcodes map to states, and the find link searches near the postcode", async () => {
+  const { stateFromPostcode, findNearHref, rolesText } = await import("../src/data/careTeam.js");
+  assert.equal(stateFromPostcode("4558"), "QLD"); assert.equal(stateFromPostcode("2600"), "ACT"); assert.equal(stateFromPostcode("0800"), "NT");
+  assert.equal(stateFromPostcode("2000"), "NSW"); assert.equal(stateFromPostcode("12"), null);
+  assert.match(findNearHref("dentists", "4558"), /dentists%20near%204558/);
+  assert.equal(rolesText({ situation: ["meds"] }), "specialist, dentist, pharmacy and GP");
 });

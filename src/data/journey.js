@@ -95,12 +95,12 @@ export function journey(p, now = Date.now()) {
   ] });
   if (hasTx(p, "bone")) out.cards.push({ id: "bone", title: "Bone-strengthening medicines", when: "During and for years after", items: [
     { t: "These medicines protect bones, but rarely the jaw bone can fail to heal after a tooth is taken out (osteonecrosis of the jaw).", refs: ["yarom2019", "ruggiero2022"] },
-    { t: "See your dentist before starting if you can, so any problem teeth are treated first.", refs: ["yarom2019"] },
+    { t: "See your dentist for a full check-up before you start if you can, so small problems are fixed while they're simple.", refs: ["yarom2019"] },
     { t: "Tell every dentist you take them, before any extraction or implant. Show them your dental alert card.", refs: ["yarom2019"] },
     { t: "Keep your teeth and gums healthy so extractions aren't needed: fluoride toothpaste twice a day and regular check-ups." },
   ], always: [{ t: "Tell your dentist or team within days about bone showing in the mouth, jaw pain, swelling, a loose tooth or a numb lip or chin.", refs: ["yarom2019"] }] });
   if (!out.cards.length) out.cards.push({ id: "general", title: "During cancer treatment", when: "Now", items: [
-    { t: "See your dentist before treatment starts if you can, so any problems are fixed first.", refs: ["ccaMouth2025"] },
+    { t: "See your dentist for a full check-up before treatment starts if you can. Small problems are easiest to fix now, and not everything has to be done at once.", refs: ["ccaMouth2025"] },
     { t: "Brush gently twice a day with a soft brush and fluoride toothpaste, and rinse several times a day.", refs: ["ccaMouth2025"] },
     { t: "Tell your treatment team about any mouth pain, sores or changes.", refs: ["ccaMouth2025"] },
   ] });
@@ -111,7 +111,7 @@ function rtCard(p, now) {
   const s = rtStage(p, now);
   const base = { id: "rt", title: "Radiotherapy to the head or neck" };
   if (s.stage === "before") return { ...base, when: s.daysToGo ? `Starts in ${s.daysToGo} day${s.daysToGo === 1 ? "" : "s"}` : "Before you start", items: [
-    { t: "See your dentist now. Any teeth that need to come out should come out before radiotherapy, ideally at least 2 weeks before, so the gum can heal.", refs: ["peterson2024"] },
+    { t: "See your dentist now for a full check-up: decay, broken teeth or fillings, gums and any infection. If a tooth does need to come out, it's done at least 2 weeks before radiotherapy so the gum can heal.", refs: ["peterson2024"] },
     { t: "Ask your dentist about a high-fluoride toothpaste or fluoride trays, and start GC Tooth Mousse™ Plus after brushing, morning and night.", refs: ["nciPdqHp", "featherstone2021"] },
     { t: "Do your dry mouth check and a pH test now. Having a starting point makes later changes easy to see." },
     { t: "Check how wide you can open your mouth (the finger test in Tools), so any stiffness later is spotted early.", refs: ["nciPdqHp"] },
@@ -147,7 +147,7 @@ function rtCard(p, now) {
 }
 
 const ORN = [
-  { t: "Tell every dentist you've had radiotherapy to the head or neck, before any extraction or surgery. The jaw bone heals poorly in the treated area (osteoradionecrosis), so it needs planning.", refs: ["peterson2024"] },
+  { t: "Tell every dentist you've had radiotherapy to the head or neck before any treatment. The jaw bone heals slowly in the treated area (a problem called osteoradionecrosis), so extractions and surgery are planned with care.", refs: ["peterson2024"] },
 ];
 
 function chemoCard(p, now) {

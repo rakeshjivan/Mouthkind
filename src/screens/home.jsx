@@ -4,15 +4,13 @@ import { phColor, sipLevel } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
 import { scoreDecay } from "../data/decay.js";
-import { CARE_TOPICS } from "../data/care.js";
-import { nextCheck } from "../data/schedule.js";
+import { daysSinceLog, logCadence, logDue, nextCheck } from "../data/schedule.js";
 import { fmtShort } from "../lib/store.js";
 import { firstName } from "../data/person.js";
 import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
-import { dailyTriage, sameDay } from "../data/daily.js";
-import { FocusList, SetupCard } from "./plan.jsx";
-import { PainToday } from "./daily.jsx";
-import { CareTeamCard } from "./careTeam.jsx";
+import { sameDay, triageFor } from "../data/daily.js";
+import { SetupCard } from "./plan.jsx";
+import { RoutineCard } from "./routine.jsx";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const phReadings = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -53,101 +51,28 @@ function Box({ kind, title, icon, value, valueTone, sub, status, due, onClick, e
   );
 }
 
-export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], ask, setup, onSetup, phSkip, onLog }) {
+/** The four checks as boxes (and the jaw test after head and neck radiotherapy). On Progress. */
+export function CheckBoxes({ profile, entries, prefs, open, planned = true }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const decay = latestOf(entries, "decay");
   const d = decay && scoreDecay(decay.answers, decay.ctx);
   const sips = sipReadings(entries), sip = sips.at(-1);
   const phs = phReadings(entries), ph = phs.at(-1);
-  const pat = phPattern(phs);
   const every = prefs.sipEvery;
-  // One rhythm for both checks: the frequency the person chose.
   const sipNext = every ? nextCheck(sip?.ts, every) : null;
   const phNext = every ? nextCheck(ph?.ts, every) : null;
-  const care = CARE_TOPICS.filter((t) => t.forYou(careCtx));
-  const due = [sipNext?.due && "dry mouth check", phNext?.due && "pH test"].filter(Boolean);
-  const hour = new Date().getHours();
-  // A carer is greeted by their own name; the patient's name is on the line below.
-  const greetName = profile.carer ? (profile.carerName || "").trim() : firstName(profile);
-  const greet = (h) => `${h}${greetName ? `, ${greetName}` : ""}`;
-  const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const greeting = greet(hello);
   const empty = !sips.length && !phs.length;
-  const results = entries.filter((e) => e.sip != null || e.ph != null || e.kind === "risk" || e.kind === "decay");
-  const count = results.length;
-  const lastTs = Math.max(0, ...results.map((e) => e.ts));
-  // Dry mouth trend over the last four checks (SIP: higher is drier).
   const recent = sips.slice(-4).map((x) => x.sip);
   const change = recent.length > 1 ? recent.at(-1) - recent[0] : 0;
-  // The one thing to do today, most important first.
-  const cancer = inCancerCare(profile);
-  const active = activeTreatment(profile);
-  const daily = latestOf(entries, "daily");
-  const dailyToday = daily && sameDay(daily.ts, Date.now());
-  const triage = dailyToday ? dailyTriage(daily, { cancer: inCancerCare(profile) }) : null;
-  const who = profile.carer && profile.carerFor ? profile.carerFor : null;
-  const today =
-    triage?.level === "now" ? { tone: "red", icon: "alert", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
-    : active && !dailyToday ? { tone: "accent", icon: "heart", title: `How's ${who ? `${who}'s` : "your"} mouth today?`, sub: "A 10-second check during treatment", act: "Check now", go: () => open("daily") }
-    : triage?.level === "today" ? { tone: "amber", icon: "phone", title: cancer ? "Let your treatment team know today" : "See a dentist or doctor today", sub: triage.today[0], act: "See today's check", go: () => open("dailyresult") }
-    : pat.level === "flag" ? { tone: "amber", icon: "drop", id: "acid", title: "Your saliva has been acidic", sub: `${pat.acid} of your last ${pat.n} pH tests. Acid can put your teeth at risk — show your dentist.`, act: "What helps", go: () => go("advice", "plan") }
-    : !r ? { tone: "accent", icon: "shield", title: "Start with your dry mouth risk", sub: "2 minutes · medicines, health and habits", act: "Start", go: () => open("risk") }
-    : sipNext?.due || !sip ? { tone: "accent", icon: "drop", title: "Your dry mouth score is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
-    : !phSkip && (phNext?.due || !ph) ? { tone: "accent", icon: "drop", title: "Your pH test is due", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
-    : { tone: "good", icon: "check", title: "You're up to date", sub: `Next check ${sipNext ? when(sipNext).replace(/^Next: /, "") : "when you're ready"}`, act: "Log what I used today", go: () => open("used"), quiet: true };
-  // Until the plan is built, the build card leads — unless something urgent comes first.
-  const building = setup && !setup.built;
-  const urgent = triage?.level === "now" || triage?.level === "today" || (active && !dailyToday);
-  const buildCard = building && !urgent;
-  // Once the plan covers a high risk, show it calmly: red is kept for things to act on now.
-  const planned = setup?.built;
+  const trend = recent.length < 2 ? null : change >= 2 ? { label: "Getting drier", tone: "orange" } : change <= -2 ? { label: "Improving", tone: "good" } : { label: "Steady", tone: null };
   const calm = (tone) => (planned && tone === "red" ? "amber" : tone);
-  const tx = cancer ? journey(profile).cards[0] : null;
-  // After head and neck radiotherapy, the jaw opening test sits with the other checks.
+  const cancer = inCancerCare(profile);
   const jawCheck = (cancer && (profile.treatments || []).includes("rt_hn")) || [].concat(r ? risk.answers.cancer || [] : []).includes("rt_hn");
   const jaw = latestOf(entries, "jaw");
   const jawDue = jawCheck && (!jaw || Date.now() - jaw.ts > 30 * 864e5);
-  const trend = recent.length < 2 ? null : change >= 2 ? { label: "Getting drier", tone: "orange" } : change <= -2 ? { label: "Improving", tone: "good" } : { label: "Steady", tone: null };
-
-  // Nothing due: the calm "up to date" card steps down below the pain log and contacts.
-  const todayCard = (
-      <section className={`today t-${today.tone}`} aria-label="Today">
-        <span className="today-icon" aria-hidden="true"><Icon name={today.icon} size={24} /></span>
-        <div className="today-text"><p className="today-k">Today</p><h2>{today.title}</h2>{today.sub && <p>{today.sub}</p>}</div>
-        {today.act && <button className={`btn ${today.tone === "red" ? "danger" : today.quiet ? "ghost" : "primary"}`} onClick={today.go}>{today.act}</button>}
-      </section>
-  );
-
-  return (
-    <div className="screen home4">
-      <header className="brand-head">
-        <p className="brand"><BrandMark size={26} />Mouthkind <span className="brand-sub">Dry Mouth Care</span></p>
-        <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
-        {who && <p className="carer-line">Looking after {who}'s mouth</p>}
-        {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect and tools <Icon name="chev" size={15} /></b></button>}
-      </header>
-
-
-      {buildCard ? <SetupCard setup={setup} onSetup={onSetup} /> : !today.quiet && todayCard}
-      {building && !buildCard && <SetupCard slim setup={setup} onSetup={onSetup} />}
-
-
-
-      {ask}
-      {/* Daily pain log for everyone once the plan exists. During active treatment the Today card asks for
-          the full daily check first; once it's done, this shows today's pain. */}
-      {!building && onLog && (!(active && !dailyToday)) && (
-        <PainToday profile={profile} entry={dailyToday ? daily : null} onLog={onLog}
-          onDetail={() => open("daily")} onResult={() => open("dailyresult")} />
-      )}
-      {/* Who to call, and what to ask them: one box. Cancer care sees it from day one. */}
-      {(!building || cancer) && <CareTeamCard profile={profile} onEdit={() => open("careteam")} onQuestions={() => open("questions")} />}
-      {!buildCard && today.quiet && todayCard}
-      <FocusList plan={plan.filter((it) => !it.id.startsWith("start") && !(profile.planDone || {})[it.id] && !it.kept)} skip={today.id ? [today.id] : []} onOpen={() => go("advice", "plan")} />
-
-      {/* The result boxes appear once the assessment is complete; until then the setup card leads. */}
-      {!building && <div className="boxes">
+  return (<>
+      <div className="boxes">
         <Box kind="risk" title="Dry mouth risk" icon={<Icon name="shield" size={22} />}
           value={r ? r.band.label : null} valueTone={r ? calm(r.band.tone) : null} sub={r ? `${r.factors.length} risk factor${r.factors.length === 1 ? "" : "s"}` : "Medicines, health and habits"}
           status={r ? (planned && ["high", "veryhigh"].includes(r.band.id) ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!r}
@@ -173,10 +98,99 @@ export function Home({ profile, entries, prefs, careCtx, open, go, plan = [], as
             status={jawDue ? (jaw ? "Due this month" : "Not done yet") : "Once a month"} due={jawDue}
             onClick={() => open("jaw")} />
         )}
-      </div>}
+      </div>
+      {every && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}
+  </>);
+}
 
-      {every && !building && <div className="tk-foot home-foot"><span>Checking {every === 1 ? "every day" : every === 7 ? "once a week" : "every two weeks"}</span><span className="home-foot-acts"><button className="link-btn" onClick={() => open("freq")}>Change</button><button className="link-btn" onClick={() => open("remind")}><Icon name="bell" size={15} /> Remind me</button></span></div>}
+export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSetup, phSkip, onMe, routine = [], ticks = [], onTick, onWhy }) {
+  const risk = latestOf(entries, "risk");
+  const r = risk && scoreRisk(risk.answers);
+  const sips = sipReadings(entries), sip = sips.at(-1);
+  const phs = phReadings(entries), ph = phs.at(-1);
+  const pat = phPattern(phs);
+  const every = prefs.sipEvery;
+  const sipNext = every ? nextCheck(sip?.ts, every) : null;
+  const phNext = every ? nextCheck(ph?.ts, every) : null;
+  const hour = new Date().getHours();
+  // A carer is greeted by their own name; the patient's name is on the line below.
+  const greetName = profile.carer ? (profile.carerName || "").trim() : firstName(profile);
+  const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting = `${hello}${greetName ? `, ${greetName}` : ""}`;
+  const initial = (greetName || "").trim().charAt(0).toUpperCase();
+  // One line of progress since they started: the dry mouth score band, else the dryness log.
+  const progress = (() => {
+    if (sips.length >= 2) {
+      const a = sipLevel(sips[0].sip), z = sipLevel(sip.sip);
+      if (a.id !== z.id) return { good: z.lo < a.lo, text: `Your dry mouth score has ${z.lo < a.lo ? "improved" : "gone up"} from ${a.label.toLowerCase()} to ${z.label.toLowerCase()} since you started.` };
+    }
+    const logs = entries.filter((e) => e.kind === "daily" && e.dryness != null).sort((x, y) => x.ts - y.ts);
+    if (logs.length >= 8) {
+      const avg = (xs) => Math.round(xs.reduce((n, e) => n + e.dryness, 0) / xs.length);
+      const first = avg(logs.slice(0, 7)), last = avg(logs.slice(-7));
+      if (first !== last) return { good: last < first, text: `Dryness has averaged ${last} out of 10 this week, ${last < first ? "down" : "up"} from ${first} when you started logging.` };
+    }
+    return null;
+  })();
+  const cancer = inCancerCare(profile);
+  const active = activeTreatment(profile);
+  const daily = latestOf(entries, "daily");
+  const dailyToday = daily && sameDay(daily.ts, Date.now());
+  const triage = dailyToday ? triageFor(daily, profile) : null;
+  const who = profile.carer && profile.carerFor ? profile.carerFor : null;
+  const building = setup && !setup.built;
+  // One alert, only when something needs doing: urgent first, then checks that are due,
+  // then the most important thing in the plan that isn't part of the daily routine.
+  const inRoutine = new Set(routine.map((x) => x.why).filter(Boolean));
+  const action = plan.find((it) => it.pri >= 80 && !inRoutine.has(it.id) && !it.id.startsWith("start") && !(profile.planDone || {})[it.id] && !it.kept);
+  const alert =
+    triage?.level === "now" ? { tone: "red", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
+    : triage?.level === "today" ? { tone: "amber", title: cancer ? "Let your treatment team know today" : "See a dentist or doctor today", sub: triage.today[0], act: "What to do", go: () => open("dailyresult") }
+    : building ? null
+    : pat.level === "flag" ? { tone: "amber", title: "Your saliva has been acidic", sub: `${pat.acid} of your last ${pat.n} pH tests. Show your dentist.`, act: "What helps", go: () => go("advice", "plan") }
+    : action ? { tone: "amber", title: action.title, sub: action.because?.[0], act: "What to do", go: () => onWhy(action.id) }
+    : sipNext?.due ? { tone: "accent", title: "Your dry mouth score is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
+    : !phSkip && (phNext?.due || !ph) ? { tone: "accent", title: ph ? "Your pH test is due" : "Test your saliva pH", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
+    : null;
+  // The log: daily during cancer treatment, weekly otherwise.
+  const weekly = logCadence(active) === "weekly";
+  const due = logDue(entries, active);
+  const since = daysSinceLog(entries);
+  const tx = cancer ? journey(profile).cards[0] : null;
 
+  return (
+    <div className="screen home5">
+      <header className="brand-head">
+        <div className="brand-row">
+          <p className="brand"><BrandMark size={24} />Mouthkind <span className="brand-sub">Dry Mouth Care</span></p>
+          {onMe && <button type="button" className="me-avatar" onClick={onMe} aria-label="My details">{initial || <Icon name="user" size={20} />}</button>}
+        </div>
+        <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>
+        {who && <p className="carer-line">Looking after {who}'s mouth</p>}
+        {tx && <button type="button" className="tx-line" onClick={() => open("journey")}><span>{tx.title} · {tx.when}</span><b>What to expect <Icon name="chev" size={15} /></b></button>}
+        {progress && !building && <p className={`progress-line${progress.good ? " good" : ""}`}>{progress.text}</p>}
+      </header>
+
+      {alert && (
+        <section className={`alert5 t-${alert.tone}`} aria-label="Needs attention">
+          <span><strong>{alert.title}</strong>{alert.sub && <em>{alert.sub}</em>}</span>
+          <button type="button" className={`btn ${alert.tone === "red" ? "danger" : "ghost"}`} onClick={alert.go}>{alert.act}</button>
+        </section>
+      )}
+
+      {building ? <SetupCard setup={setup} onSetup={onSetup} /> : (<>
+        <button type="button" className={`log5${due ? " due" : ""}`} onClick={() => open("daily")}>
+          <span className="log5-icon" aria-hidden="true"><Icon name="plus" size={20} stroke={2.6} /></span>
+          <span className="log5-text">
+            <strong>{dailyToday ? "Today's mouth log" : weekly ? "Your weekly mouth check" : `How's ${who ? `${who}'s` : "your"} mouth today?`}</strong>
+            <em>{dailyToday ? [daily.dryness != null && `Dryness ${daily.dryness}`, daily.pain != null && `Pain ${daily.pain}`].filter(Boolean).join(" · ") + " · Update"
+              : due ? (since != null && since >= 2 ? `Last logged ${since} days ago · under a minute` : "Not logged yet · under a minute")
+              : `Logged ${since === 1 ? "yesterday" : `${since} days ago`} · next in ${7 - since} day${7 - since === 1 ? "" : "s"}`}</em>
+          </span>
+          <Icon name="chev" size={16} />
+        </button>
+        <RoutineCard routine={routine} done={ticks} onTick={onTick} onWhy={onWhy} />
+      </>)}
     </div>
   );
 }

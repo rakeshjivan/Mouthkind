@@ -18,7 +18,7 @@ test("no risk factors → 0, low, standard fluoride toothpaste", () => {
 test("no natural teeth ends the check and skips the plan's products", () => {
   assert.equal(visibleQuestions({ teeth: "none" }).length, 1);
   const r = scoreDecay({ teeth: "none" });
-  assert.ok(r.noTeeth); assert.deepEqual(ids(decayPlan(r)), ["dentures"]);
+  assert.ok(r.noTeeth); assert.deepEqual(ids(decayPlan(r)), ["dentures", "visit"]);
 });
 
 test("recent decay alone puts a person at high risk (CAMBRA)", () => {

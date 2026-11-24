@@ -182,19 +182,26 @@ test("products already in use are praised, not recommended as new", () => {
   for (const k of kept) { assert.match(k.title, /^Keep going with/); assert.match(k.body, /^You're already doing the right thing/); assert.ok(k.pri <= 45); }
 });
 
-test("the plan is built step by step: checks first, questions last, then the plan", async () => {
+test("the baseline: risk, dry mouth score and decay check, then care team and questions, then the plan", async () => {
   const { setupState } = await import("../src/data/setup.js");
   const s0 = setupState({ entries: [], profile: {}, openQs: 0 });
-  assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built);
-  const checks = [{ kind: "risk" }, { kind: "decay" }, { kind: "sip", sip: 10 }];
+  assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built); assert.equal(s0.minsLeft, 7);
+  const checks = [{ kind: "risk" }, { kind: "sip", sip: 10 }, { kind: "decay" }];
+  assert.equal(setupState({ entries: checks.slice(0, 2), profile: {}, openQs: 0 }).next.id, "decay");
   const s1 = setupState({ entries: checks, profile: {}, openQs: 2 });
-  assert.equal(s1.next.id, "ph");
-  const s2 = setupState({ entries: checks, profile: { phSkip: true }, openQs: 2 });
+  assert.equal(s1.next.id, "team");
+  const s2 = setupState({ entries: checks, profile: { teamAsked: true }, openQs: 2 });
   assert.equal(s2.next.id, "questions"); assert.ok(!s2.built);
-  const s3 = setupState({ entries: checks, profile: { phSkip: true }, openQs: 0 });
+  const s3 = setupState({ entries: checks, profile: { dentist: { phone: "07 1111 2222" } }, openQs: 0 });
   assert.ok(s3.all && s3.built && !s3.next);
   // Once built, a new question doesn't take the plan away.
-  assert.ok(setupState({ entries: checks, profile: { phSkip: true, planBuilt: true }, openQs: 1 }).built);
+  assert.ok(setupState({ entries: checks, profile: { teamAsked: true, planBuilt: true }, openQs: 1 }).built);
+});
+
+test("without the decay check, a dry mouth still gets the Tooth Mousse routine", () => {
+  const plan = buildPlan(model({}, [{ id: "s", kind: "sip", sip: 12, ts: NOW - D }]));
+  const ids = plan.map((i) => i.id);
+  assert.ok(ids.includes("decay.tmp") && ids.includes("decay.tm"));
 });
 
 test("pregnancy with morning sickness: moderate dry mouth risk, and the decay check counts the acid", async () => {
@@ -226,7 +233,7 @@ test("people see low, moderate or high — never 'Very high' or a number out of 
 test("people at risk are asked to get a saliva flow and buffering test from their dentist", () => {
   const atRisk = buildPlan(buildModel({ profile: {}, entries: [{ id: "s1", kind: "sip", ts: Date.now(), sip: 9 }] }));
   const it = atRisk.find((i) => i.id === "salivaTest");
-  assert.ok(it); assert.match(it.body, /stimulated flow/); assert.match(it.body, /buffering/);
+  assert.ok(it); assert.match(it.body, /saliva you make when you chew/); assert.match(it.body, /fights acid/);
   assert.ok(it.act.addQ);
   const low = buildPlan(buildModel({ profile: {}, entries: [{ id: "s1", kind: "sip", ts: Date.now(), sip: 6 }] }));
   assert.ok(!low.some((i) => i.id === "salivaTest"));

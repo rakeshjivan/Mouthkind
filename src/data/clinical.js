@@ -159,7 +159,7 @@ export const WEEKLY_INTERVAL_DAYS = 7;
 
 // ─── Questions people find useful to ask ───────────────────────────────────
 export const QUESTIONS = [
-  { id: "q1", when: "before", who: "dentist", text: "Do any of my teeth need treating or removing before my cancer treatment starts?" },
+  { id: "q1", when: "before", who: "dentist", text: "Do my teeth or gums need anything before my cancer treatment starts?" },
   { id: "q2", when: "before", who: "dentist", text: "Should I use a high-fluoride toothpaste or fluoride trays, and from when?" },
   { id: "q3", when: "before", who: "team", text: "How is my treatment likely to affect my mouth, and when?" },
   { id: "q4", when: "before", who: "team", text: "Who do I call if my mouth gets sore or I get a temperature, day or night?" },

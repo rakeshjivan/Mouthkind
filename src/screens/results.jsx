@@ -1,8 +1,9 @@
 import { USED, usedDays, usedInsights } from "../data/used.js";
-import { GRADES, painBand } from "../data/daily.js";
+import { GRADES, TEETH_FLAGS, painBand, teethFlags } from "../data/daily.js";
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
-import { DotSeries, PhTimeline, levelId } from "../components/kit.jsx";
+import { CheckBoxes } from "./home.jsx";
+import { DotSeries, PhTimeline, SymptomChart, levelId } from "../components/kit.jsx";
 import { SIP_QUESTIONS, SIP_OPTIONS, phBand, phColor, sipBand, sipLevel } from "../data/clinical.js";
 import { PH_ZONES, isAcidic, phPattern } from "../data/ph.js";
 import { RISK_BANDS, scoreRisk } from "../data/risk.js";
@@ -55,7 +56,7 @@ function UsedPanel({ entries, open }) {
   );
 }
 
-export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
+export function Results({ profile = {}, prefs = {}, entries, open, onDelete, onShowRisk, onShowDecay }) {
   const [openId, setOpenId] = useState(null);
   const sips = entries.filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => a.ts - b.ts);
   const phs = entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -68,25 +69,28 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 
   if (!all.length && !dailies.length && !anyUsed && !jaws.length) return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Tracker</h1></header>
-      <section className="empty-card"><p>Your risk checks, dry mouth scores and pH results will appear here, with charts once you have a few.</p>
-        <button className="btn primary big" onClick={() => open("risk")}>Check my risk</button></section>
+      <header className="hero"><h1 className="display">Progress</h1></header>
+      <CheckBoxes profile={profile} entries={entries} prefs={prefs} open={open} />
+      <section className="empty-card"><p>Your results and mouth log will build up here, with charts once you have a few.</p></section>
     </div>
   );
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Tracker</h1>
-        <p className="lede">Everything you've recorded, to look back on or show your dentist.</p></header>
+      <header className="hero"><h1 className="display">Progress</h1>
+        <p className="lede">Your checks, your mouth log and everything you've recorded, to look back on or show your team.</p></header>
+      <CheckBoxes profile={profile} entries={entries} prefs={prefs} open={open} />
 
       {dailies.length > 0 && (
         <section className="panel">
-          <div className="panel-h"><h2>Mouth pain and daily check</h2><button className="link-btn" onClick={() => open("daily")}>Add today</button></div>
+          <div className="panel-h"><h2>My mouth log</h2><button className="link-btn" onClick={() => open("daily")}>Log today</button></div>
           {(() => { const d = dailies.at(-1), b = painBand(d.pain ?? 0); return (
-            <p className="big-read"><strong>{d.pain ? `Pain ${d.pain} out of 10` : "No pain"}</strong>{d.pain ? <> · {b.label}</> : null}{d.sores != null && <> · {GRADES[d.grade ?? 0].label.toLowerCase()}</>}</p>); })()}
+            <ul className="sym-now">{d.dryness != null && <li>Dryness {d.dryness} of 10</li>}<li>{d.pain ? `Pain ${d.pain} of 10 · ${b.label.toLowerCase()}` : "No pain"}</li>{d.sores != null && <li>{GRADES[d.grade ?? 0].label}</li>}</ul>); })()}
           <p className="panel-foot">Last logged {fmtShort(dailies.at(-1).ts)}</p>
-          {dailies.length > 1 && <DotSeries points={dailies.slice(-21).map((d) => ({ v: d.pain ?? 0, label: fmtShort(d.ts) }))} min={0} max={10} tone="red" fmt={(v) => v} />}
-          <p className="panel-foot">Mouth pain, 0 (none) to 10.</p>
+          {dailies.length > 1 && <SymptomChart days={dailies.slice(-21).map((d) => ({ ...d, tooth: teethFlags(d).length > 0 }))} fmt={fmtShort} />}
+          {(() => { const t = dailies.slice(-21).filter((d) => teethFlags(d).length); return t.length > 0 && (
+            <ul className="sym-flags">{t.reverse().slice(0, 4).map((d) => <li key={d.id}><strong>{fmtShort(d.ts)}</strong> {teethFlags(d).map((v) => TEETH_FLAGS.find((f) => f.v === v)?.label).join(", ")}</li>)}</ul>); })()}
+          <p className="panel-foot">Dryness and pain, 0 (none) to 10. The strip shows mouth sores: darker is worse.</p>
         </section>
       )}
 

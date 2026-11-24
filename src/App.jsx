@@ -11,7 +11,7 @@ import { profileAnswers } from "./data/person.js";
 import { activeTreatment, inCancerCare } from "./data/journey.js";
 import { DecayFlow, DecayResult } from "./screens/decay.jsx";
 import { decayContext, scoreDecay } from "./data/decay.js";
-import { FrequencyPicker, PhFlow, Reminder, SipFlow } from "./screens/extras.jsx";
+import { FrequencyPicker, LogReminder, PhFlow, Reminder, SipFlow } from "./screens/extras.jsx";
 import { Results, Summary } from "./screens/results.jsx";
 import { Me } from "./screens/me.jsx";
 import { Backup } from "./screens/backup.jsx";
@@ -20,18 +20,23 @@ import { DailyCheck, DailyResult, UsedLog } from "./screens/daily.jsx";
 import { sameDay } from "./data/daily.js";
 import { ChemoToday, JawTool, Journey, Questions, RtCard } from "./screens/journey.jsx";
 import { buildModel, buildPlan, openQuestions, summary } from "./data/engine.js";
-import { AskCard, SetupQuestions } from "./screens/plan.jsx";
+import { SetupQuestions } from "./screens/plan.jsx";
 import { CareTeamEdit } from "./screens/careTeam.jsx";
 import { setupState } from "./data/setup.js";
+import { buildRoutine, tickEntry, ticksToday } from "./data/routine.js";
+import { CallSheet, HelpBar, WorrySheet } from "./screens/help.jsx";
+import { Sheet } from "./components/ui.jsx";
+import { PlanItem } from "./screens/plan.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js";
 
 const TABS = [
-  { id: "home", label: "Home", icon: "home" },
-  { id: "tracker", label: "Tracker", icon: "chart" },
-  { id: "advice", label: "Plan", icon: "leaf" },
+  { id: "home", label: "Today", icon: "home" },
+  { id: "tracker", label: "Progress", icon: "chart" },
+  { id: "advice", label: "Help", icon: "book" },
   { id: "shop", label: "Shop", icon: "cart" },
-  { id: "me", label: "Me", icon: "user" },
 ];
+// Me opens from the initial at the top of Today, so the footer has four tabs with the Log
+// button in the middle. Call my team and When to worry sit just above it on every screen.
 
 export default function App() {
   const [profile, setProfileState] = useState(() => ({ ...DEFAULT_PROFILE, ...load("profile", {}) }));
@@ -41,9 +46,22 @@ export default function App() {
   const [sheet, setSheet] = useState(null);
   const [afterFreq, setAfterFreq] = useState(null);
   const [focus, setFocus] = useState(null);
+  const [whyId, setWhyId] = useState(null);
 
   const setProfile = useCallback((p) => { setProfileState(p); save("profile", p); }, []);
   const setPrefs = useCallback((p) => { setPrefsState(p); save("prefs", p); }, []);
+  // A "yes" to "Are you on dialysis?" (for checks saved before dialysis had its own option)
+  // moves the old kidney tick to dialysis, so the score and the fluid-limit advice follow.
+  const onDialysis = profile.fu?.dialysis?.v === "yes";
+  useEffect(() => {
+    if (!onDialysis) return;
+    setEntries((prev) => {
+      if (!prev.some((e) => e.kind === "risk" && (e.answers?.conditions || []).includes("kidney"))) return prev;
+      const n = prev.map((e) => (e.kind === "risk" && (e.answers?.conditions || []).includes("kidney")
+        ? { ...e, v: 3, answers: { ...e.answers, conditions: e.answers.conditions.map((c) => (c === "kidney" ? "dialysis" : c)) } } : e));
+      save("entries", n); return n;
+    });
+  }, [onDialysis]);
   const addEntry = useCallback((x) => setEntries((prev) => { const n = [...prev.filter((e) => e.id !== x.id), x]; save("entries", n); return n; }), []);
   const delEntries = useCallback((ids) => setEntries((prev) => { const n = prev.filter((e) => !ids.includes(e.id)); save("entries", n); return n; }), []);
   const restore = useCallback((data) => {
@@ -81,9 +99,10 @@ export default function App() {
   const riskHas = (q, v) => [].concat(risk?.answers?.[q] || []).includes(v);
   const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: fromProfile.age || risk?.answers?.age || null,
     rtHN: riskHas("cancer", "rt_hn") || (inCancerCare(profile) && (profile.treatments || []).includes("rt_hn")), sjogren: riskHas("conditions", "sjogren"),
-    acid: riskHas("conditions", "pregnantSick") ? "Morning sickness or vomiting" : riskHas("conditions", "eating") || riskHas("conditions", "reflux") ? "Vomiting or reflux" : null });
+    acid: riskHas("conditions", "pregnantSick") ? "Morning sickness or vomiting" : riskHas("conditions", "eating") || riskHas("conditions", "reflux") ? "Vomiting or reflux" : null,
+    smoke: risk ? riskHas("habits", "smoke") || riskHas("habits", "vape") : null });
   // Radiotherapy and Sjögren's always count for decay, even on results saved before they were known.
-  const view = useMemo(() => entries.map((e) => (e.kind === "decay" ? { ...e, ctx: { ...(e.ctx || {}), rtHN: decayCtx.rtHN, sjogren: decayCtx.sjogren, acid: decayCtx.acid } } : e)), [entries, decayCtx.rtHN, decayCtx.sjogren, decayCtx.acid]);
+  const view = useMemo(() => entries.map((e) => (e.kind === "decay" ? { ...e, ctx: { ...(e.ctx || {}), rtHN: decayCtx.rtHN, sjogren: decayCtx.sjogren, acid: decayCtx.acid, smoke: decayCtx.smoke } } : e)), [entries, decayCtx.rtHN, decayCtx.sjogren, decayCtx.acid, decayCtx.smoke]);
   const decay = latestOf(view, "decay");
   const decayR = decay && scoreDecay(decay.answers, decay.ctx);
   const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null,
@@ -103,32 +122,43 @@ export default function App() {
   useEffect(() => { if (setup.all && !profile.planBuilt) setProfile({ ...profile, planBuilt: true }); }, [setup.all, profile, setProfile]);
   const continueSetup = () => {
     const n = setup.next;
-    if (!n) { go("advice", "plan"); return; }
+    if (!n) { go("home"); return; }
     if (n.id === "questions") setSheet("setupq"); else open(n.sheet);
   };
-  const next = building ? { label: setup.next ? `Next: ${setup.next.short}` : "See my plan", go: continueSetup } : null;
+  const next = building ? { label: setup.next ? `Next: ${setup.next.short}` : "See my routine", go: continueSetup } : null;
   // Questions are only ever asked in their own step, never popped up elsewhere. After the
   // plan is built, any new ones wait behind an optional "Refine your plan" link.
   const ask = () => null;
   const refine = !building && qs.length ? { n: qs.length, go: () => setSheet("refineq") } : null;
+  // Today's routine: the plan as ticks. A tick also counts as using that product.
+  const routine = useMemo(() => (building ? [] : buildRoutine(plan, { noTeeth: !!decayR?.noTeeth })), [building, plan, decayR?.noTeeth]);
+  const ticks = ticksToday(entries);
+  const onTick = (id) => addEntry(tickEntry(entries, routine, id));
+  const whyItem = whyId && plan.find((i) => i.id === whyId);
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
 
   return (
     <div className="app">
-      <main className="main" id="main">
-        {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} careCtx={careCtx} open={open} go={go} plan={building ? [] : plan} ask={ask(false)} setup={setup} onSetup={continueSetup} onLog={addEntry} />}
+      <main className={`main${profile.onboarded && !showWelcome && tab === "home" ? " with-help" : ""}`} id="main">
+        {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={building ? [] : plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
+          routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} />}
         {tab === "shop" && <Shop forYou={building ? [] : [...new Set(plan.flatMap((it) => it.products || []))]} />}
-        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} focus={focus} plan={building ? [] : plan} sum={building ? [] : sum} ask={ask(false)} refine={refine} profile={profile} setProfile={setProfile} open={open} setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} />}
-        {tab === "tracker" && <Results entries={view} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
+        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} openSheet={setSheet} focus={focus} plan={building ? [] : plan} sum={building ? [] : sum} ask={ask(false)} refine={refine} profile={profile} setProfile={setProfile} open={open} setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} />}
+        {tab === "tracker" && <Results profile={profile} prefs={prefs} entries={view} open={open} onDelete={delEntries} onShowRisk={() => setSheet("riskresult")} onShowDecay={() => setSheet("decayresult")} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
 
+      {profile.onboarded && !showWelcome && tab === "home" && <HelpBar profile={profile} open={open} />}
       <nav className="tabbar" aria-label="Main">
-        {TABS.map((t) => (
+        {TABS.flatMap((t, i) => [
+          // The symptom log: an action, not a tab — always one tap away, in the middle.
+          ...(i === 2 && profile.onboarded ? [<button key="log" type="button" className="tab tab-log" onClick={() => open("daily")} aria-label="Log how your mouth feels today">
+            <span className="tab-log-btn" aria-hidden="true"><Icon name="plus" size={26} stroke={2.6} /></span><span>Log</span>
+          </button>] : []),
           <button key={t.id} className={`tab${tab === t.id ? " on" : ""}`} onClick={() => go(t.id)} aria-current={tab === t.id ? "page" : undefined}>
             <Icon name={t.icon} stroke={tab === t.id ? 2.4 : 1.8} /><span>{t.label}</span>
-          </button>
-        ))}
+          </button>,
+        ])}
       </nav>
 
       {sheet === "risk" && <RiskFlow last={risk} model={dryModel(fromProfile)} plan={building ? null : plan} next={next} onClose={close} onSave={addEntry} onCare={() => go("advice", "plan")} />}
@@ -141,17 +171,30 @@ export default function App() {
       )}
       {sheet === "sip" && prefs.sipEvery && <SipFlow every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} followUp={ask(true)} next={next} />}
       {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
-      {sheet === "ph" && <PhFlow readings={phReadings(entries)} followUp={ask(true)} next={next} onSkip={building ? () => { setProfile({ ...profile, phSkip: true }); const ready = setup.steps.filter((s) => s.id !== "ph" && s.id !== "questions").every((s) => s.done); setSheet(ready && qs.length ? "setupq" : null); if (ready && !qs.length) go("advice", "plan"); } : null} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
+      {sheet === "logremind" && <LogReminder prefs={prefs} setPrefs={setPrefs} onClose={close} weekly={!activeTreatment(profile)} />}
+      {sheet === "ph" && <PhFlow readings={phReadings(entries)} followUp={ask(true)} next={next} onSkip={building ? () => { setProfile({ ...profile, phSkip: true }); const ready = setup.steps.filter((s) => s.id !== "ph" && s.id !== "questions").every((s) => s.done); setSheet(ready && qs.length ? "setupq" : null); if (ready && !qs.length) go("home"); } : null} onClose={close} onSave={addEntry} onCare={() => go("advice", "protect")} />}
       {sheet === "report" && <Summary entries={view} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
-      {sheet === "daily" && <DailyCheck profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} followUp={ask(true)} />}
-      {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onLearn={() => go("advice", "sore")} onClose={close} onUsed={() => setSheet("used")} followUp={ask(true)} />}
-      {(sheet === "setupq" || sheet === "refineq") && <SetupQuestions q={q} m={model} left={qs.length} refining={sheet === "refineq"} profile={profile} setProfile={setProfile} onClose={close} onPlan={() => go("advice", "plan")} />}
+      {sheet === "daily" && <DailyCheck profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onUsed={() => setSheet("used")} followUp={ask(true)} onLearn={() => go("advice", "sore")} noTeeth={!!decayR?.noTeeth} decayRisk={!!decayR && !decayR.noTeeth && decayR.band.id !== "low"} fluidLimit={riskHas("conditions", "dialysis")} onShop={() => go("shop")} onRemind={prefs.logRemind ? null : () => setSheet("logremind")} />}
+      {sheet === "dailyresult" && daily && <DailyResult entry={daily} profile={profile} onLearn={() => go("advice", "sore")} noTeeth={!!decayR?.noTeeth} decayRisk={!!decayR && !decayR.noTeeth && decayR.band.id !== "low"} fluidLimit={riskHas("conditions", "dialysis")} onShop={() => go("shop")} onClose={close} onUsed={() => setSheet("used")} followUp={ask(true)} />}
+      {(sheet === "setupq" || sheet === "refineq") && <SetupQuestions q={q} m={model} left={qs.length} refining={sheet === "refineq"} profile={profile} setProfile={setProfile} onClose={close} onPlan={() => (sheet === "refineq" ? go("advice", "plan") : go("home"))} />}
       {sheet === "used" && <UsedLog onClose={close} onSave={addEntry} last={lastUsed?.items} />}
       {sheet === "journey" && <Journey profile={profile} onClose={close} openTool={setSheet} onEdit={() => setSheet("situation")} />}
       {sheet === "jaw" && <JawTool entries={entries} onClose={close} onSave={addEntry} />}
       {sheet === "rtcard" && <RtCard profile={profile} onClose={close} />}
-      {sheet === "careteam" && <CareTeamEdit profile={profile} setProfile={setProfile} onClose={close} />}
+      {sheet === "careteam" && <CareTeamEdit profile={profile} setProfile={setProfile} onClose={close}
+        setup={building && setup.next?.id === "team" ? {
+          // In setup: saving or skipping marks the step done and moves on to the questions (or the plan).
+          done: (p) => { setProfile({ ...p, teamAsked: true }); setSheet(qs.length ? "setupq" : null); if (!qs.length) go("home"); },
+        } : null} />}
+      {sheet === "worry" && <WorrySheet profile={profile} onClose={close} open={open} />}
+      {sheet === "call" && <CallSheet profile={profile} onClose={close} open={open} />}
+      {whyItem && (
+        <Sheet title="Why this is in your plan" onClose={() => setWhyId(null)}>
+          <PlanItem it={whyItem} profile={profile} open={(s) => { setWhyId(null); open(s); }} done={false} startOpen onTick={() => setWhyId(null)} onProduct={() => { setWhyId(null); go("shop"); }}
+            onAddQ={(q) => { const x = profile.ownQuestions || []; if (!x.includes(q)) setProfile({ ...profile, ownQuestions: [...x, q] }); }} />
+        </Sheet>
+      )}
       {sheet === "questions" && <Questions profile={profile} setProfile={setProfile} onClose={close} />}
       {sheet === "chemoday" && <ChemoToday profile={profile} setProfile={setProfile} onClose={() => setSheet("journey")} />}
       {(showWelcome || sheet === "situation") && <Welcome profile={profile} onDone={(p) => { setProfile(p); close(); }} />}

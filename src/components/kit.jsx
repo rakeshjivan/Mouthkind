@@ -50,6 +50,32 @@ export function DotSeries({ points, min, max, line, lineLabel, tone, fmt = (v) =
   );
 }
 
+// ─── Symptom log over time: dryness and pain (0–10), sores strip, tooth and gum markers ───
+export function SymptomChart({ days, fmt }) {
+  const W = 340, L = 26, R = 10, T = 12, H = 150, B = 22, strip = 14, mark = 12;
+  const plotB = H - B - strip - mark - 10;
+  const n = days.length;
+  const x = (i) => (n === 1 ? (W + L - R) / 2 : L + (i * (W - L - R)) / (n - 1));
+  const y = (v) => T + ((10 - v) * (plotB - T)) / 10;
+  const path = (k) => days.map((d, i) => [i, d[k]]).filter(([, v]) => v != null).map(([i, v], j) => `${j ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join("");
+  const cw = n > 1 ? Math.min(18, (W - L - R) / (n - 1) - 2) : 14;
+  const desc = days.map((d) => `${fmt(d.ts)}: dryness ${d.dryness ?? "not logged"}, pain ${d.pain ?? "not logged"}`).join("; ");
+  return (
+    <figure className="symchart">
+      <div className="sym-legend" aria-hidden="true">{[["dry", "Dryness"], ["pain", "Pain"], ["sore", "Sores"], ["tooth", "Tooth or gum problem"]].map(([k, t]) => <span key={k} className="item"><span className={`k ${k}`} />{t}</span>)}</div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="chart2" role="img" aria-label={`Dryness and pain, 0 to 10, by day. ${desc}`}>
+        {[0, 5, 10].map((v) => <g key={v}><line x1={L} x2={W - R} y1={y(v)} y2={y(v)} className="c-grid" /><text x={L - 6} y={y(v) + 4} className="c-axis" textAnchor="end">{v}</text></g>)}
+        <path d={path("dryness")} className="c-line dry" /><path d={path("pain")} className="c-line red" />
+        {days.map((d, i) => d.dryness != null && <circle key={`d${i}`} cx={x(i)} cy={y(d.dryness)} r="3.5" className="c-pt dry" />)}
+        {days.map((d, i) => d.pain != null && <circle key={`p${i}`} cx={x(i)} cy={y(d.pain)} r="3.5" className="c-pt red" />)}
+        {days.map((d, i) => d.sores != null && <rect key={`s${i}`} x={x(i) - cw / 2} y={plotB + 8} width={cw} height={strip} rx="3" className={`c-sore g${d.grade ?? 0}`} />)}
+        {days.map((d, i) => d.tooth && <circle key={`t${i}`} cx={x(i)} cy={plotB + 8 + strip + 8} r="4" className="c-tooth" />)}
+        {days.map((d, i) => (n <= 7 || i % Math.ceil(n / 7) === 0) && <text key={`x${i}`} x={x(i)} y={H - 4} className="c-axis" textAnchor="middle">{fmt(d.ts)}</text>)}
+      </svg>
+    </figure>
+  );
+}
+
 // ─── Tick any, as full rows with a hint line ───────────────────────────────
 export function TickRows({ options, value, onChange }) {
   const toggle = (v) => onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v]);

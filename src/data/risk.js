@@ -22,7 +22,7 @@ import { medicineById } from "./medicines.js";
 // checked for this app. Shown in the plan for clinical review.
 // Mercadante 2021 (cancer therapy).
 
-export const RISK_VERSION = 2;
+export const RISK_VERSION = 3; // 3: "Kidney disease or dialysis" split into dialysis and kidney disease
 
 // ── Questions ───────────────────────────────────────────────────────────────
 // "one": pick one option. "many": tick any. Every option carries its points.
@@ -36,6 +36,7 @@ export const MED_PURPOSES = [
   { v: "pain", label: "Strong or long-term pain", hint: "Not just paracetamol or ibuprofen now and then", g: "opioid" },
   { v: "nerve", label: "Epilepsy or nerve pain", g: "seizure" },
   { v: "bp", label: "Blood pressure, heart or fluid", g: "bp" },
+  { v: "kidney", label: "Kidney disease or dialysis", hint: "e.g. fluid tablets, blood pressure tablets", g: "bp" },
   { v: "bladder", label: "Bladder urgency or leaking", g: "bladder" },
   { v: "menopause", label: "Menopause symptoms (HRT)", hint: "e.g. Estrogel, Estradot, Estalis, Femoston, Livial", g: "hrt" },
   { v: "prostate", label: "Prostate", g: "prostate" },
@@ -97,7 +98,8 @@ export const RISK_QUESTIONS = [
       { v: "sjogren", label: "Sjögren's syndrome", pts: 35, major: true, why: "Sjögren's syndrome damages the glands that make saliva and tears.", refs: ["shiboski2017", "vonbultz2007"] },
       { v: "autoimmune", label: "Rheumatoid arthritis, lupus or scleroderma", pts: 6, why: "These conditions can affect the salivary glands, and are often linked with Sjögren's.", refs: ["vonbultz2007", "villa2015"] },
       { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025", "vonbultz2007"] },
-      { v: "kidney", label: "Kidney disease or dialysis", pts: 6, why: "Up to three in four people on dialysis have a dry mouth, from fluid limits, medicines and the disease itself.", refs: ["laheij2021"] },
+      { v: "dialysis", label: "Kidney failure, on dialysis", pts: 10, why: "About half of people on haemodialysis have a dry mouth (28–79% across studies), from fluid limits, the medicines and the kidney disease itself.", refs: ["kumar2021", "laheij2021"] },
+      { v: "kidney", label: "Kidney disease, not on dialysis", pts: 5, why: "Saliva flow is lower in chronic kidney disease, even before dialysis, and the medicines for it often dry the mouth.", refs: ["oyetola2015", "laheij2021"] },
       { v: "heart", label: "Heart disease or high blood pressure", as: "Heart disease or high blood pressure", pts: 2, limited: true, why: "Mostly through the medicines used to treat it — fluid tablets and some blood pressure tablets reduce saliva." },
       { v: "stroke", label: "Stroke", pts: 3, limited: true, why: "A stroke can affect swallowing and mouth control, and often brings several new medicines." },
       { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Dry mouth is common in Parkinson's, partly from the medicines used to treat it.", refs: ["martimbianco2021"] },
@@ -118,7 +120,7 @@ export const RISK_QUESTIONS = [
   {
     id: "medFor", type: "many", section: "Medicines", text: "Do you take any medicines for these conditions?",
     hint: "Tick any that apply. Include tablets, inhalers, injections or patches you use most days.",
-    none: "I don't take regular medicines",
+    none: "No regular medicines",
     options: MED_PURPOSES.map(({ v, label, hint }) => ({ v, label, hint, pts: 0 })),
   },
   {
@@ -311,7 +313,7 @@ export const fullAnswers = (a = {}) => migrate(a);
 export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.hidden && (!q.when || q.when(answers))).map((q) => (q.id === "medFor" ? orderPurposes(q, answers) : q));
 
 // Conditions come first, so the medicine screen can lead with the conditions the person ticked.
-const COND_PURPOSE = { mood: "mood", parkinsons: "parkinsons", heart: "bp", diabetes: "diabetes", reflux: "stomach", pregnantSick: "stomach" };
+const COND_PURPOSE = { dialysis: "kidney", kidney: "kidney", mood: "mood", parkinsons: "parkinsons", heart: "bp", diabetes: "diabetes", reflux: "stomach", pregnantSick: "stomach" };
 function orderPurposes(q, a) {
   const mine = [...new Set((a.conditions || []).map((c) => COND_PURPOSE[c]).filter(Boolean))];
   if (!mine.length) return q;

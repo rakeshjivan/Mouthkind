@@ -25,7 +25,7 @@ const GROUP_PURPOSE = {
   tca: ["mood", "pain", "sleep"], antidep: ["mood"], antipsych: ["mental", "mood"], sleep: ["sleep", "mood"],
   antihist: ["allergy", "sleep", "stomach"], allergy: ["allergy"], opioid: ["pain"], seizure: ["nerve", "pain", "mood"],
   stimulant: ["adhd"], parkinson: ["parkinsons"], relaxant: ["muscle", "pain"], migraine: ["migraine"], cannabis: ["pain", "sleep", "other"],
-  bladder: ["bladder"], glp1: ["weight", "diabetes"], weightloss: ["weight"], bp: ["bp"], prostate: ["prostate", "bp"],
+  bladder: ["bladder"], glp1: ["weight", "diabetes"], weightloss: ["weight"], bp: ["bp", "kidney"], prostate: ["prostate", "bp"],
   inhaler: ["breathing"], gut: ["stomach"], acne: ["acne"], smoking: ["smoking"], decong: ["allergy"], hrt: ["menopause"], "cancer.immuno": ["other"],
 };
 const M = (g, b, c, p) => ({ g, b, c, p: p || GROUP_PURPOSE[c] || ["other"] });

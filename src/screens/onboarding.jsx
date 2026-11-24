@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BrandMark } from "../components/brandMark.jsx";
 import { Icon } from "../components/ui.jsx";
+import { DateParts } from "../components/dateParts.jsx";
 import { Pick, TickRows } from "../components/kit.jsx";
 import { STAGES, TREATMENTS } from "../data/journey.js";
 import { GENDERS, ageFrom } from "../data/person.js";
@@ -59,8 +60,7 @@ export function Welcome({ profile, onDone }) {
               <input value={p.lastName || ""} onChange={(e) => set({ lastName: e.target.value })} autoComplete={p.carer ? "off" : "family-name"} /></label>
           </div>
           <div className="field-row">
-            <label className="field"><span>{p.carer ? "Their date of birth" : "Date of birth"}{ageFrom(p.dob) != null ? ` · ${ageFrom(p.dob)} years` : ""}</span>
-              <input type="date" value={p.dob || ""} max={new Date().toISOString().slice(0, 10)} min="1900-01-01" onChange={(e) => set({ dob: e.target.value })} autoComplete={p.carer ? "off" : "bday"} /></label>
+            <DateParts label={<>{p.carer ? "Their date of birth" : "Date of birth"}{ageFrom(p.dob) != null ? ` · ${ageFrom(p.dob)} years` : ""}</>} value={p.dob || ""} onChange={(dob) => set({ dob })} autoComplete={p.carer ? "off" : "bday"} />
             <label className="field"><span>{p.carer ? "Their gender" : "Gender"}</span>
               <select value={p.gender || ""} onChange={(e) => set({ gender: e.target.value })}>
                 <option value="">Choose…</option>

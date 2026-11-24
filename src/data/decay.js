@@ -1,3 +1,4 @@
+import { checkup } from "./dental.js";
 // ─── Tooth Decay Risk ──────────────────────────────────────────────────────
 // A patient-answered caries risk check, built on the CAMBRA framework
 // (Featherstone 2021): disease indicators, risk factors and protective
@@ -199,14 +200,19 @@ const band = (id) => DECAY_BANDS.find((b) => b.id === id);
  * Dry mouth context from the person's other checks, so it isn't asked twice.
  * { dryRisk: band id, sip: latest SIP (5–15), ph: phPattern level, ageAns: dry mouth risk age answer }
  */
-export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false, acid = null } = {}) {
+export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false, acid = null, smoke = null } = {}) {
   const dry = dryRisk != null || sip != null || rtHN || sjogren;
-  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren, acid };
+  // smoke: from the dry mouth risk check (true/false), or null if that hasn't been done.
+  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren, acid, smoke };
 }
+
+const SMOKE = { q: "habits", v: "smoke", label: "Smoking or vaping", pts: 3, why: "Tobacco use is linked with more decay, especially on roots.", refs: ["duke2021"] };
 
 /** Points from the other checks: radiotherapy, Sjögren's, saliva flow and pH. */
 function contextFactors(ctx) {
   const out = [];
+  // Smoking or vaping, answered in the dry mouth risk check (so not asked again here).
+  if (ctx.smoke) out.push({ ...SMOKE, from: "risk" });
   // Radiotherapy damages both the salivary glands and the teeth themselves: decay
   // can start within months and spread fast (Moore 2020: 29% of patients, 37% within
   // two years). CAMBRA puts it in the highest group whatever else applies.
@@ -243,7 +249,9 @@ function contextFactors(ctx) {
 
 /** Questions to ask, given the answers so far and what the other checks already tell us. */
 export const visibleQuestions = (answers = {}, ctx = decayContext()) =>
-  DECAY_QUESTIONS.filter((q) => !q.when || q.when(answers, ctx));
+  DECAY_QUESTIONS.filter((q) => !q.when || q.when(answers, ctx))
+    // Smoking was already asked in the dry mouth risk check.
+    .map((q) => (q.id === "habits" && ctx.smoke != null ? { ...q, options: q.options.filter((o) => o.v !== "smoke") } : q));
 
 /** Score: { score, band, factors (risk, largest first), protective, noTeeth, dryStrong } */
 export function scoreDecay(answers = {}, ctx = decayContext()) {
@@ -279,9 +287,10 @@ export function scoreDecay(answers = {}, ctx = decayContext()) {
  * What to use, by risk level (after CAMBRA's adult recommendations).
  * Returns ordered steps: { id, title, body, products?, refs? }
  */
-export function decayPlan(result, answers = {}, { dry = false } = {}) {
+export function decayPlan(result, answers = {}, { dry = false, acid = false } = {}) {
   if (result.noTeeth) return [
-    { id: "dentures", title: "Look after your gums and dentures", body: "Without natural teeth there's no tooth decay to worry about. Clean your dentures every day, take them out at night, and see your dentist once a year to check your gums and mouth." },
+    { id: "dentures", title: "Look after your gums and dentures", body: "Without natural teeth there's no tooth decay to worry about. Clean your dentures every day and take them out at night." },
+    { id: "visit", ...checkup({ title: "See your dentist once a year", dentures: true }), refs: ["felton2011"] },
   ];
   const lvl = result.band.id;
   const uses = (v) => (answers.protect || []).includes(v);
@@ -295,14 +304,16 @@ export function decayPlan(result, answers = {}, { dry = false } = {}) {
       products: ["neutrafluor"], refs: ["featherstone2021", "chen2026"] });
   else
     out.push({ id: "paste", title: "Brush twice a day with fluoride toothpaste",
-      body: "Use a standard fluoride toothpaste (1,000 to 1,450 ppm) morning and night. Spit, don't rinse — the fluoride left on your teeth keeps working.",
+      body: "Use a standard fluoride toothpaste (1,000 to 1,450 ppm) morning and night. Spit, don't rinse — the fluoride left on your teeth keeps working. If mint flavour or foaming agents (SLS) sting or bother you, OraNurse is an unflavoured, SLS-free alternative with everyday fluoride.",
       products: ["oranurse"], refs: ["walsh2019"] });
 
-  // Everyone with natural teeth: fluoride and Tooth Mousse for daily prevention.
-  out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse™ Plus" : "Add GC Tooth Mousse™ Plus, morning and night",
+  // Everyone with natural teeth: Tooth Mousse for daily prevention. Recommended with a moderate or
+  // high decay risk, a dry mouth, acidic saliva or cancer treatment; optional otherwise.
+  const optional = lvl === "low" && !dry && !acid;
+  out.push({ id: "tmp", optional, title: uses("tm") ? "Keep using Tooth Mousse™ Plus" : optional ? "Optional: GC Tooth Mousse™ Plus for extra protection" : "Add GC Tooth Mousse™ Plus, morning and night",
       body: has("mouth", "braces")
           ? "After brushing in the morning and at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
-          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse™ adds calcium and phosphate; Tooth Mousse™ Plus provides additional protection, fortified with 900 ppm fluoride.",
+          : `${optional ? "Your risk is low, so this is an optional extra. " : ""}After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse™ adds calcium and phosphate; Tooth Mousse™ Plus provides additional protection, fortified with 900 ppm fluoride. Tooth Mousse™ Plus is for ages 6 and over; for younger children, use Tooth Mousse™.`,
       products: ["gc-tmp", "gc-tm"], refs: ["featherstone2021", "agarwal2022"] });
 
   // Through the day, as needed: Tooth Mousse (no added fluoride) between the morning and night Tooth Mousse Plus.
@@ -316,14 +327,23 @@ export function decayPlan(result, answers = {}, { dry = false } = {}) {
       body: "How much sugar you have and how often both matter. Have less, keep sweet things to mealtimes, drink water between meals, and finish with sugar-free gum or a piece of cheese.",
       refs: ["bernabe2016", "moynihan2014", "featherstone2021"] });
 
-  if (result.dryStrong || result.factors.some((f) => f.from === "ph"))
+  if (result.dryStrong)
     out.push({ id: "dry", title: "Help your saliva",
       body: "Sip water often, chew sugar-free gum to get saliva flowing, and use GC Dry Mouth Gel before meals and at bedtime.",
       products: ["gc-dmg"], refs: ["featherstone2021"] });
 
-  out.push({ id: "visit", title: hi ? "See your dentist every 3 to 6 months" : lvl === "moderate" ? "See your dentist every 6 to 12 months" : "Keep up your regular check-ups",
-    body: hi ? "Ask for fluoride varnish at each visit. Early decay found at a check-up can often be stopped without a filling." : "Show your dentist this result. Early decay found at a check-up can often be stopped without a filling.",
-    refs: hi ? ["slayton2018", "featherstone2021"] : ["featherstone2021"] });
+  // The full check-up: how often depends on the decay result; overdue if more than a year.
+  const overdue = ["2", "more", "pain"].includes(answers.dentist);
+  const every = hi ? "every 3 to 6 months" : lvl === "moderate" ? "every 6 to 12 months" : "every 12 to 24 months";
+  const extra = [
+    overdue ? "It's been a while, so a full check-up is a good idea now." : "",
+    dry ? "A dry mouth makes decay more likely, so check-ups matter more." : "",
+  ].filter(Boolean).join(" ");
+  out.push({ id: "visit", ...checkup({
+      title: overdue ? "Book a full check-up with your dentist" : hi || lvl === "moderate" ? `See your dentist ${every}` : "Keep up your regular check-ups",
+      extra,
+      note: `${overdue ? `After that, ${every} suits your result.` : ""}${hi ? " Ask for fluoride varnish at each visit, and show your dentist this result." : " Show your dentist this result."}`.trim() }),
+    refs: hi ? ["slayton2018", "featherstone2021", "niceRecall"] : ["featherstone2021", "niceRecall"] });
   return out;
 }
 

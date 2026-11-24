@@ -73,6 +73,8 @@ export function DecayResult({ entry, onClose, onRedo, onShop, next }) {
             <li key={s.id}>
               <strong>{s.title}</strong>
               <p>{s.body}</p>
+              {s.list && <ul className="pitem-list">{s.list.map((x) => <li key={x}>{x}</li>)}</ul>}
+              {s.note && <p>{s.note}</p>}
               {s.products?.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean).map((p) => (
                 <div key={p.id} className="plan-prod"><ProductImage product={p} size="sm" /><span>{p.name}</span></div>
               ))}
