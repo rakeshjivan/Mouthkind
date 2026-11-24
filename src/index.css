@@ -1564,7 +1564,7 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .help-btn.call { background: var(--red); color: var(--onred); }
 .help-btn.worry { background: var(--redbg); color: var(--red); border: 1.5px solid color-mix(in srgb, var(--red) 35%, transparent); }
 .help-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.main { padding-bottom: 160px; }
+.main.with-help { padding-bottom: 160px; }
 @media (min-width: 900px) { .helpbar { left: auto; right: 24px; bottom: 24px; width: 380px; } }
 /* When to worry */
 .worry-g { border-radius: 16px; padding: 12px 14px; margin: 0 0 12px; border: 1.5px solid var(--line); }

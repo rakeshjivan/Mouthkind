@@ -56,6 +56,7 @@ async def main():
         assert await pg.locator(".helpbar").count() == 1
         await shot("01-home-empty", True)
         await pg.click("nav >> text=Progress"); await pg.wait_for_timeout(300)
+        assert await pg.locator(".helpbar").count() == 0  # the help bar is on Today only
 
         # Risk check
         await pg.click(".tile.risk"); await pg.wait_for_timeout(450)
