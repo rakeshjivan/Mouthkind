@@ -49,6 +49,7 @@ async def main():
         await wl.get_by_role("button", name="Medicines that dry my mouth").click()
         await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(300)
         assert await pg.locator(".setup-card").count() == 1
+        assert await pg.locator(".helpbar").count() == 0  # no help bar until setup is done
         # The rest of this test checks each screen on its own, so mark the plan as built.
         await pg.evaluate("() => { const p = JSON.parse(localStorage.getItem('mkt:profile')); p.planBuilt = true; localStorage.setItem('mkt:profile', JSON.stringify(p)); }")
         await pg.reload(); await pg.wait_for_timeout(400)

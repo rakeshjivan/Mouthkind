@@ -1598,3 +1598,7 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .call-pick.urgent { border-color: var(--red); background: var(--redbg); }
 .call-pick:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .call-pick-btn { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--red); color: var(--onred); }
+
+/* Care team: people added beyond the listed roles */
+.team-add { width: 100%; margin-top: 4px; }
+.team-remove { margin-top: 2px; color: var(--red); }

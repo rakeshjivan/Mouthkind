@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
-import { PUBLIC_DENTAL_URL, careContacts, contactRoles, findNearHref, getContact, openQuestionCount, rolesText, setContact, stateFromPostcode, telHref } from "../data/careTeam.js";
+import { PUBLIC_DENTAL_URL, addExtraContact, careContacts, contactRoles, findNearHref, getContact, openQuestionCount, removeExtraContact, rolesText, setContact, stateFromPostcode, telHref } from "../data/careTeam.js";
 
 /** Home: everyone to contact, and the questions to ask them, in one box. */
 export function CareTeamCard({ profile, onEdit, onQuestions }) {
@@ -38,7 +38,9 @@ export function CareTeamCard({ profile, onEdit, onQuestions }) {
 export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
   const [p, setP] = useState(profile);
   const set = (id, patch) => setP((x) => setContact(x, id, patch));
-  const save = () => (setup ? setup.done(p) : (setProfile(p), onClose()));
+  // An added person left completely empty isn't kept.
+  const tidy = (x) => ({ ...x, extraContacts: (x.extraContacts || []).filter((c) => [c.role, c.name, c.phone].some((v) => (v || "").trim())) });
+  const save = () => (setup ? setup.done(tidy(p)) : (setProfile(tidy(p)), onClose()));
   return (
     <Sheet title={setup ? "Build your plan" : "My care team"} onClose={onClose}
       footer={setup ? <>
@@ -49,6 +51,17 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
       <p className="lede tight">{setup ? "Add the one or two you'd most likely call, so they're one tap away on Home. You can add the rest later." : "Add whoever you might need to call. Leave any you don't have blank."}</p>
       {contactRoles(p).map((r) => {
         const c = getContact(p, r.id);
+        if (r.extra) return (
+          <fieldset key={r.id} className="team-edit extra">
+            <legend>{c.role.trim() || "Someone else"}</legend>
+            <label className="field"><span>Who are they?</span><input value={c.role} placeholder="e.g. dietitian, speech pathologist" onChange={(e) => set(r.id, { role: e.target.value })} /></label>
+            <div className="field-row">
+              <label className="field"><span>Name or clinic</span><input value={c.name} onChange={(e) => set(r.id, { name: e.target.value })} /></label>
+              <label className="field"><span>Phone</span><input type="tel" inputMode="tel" value={c.phone} onChange={(e) => set(r.id, { phone: e.target.value })} /></label>
+            </div>
+            <button type="button" className="link-btn team-remove" onClick={() => setP((x) => removeExtraContact(x, r.id))}>Remove {c.role.trim() || "this contact"}</button>
+          </fieldset>
+        );
         return (
           <fieldset key={r.id} className="team-edit">
             <legend>{r.role}</legend>
@@ -61,6 +74,8 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
           </fieldset>
         );
       })}
+      <button type="button" className="btn ghost team-add" onClick={() => setP((x) => addExtraContact(x))}><Icon name="plus" size={18} /> Add someone else</button>
+      <p className="small">For example a dietitian, speech pathologist, physiotherapist, social worker or oral medicine specialist.</p>
     </Sheet>
   );
 }
