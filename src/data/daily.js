@@ -57,6 +57,7 @@ export const teethFlags = (a = {}) => [].concat(a.teeth || []).filter((v) => v !
 export const triageFor = (a, p = {}, extra = {}) => dailyTriage(a, {
   ...extra,
   milk: [].concat(p.fu?.allergy?.v || []).includes("milk"),
+  hb: [].concat(p.fu?.allergy?.v || []).includes("hb"),
   cancer: (p.situation || []).includes("cancer"),
   chemo: (p.situation || []).includes("cancer") && (p.treatments || []).some((t) => t === "chemo" || t === "transplant"),
 });
@@ -130,12 +131,12 @@ export function dailyTriage(a, opts = {}) {
   if (flags.includes("broken")) notes.push("A broken tooth or filling: book in with your dentist. Until then, sugar-free gum or dental wax can cover a sharp edge so it doesn't cut your cheek or tongue.");
   if (flags.includes("gums")) notes.push(chemo ? "Bleeding gums: keep brushing gently with a soft brush. If it won't stop, or you have bruising elsewhere, call your team." : "Bleeding gums usually mean the gums are inflamed. Keep brushing gently along the gumline, and ask your dentist or hygienist to check them.");
   if (flags.includes("denture")) notes.push("Denture rubbing: leave them out when you can, and see your dentist to ease the sore spot. A sore that hasn't healed in 2 weeks should be checked.");
-  if (a.night === "more") notes.push("Waking with a dry mouth: use GC Dry Mouth Gel at bedtime and keep water by the bed.");
+  if (a.night === "more") notes.push(`Waking with a dry mouth: use ${opts.hb ? "a paraben-free saliva gel" : "GC Dry Mouth Gel"} at bedtime${opts.fluidLimit ? ", and keep any sips at night within your fluid limit" : " and keep water by the bed"}.`);
   const dry = a.dryness != null ? dryWord(a.dryness) : a.dry;
   const isDry = (dry && dry !== "none") || a.night === "once" || a.night === "more";
   // The GC routine: Dry Mouth Gel for a dry mouth and all cancer care; Tooth Mousse for those
   // and a Moderate or High decay risk, unless there are no natural teeth or a milk protein allergy.
-  if (isDry || cancer) tips.push("gel");
+  if ((isDry || cancer) && !opts.hb) tips.push("gel");
   if ((isDry || cancer || !!opts.decayRisk) && !opts.noTeeth && !opts.milk) tips.push("tmp", "tm");
   // The GC routine order: Tooth Mousse Plus morning and night, then gel and Tooth Mousse through the day.
   const ORDER = ["rinse", "gentle", "tmp", "gel", "tm", "soft"];

@@ -119,8 +119,9 @@ export const CARE_TOPICS = [
   {
     id: "water", icon: "drop", title: "Drink enough water",
     short: "Small sips through the day keep your mouth moist.",
-    forYou: (c) => has(c, "water.low", "habits.caffeine", "habits.alcohol") || (c.sip ?? 0) >= 8,
+    forYou: (c) => !has(c, "conditions.dialysis") && (has(c, "water.low", "habits.caffeine", "habits.alcohol") || (c.sip ?? 0) >= 8),
     steps: [
+      "On dialysis, or told to limit fluids? Keep within your limit. Sugar-free gum, sugar-free sweets and a saliva gel moisten your mouth without adding fluid.",
       "Carry a water bottle and take small sips often.",
       "Little and often works better than a lot at once. If your doctor has limited how much you drink, follow their advice.",
       "Sip water with meals to help you chew and swallow.",

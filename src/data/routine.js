@@ -24,14 +24,16 @@ export function buildRoutine(plan = [], { noTeeth = false } = {}) {
   const out = [];
   const add = (slot, id, text, product, why) => out.push({ id: `${slot}.${id}`, slot, text, product, why: why?.id });
 
+  const gelOf = (g) => ((g?.products || []).includes("gc-dmg") ? ["GC Dry Mouth Gel", "gc-dmg"] : ["A paraben-free saliva gel", null]);
   if (noTeeth) {
+    const [gn, gp] = gelOf(item("gel"));
     add("morning", "dentures", "Clean your dentures and rinse your mouth", null, item("dentures"));
-    if (item("gel")) add("day", "gel", "GC Dry Mouth Gel before meals", "gc-dmg", item("gel"));
+    if (item("gel")) add("day", "gel", `${gn} before meals`, gp, item("gel"));
     const kid = plan.find((i) => i.id === "kidneyFluid");
     if (kid) add("day", "water", "Sugar-free sweets or sips, within your fluid limit", null, kid);
     else if (item("water") || item("gel")) add("day", "water", "Sip water often", null, item("water"));
     add("night", "dentures", "Take your dentures out, clean them and leave them out overnight", null, item("dentures"));
-    if (item("gel")) add("night", "gel", "GC Dry Mouth Gel at bedtime", "gc-dmg", item("gel"));
+    if (item("gel")) add("night", "gel", `${gn} at bedtime`, gp, item("gel"));
     return out;
   }
 
@@ -41,12 +43,15 @@ export function buildRoutine(plan = [], { noTeeth = false } = {}) {
   const paste = hf ? { text: "Brush with high-fluoride toothpaste (5,000 ppm). Spit, don't rinse", product: "hf-paste", why: hf }
     : ora ? { text: "Brush gently with OraNurse and a soft brush", product: "oranurse", why: ora }
     : { text: "Brush with fluoride toothpaste. Spit, don't rinse", product: null, why: null };
-  const tmp = item("tmp"), tm = item("tm"), gel = item("gel"), rinse = item("rinse"), water = item("water"), kid = plan.find((i) => i.id === "kidneyFluid");
+  // A product is in the routine only if a plan item still recommends it (allergies take it out).
+  const withP = (prod, ...ids) => ids.map((id) => item(id)).find((i) => i && (i.products || []).includes(prod));
+  const tmp = withP("gc-tmp", "tmp", "rtFluoride"), tm = withP("gc-tm", "tm"), rinse = item("rinse"), water = item("water"), kid = plan.find((i) => i.id === "kidneyFluid");
+  const gelItem = item("gel"), gel = gelItem, gelName = (gelItem?.products || []).includes("gc-dmg") ? "GC Dry Mouth Gel" : "A paraben-free saliva gel";
 
   add("morning", "brush", paste.text, paste.product, paste.why);
   if (tmp) add("morning", "tmp", "GC Tooth Mousse™ Plus after brushing", "gc-tmp", tmp);
 
-  if (gel) add("day", "gel", "GC Dry Mouth Gel before meals", "gc-dmg", gel);
+  if (gel) add("day", "gel", `${gelName} before meals`, gelName.startsWith("GC") ? "gc-dmg" : null, gel);
   if (tm) add("day", "tm", "GC Tooth Mousse™ after a meal or snack", "gc-tm", tm);
   if (rinse) add("day", "rinse", "Rinse with salt and bicarbonate water, 4 times today", "rinse-home", rinse);
   if (kid) add("day", "water", "Sugar-free gum or sips, within your fluid limit", null, kid);
@@ -54,7 +59,7 @@ export function buildRoutine(plan = [], { noTeeth = false } = {}) {
 
   add("night", "brush", paste.text, paste.product, paste.why);
   if (tmp) add("night", "tmp", "GC Tooth Mousse™ Plus, then nothing to eat or drink", "gc-tmp", tmp);
-  if (gel) add("night", "gel", "GC Dry Mouth Gel at bedtime", "gc-dmg", gel);
+  if (gel) add("night", "gel", `${gelName} at bedtime`, gelName.startsWith("GC") ? "gc-dmg" : null, gel);
   return out;
 }
 

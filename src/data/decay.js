@@ -200,14 +200,19 @@ const band = (id) => DECAY_BANDS.find((b) => b.id === id);
  * Dry mouth context from the person's other checks, so it isn't asked twice.
  * { dryRisk: band id, sip: latest SIP (5–15), ph: phPattern level, ageAns: dry mouth risk age answer }
  */
-export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false, acid = null } = {}) {
+export function decayContext({ dryRisk = null, sip = null, ph = "none", ageAns = null, rtHN = false, sjogren = false, acid = null, smoke = null } = {}) {
   const dry = dryRisk != null || sip != null || rtHN || sjogren;
-  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren, acid };
+  // smoke: from the dry mouth risk check (true/false), or null if that hasn't been done.
+  return { dry, dryRisk, sip, ph, age: ageAns, rtHN, sjogren, acid, smoke };
 }
+
+const SMOKE = { q: "habits", v: "smoke", label: "Smoking or vaping", pts: 3, why: "Tobacco use is linked with more decay, especially on roots.", refs: ["duke2021"] };
 
 /** Points from the other checks: radiotherapy, Sjögren's, saliva flow and pH. */
 function contextFactors(ctx) {
   const out = [];
+  // Smoking or vaping, answered in the dry mouth risk check (so not asked again here).
+  if (ctx.smoke) out.push({ ...SMOKE, from: "risk" });
   // Radiotherapy damages both the salivary glands and the teeth themselves: decay
   // can start within months and spread fast (Moore 2020: 29% of patients, 37% within
   // two years). CAMBRA puts it in the highest group whatever else applies.
@@ -244,7 +249,9 @@ function contextFactors(ctx) {
 
 /** Questions to ask, given the answers so far and what the other checks already tell us. */
 export const visibleQuestions = (answers = {}, ctx = decayContext()) =>
-  DECAY_QUESTIONS.filter((q) => !q.when || q.when(answers, ctx));
+  DECAY_QUESTIONS.filter((q) => !q.when || q.when(answers, ctx))
+    // Smoking was already asked in the dry mouth risk check.
+    .map((q) => (q.id === "habits" && ctx.smoke != null ? { ...q, options: q.options.filter((o) => o.v !== "smoke") } : q));
 
 /** Score: { score, band, factors (risk, largest first), protective, noTeeth, dryStrong } */
 export function scoreDecay(answers = {}, ctx = decayContext()) {
@@ -318,7 +325,7 @@ export function decayPlan(result, answers = {}, { dry = false } = {}) {
       body: "How much sugar you have and how often both matter. Have less, keep sweet things to mealtimes, drink water between meals, and finish with sugar-free gum or a piece of cheese.",
       refs: ["bernabe2016", "moynihan2014", "featherstone2021"] });
 
-  if (result.dryStrong || result.factors.some((f) => f.from === "ph"))
+  if (result.dryStrong)
     out.push({ id: "dry", title: "Help your saliva",
       body: "Sip water often, chew sugar-free gum to get saliva flowing, and use GC Dry Mouth Gel before meals and at bedtime.",
       products: ["gc-dmg"], refs: ["featherstone2021"] });

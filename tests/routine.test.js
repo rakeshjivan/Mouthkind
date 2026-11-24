@@ -4,7 +4,9 @@ import { buildRoutine, routineView, slotNow, tickEntry, ticksToday } from "../sr
 import { logDue } from "../src/data/schedule.js";
 import { worryList } from "../src/data/worry.js";
 
-const plan = (...ids) => ids.map((id) => ({ id, pri: 50 }));
+// Plan items carry the products they recommend, as buildPlan gives them.
+const PROD = { "decay.tmp": ["gc-tmp", "gc-tm"], "decay.tm": ["gc-tm"], gel: ["gc-dmg"], oranurse: ["oranurse"], "decay.hf": ["neutrafluor"], rtFluoride: ["neutrafluor", "gc-tmp"] };
+const plan = (...ids) => ids.map((id) => ({ id, pri: 50, products: PROD[id] || [] }));
 
 test("routine follows the plan: Tooth Mousse Plus morning and night, gel and Tooth Mousse through the day", () => {
   const r = buildRoutine(plan("decay.tmp", "decay.tm", "gel", "oranurse"));
@@ -58,11 +60,29 @@ test("a part of the day with nothing in it hands over to the next one", () => {
 
 test("kidney disease: no 'drink more water', and the routine keeps to the fluid limit", async () => {
   const { buildPlan, buildModel } = await import("../src/data/engine.js");
-  const r = buildRoutine([{ id: "kidneyFluid", pri: 62 }, { id: "water", pri: 40 }, { id: "gel", pri: 50 }]);
+  const r = buildRoutine([{ id: "kidneyFluid", pri: 62 }, { id: "water", pri: 40 }, { id: "gel", pri: 50, products: ["gc-dmg"] }]);
   const w = r.find((x) => x.id === "day.water");
   assert.match(w.text, /fluid limit/);
   assert.equal(w.why, "kidneyFluid");
-  const m = buildModel({ profile: {}, entries: [{ id: "r1", kind: "risk", ts: Date.now(), answers: { conditions: ["kidney"], water: "low" } }] });
+  const m = buildModel({ profile: {}, entries: [{ id: "r1", kind: "risk", ts: Date.now(), answers: { conditions: ["dialysis"], water: "low" } }] });
   const ids = buildPlan(m).map((i) => i.id);
   assert.ok(ids.includes("kidneyFluid") && !ids.includes("water"), ids.join());
+});
+
+test("smoking is asked once: the decay check takes it from the risk check", async () => {
+  const { visibleQuestions, scoreDecay, decayContext } = await import("../src/data/decay.js");
+  const ctx = decayContext({ smoke: true, dryRisk: "low" });
+  const habits = visibleQuestions({ teeth: "yes" }, ctx).find((q) => q.id === "habits");
+  assert.ok(!habits.options.some((o) => o.v === "smoke"));
+  assert.ok(scoreDecay({ teeth: "yes", habits: [] }, ctx).factors.some((f) => f.label === "Smoking or vaping"));
+  // Not counted twice if an older answer also ticked it
+  assert.equal(scoreDecay({ teeth: "yes", habits: ["smoke"] }, ctx).factors.filter((f) => f.label === "Smoking or vaping").length, 1);
+  // Risk check not done yet: still asked here
+  assert.ok(visibleQuestions({ teeth: "yes" }, decayContext()).find((q) => q.id === "habits").options.some((o) => o.v === "smoke"));
+});
+
+test("allergies reach the routine: no Tooth Mousse with a milk allergy, no GC gel with a paraben allergy", () => {
+  const r = buildRoutine([{ id: "decay.tmp", products: [] }, { id: "gel", products: [] }]);
+  assert.ok(r.every((x) => !/Tooth Mousse/.test(x.text)));
+  assert.ok(r.some((x) => /paraben-free/.test(x.text)) && r.every((x) => !/GC Dry Mouth Gel/.test(x.text)));
 });

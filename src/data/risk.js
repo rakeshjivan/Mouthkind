@@ -98,7 +98,8 @@ export const RISK_QUESTIONS = [
       { v: "sjogren", label: "Sjögren's syndrome", pts: 35, major: true, why: "Sjögren's syndrome damages the glands that make saliva and tears.", refs: ["shiboski2017", "vonbultz2007"] },
       { v: "autoimmune", label: "Rheumatoid arthritis, lupus or scleroderma", pts: 6, why: "These conditions can affect the salivary glands, and are often linked with Sjögren's.", refs: ["vonbultz2007", "villa2015"] },
       { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025", "vonbultz2007"] },
-      { v: "kidney", label: "Kidney disease or dialysis", pts: 6, why: "About half of people on haemodialysis have a dry mouth (28–79% across studies), and saliva flow is lower in kidney disease before dialysis too. Fluid limits, the medicines and the disease itself all play a part.", refs: ["kumar2021", "laheij2021", "oyetola2015"] },
+      { v: "dialysis", label: "Kidney failure, on dialysis", pts: 10, why: "About half of people on haemodialysis have a dry mouth (28–79% across studies), from fluid limits, the medicines and the kidney disease itself.", refs: ["kumar2021", "laheij2021"] },
+      { v: "kidney", label: "Kidney disease, not on dialysis", pts: 5, why: "Saliva flow is lower in chronic kidney disease, even before dialysis, and the medicines for it often dry the mouth.", refs: ["oyetola2015", "laheij2021"] },
       { v: "heart", label: "Heart disease or high blood pressure", as: "Heart disease or high blood pressure", pts: 2, limited: true, why: "Mostly through the medicines used to treat it — fluid tablets and some blood pressure tablets reduce saliva." },
       { v: "stroke", label: "Stroke", pts: 3, limited: true, why: "A stroke can affect swallowing and mouth control, and often brings several new medicines." },
       { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Dry mouth is common in Parkinson's, partly from the medicines used to treat it.", refs: ["martimbianco2021"] },
@@ -312,7 +313,7 @@ export const fullAnswers = (a = {}) => migrate(a);
 export const visibleRiskQuestions = (answers = {}) => RISK_QUESTIONS.filter((q) => !q.hidden && (!q.when || q.when(answers))).map((q) => (q.id === "medFor" ? orderPurposes(q, answers) : q));
 
 // Conditions come first, so the medicine screen can lead with the conditions the person ticked.
-const COND_PURPOSE = { kidney: "kidney", mood: "mood", parkinsons: "parkinsons", heart: "bp", diabetes: "diabetes", reflux: "stomach", pregnantSick: "stomach" };
+const COND_PURPOSE = { dialysis: "kidney", kidney: "kidney", mood: "mood", parkinsons: "parkinsons", heart: "bp", diabetes: "diabetes", reflux: "stomach", pregnantSick: "stomach" };
 function orderPurposes(q, a) {
   const mine = [...new Set((a.conditions || []).map((c) => COND_PURPOSE[c]).filter(Boolean))];
   if (!mine.length) return q;

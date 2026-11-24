@@ -93,6 +93,8 @@ const preRT = (m) => !!m.rt && (m.rt.stage === "before" || (m.rt.stage === "duri
 const chemoTx = (m) => m.cancer && (m.tx.includes("chemo") || m.tx.includes("transplant"));
 const preChemo = (m) => chemoTx(m) && m.profile.stage === "before" && m.chemo == null;
 const duringChemo = (m) => chemoTx(m) && !preChemo(m) && m.active;
+// On dialysis: a daily fluid limit, so advice never says "drink more".
+export const fluidLimit = (m) => m.has("conditions", "dialysis");
 const fresh = (m, id, days) => m.fu[id] && m.now - m.fu[id].ts < days * DAY;
 
 // ── Follow-up questions ─────────────────────────────────────────────────────
@@ -167,7 +169,7 @@ export const FOLLOWUPS = [
       { v: "ff", label: "Fluoride-free toothpaste" }, { v: "rinse", label: "Fluoride mouthwash" },
       { v: "tmp", label: "GC Tooth Mousse™ Plus" }, { v: "none", label: "None of these" },
     ],
-    when: (m) => m.rtHN && (!m.rt || m.rt.stage !== "before"),
+    when: (m) => m.rtHN && (!m.rt || m.rt.stage !== "before") && !hasArr(m.decayAns.protect, "hf"),
   },
   {
     id: "phTiming", pri: () => 80, key: (m) => m.ph?.id,
@@ -231,7 +233,7 @@ export const FOLLOWUPS = [
     why: "Dentures change how to clean the mouth, and thrush often hides under them.",
     refs: ["ccaMouth2025"],
     options: [{ v: "full", label: "Full dentures" }, { v: "partial", label: "A partial denture" }, { v: "no", label: "No" }],
-    when: (m) => m.noTeeth || whiteRecent(m) || (m.cancer && m.active),
+    when: (m) => !hasArr(m.decayAns.mouth, "partial") && (whiteRecent(m) || (m.cancer && m.active && !m.decayE)),
   },
   {
     id: "cpapHumid", pri: () => 48,
@@ -418,8 +420,10 @@ const RULES = [
   // Head and neck radiotherapy: fluoride for life.
   (m) => {
     if (!m.rtHN || (m.rt && m.rt.stage === "before")) return;
-    const f = [].concat(answered(m, "rtFluoride") || []);
-    if (f.includes("hf") || f.includes("tray")) return { id: "rtFluoride", pri: 30, title: "Keep up your daily fluoride, for life", body: "You're doing the most important thing. See your dentist every 3 to 6 months, for life, and tell every dentist about your radiotherapy before any treatment.", because: ["You've had radiotherapy to the head or neck."], refs: ["peterson2024"] };
+    const f = [...[].concat(answered(m, "rtFluoride") || []), ...(hasArr(m.decayAns.protect, "hf") ? ["hf"] : []), ...(hasArr(m.decayAns.protect, "tm") ? ["tmp"] : [])];
+    if (f.includes("hf") || f.includes("tray")) return { id: "rtFluoride", pri: 30, title: "Keep up your daily fluoride, for life",
+      body: `You're doing the most important thing.${f.includes("tmp") ? " Keep using GC Tooth Mousse™ Plus after brushing, morning and night." : " After brushing, morning and night, GC Tooth Mousse™ Plus adds calcium, phosphate and fluoride."} See your dentist every 3 to 6 months, for life, and tell every dentist about your radiotherapy before any treatment.`,
+      because: ["You've had radiotherapy to the head or neck."], refs: ["peterson2024"], products: ["neutrafluor", "gc-tmp"] };
     return { id: "rtFluoride", pri: 83, title: "Use high-strength fluoride every day, for life",
       body: "Brush with a high-fluoride toothpaste (5,000 ppm) twice a day — spit, don't rinse. After brushing, morning and night, add GC Tooth Mousse™ Plus (fortified with 900 ppm fluoride) or GC Tooth Mousse™.",
       because: ["You've had radiotherapy to the head or neck. Teeth can decay very fast afterwards.",
@@ -453,7 +457,7 @@ const RULES = [
       : { id: "rinseSwap", pri: 70, title: "Start a bicarb rinse", body: "¼ teaspoon of bicarbonate of soda in a cup of warm water. Swish for 30 seconds and spit, at least 4 times a day.", because: ["Your mouth has been sore.", "You're not rinsing yet."], refs: ["canberraHN", "elad2020"] };
   },
   // Thrush under dentures.
-  (m) => whiteRecent(m) && ["full", "partial"].includes(answered(m, "dentures")) && {
+  (m) => whiteRecent(m) && (["full", "partial"].includes(answered(m, "dentures")) || hasArr(m.decayAns.mouth, "partial")) && {
     id: "dentureThrush", pri: 73, title: "Check under your dentures for thrush",
     body: "Take dentures out at night, brush and soak them every day, and show your team the white patches — drops or gel usually clear thrush within 1 to 2 weeks. If you take warfarin, say so first — miconazole gel can interact with it.",
     because: ["You noticed white patches.", "You wear dentures."], refs: ["ccaMouth2025"],
@@ -549,10 +553,12 @@ const RULES = [
       because: [`Your dry mouth score averaged ${best.before} before you started and ${best.after} since.`] };
   },
   // Water.
-  (m) => m.has("conditions", "kidney") && { id: "kidneyFluid", pri: 62, title: "Keep your mouth moist within your fluid limit",
+  (m) => fluidLimit(m) && { id: "kidneyFluid", pri: 62, title: "Keep your mouth moist within your fluid limit",
     body: "Sugar-free gum or sugar-free sweets bring up your own saliva without adding fluid, and GC Dry Mouth Gel moistens the mouth without counting as a drink. Rinse and spit rather than swallow. Ice chips and sips still count towards your daily fluid, so keep within the limit your kidney team has set.",
-    because: ["You have kidney disease or are on dialysis."], refs: ["sharifnia2024", "kumar2021"] },
-  (m) => m.has("water", "low") && !m.has("conditions", "kidney") && { id: "water", pri: 40, title: "Drink a little more water", body: "Carry a bottle and take small sips often — little and often, unless your doctor has limited how much you drink.", because: ["You drink less than 4 glasses of water a day."] },
+    because: ["You're on dialysis, so you probably have a daily fluid limit."], refs: ["sharifnia2024", "kumar2021"] },
+  (m) => m.has("water", "low") && !fluidLimit(m) && { id: "water", pri: 40, title: "Drink a little more water",
+    body: m.has("conditions", "kidney") ? "Carry a bottle and take small sips often, unless your kidney team has set a fluid limit — then keep within it, and use sugar-free gum or a saliva gel instead." : "Carry a bottle and take small sips often — little and often, unless your doctor has limited how much you drink.",
+    because: ["You drink less than 4 glasses of water a day."] },
   // Getting started.
   (m) => !m.risk && { id: "startRisk", pri: 35, title: "Do your dry mouth risk check", body: "Two minutes on your health, medicines and habits. It shapes everything else the app suggests.", because: ["The app doesn't know your risk factors yet."], act: { label: "Start", open: "risk" } },
   (m) => !m.sip && { id: "startSip", pri: 33, title: "Do your first dry mouth check", body: "Five quick questions (the GC SIP-SCORE) show how much dryness is affecting you.", because: ["You haven't scored your dry mouth yet."], act: { label: "Check now", open: "sip" } },
@@ -561,8 +567,8 @@ const RULES = [
 // Advice from the two risk checks, folded into the one plan. Each maps to the plan
 // items that already cover it, so nothing is said twice.
 const COVERED = {
-  "risk.track": ["startSip"], "risk.dentist": ["decay.visit"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
-  "risk.drink": ["water", "riseDrink"], "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
+  "risk.track": ["startSip"], "risk.dentist": ["decay.visit", "dentalRT", "dentalPre", "boneDentist", "dentalFlag", "decay.dentures"], "risk.meds": ["medReview", "riseMed"], "risk.moist": ["gel", "sialogogue", "night"], "risk.cpap": ["cpap", "night"],
+  "risk.glp1": ["glp1"], "risk.immuno": ["sicca"], "risk.acid": ["acid", "glp1"], "risk.drink": ["water", "riseDrink", "kidneyFluid"], "risk.teeth": ["hf", "rtFluoride", "decay.hf", "decay.tmp"],
   "decay.visit": ["dentalRT", "dentalPre", "boneDentist", "dentalFlag"],
   "decay.hf": ["hf", "rtFluoride"], "decay.paste": ["rtFluoride", "oranurse"], "decay.tmp": ["rtFluoride"], "decay.dry": ["gel", "sialogogue", "night"], "decay.sugar": ["acid"],
 };
@@ -593,6 +599,7 @@ function checkAdvice(m) {
       .forEach((a) => out.push({ ...a, id: `decay.${a.id}`, pri: a.id === "tmp" ? 70 : 65, because: [why] }));
   }
   if (m.risk) for (const a of riskAdvice(m.risk, m.answers)) {
+    if (m.noTeeth && a.id === "teeth") continue; // no natural teeth: nothing to protect from decay
     const top = m.risk.factors[0];
     out.push({ ...a, id: `risk.${a.id}`, pri: a.id === "dentist" ? 41 : 38, because: [`Your dry mouth risk is ${m.risk.band.label.toLowerCase()}${top ? `, mostly from ${lc(top.label)}` : ""}.`] });
   }
@@ -601,9 +608,20 @@ function checkAdvice(m) {
 
 // Allergies: never suggest what someone can't use.
 const MILK = ["gc-tmp", "gc-tm", "recaldent"], HB = ["gc-dmg"];
+const WATER = /[^.]*\b(sip water|sipping water|keep water by the bed|water bottle|drink more water)[^.]*\.\s*/gi;
 function safe(it, m) {
   const al = [].concat(answered(m, "allergy") || []);
   const milk = al.includes("milk"), hb = al.includes("hb");
+  // On dialysis: never "drink more". Water advice becomes "within your fluid limit".
+  if (fluidLimit(m) && it.id !== "kidneyFluid") {
+    if (["water", "riseDrink", "risk.drink"].includes(it.id)) return null;
+    if (WATER.test(it.body)) it = { ...it, body: `${it.body.replace(WATER, "").trim()} Keep any sips within your fluid limit.`.trim() };
+    WATER.lastIndex = 0;
+  }
+  if (milk && it.id === "decay.tm") return null; // Tooth Mousse through the day, and nothing else
+  if (milk && it.id === "decay.tmp") return { ...it, products: [], title: "Ask your dentist about fluoride varnish or a fluoride gel",
+    body: "GC Tooth Mousse™ and Tooth Mousse™ Plus contain milk protein, so they're not for you. Fluoride varnish at your check-ups, or a fluoride gel your dentist suggests, gives your teeth extra protection instead.",
+    because: [...(it.because || []), "You're allergic to milk protein, so Tooth Mousse™ is left out."] };
   if (!milk && !hb) return it;
   let { body, title, products = [], because = [] } = it;
   if (milk) body = milkFree(body);
@@ -675,7 +693,7 @@ export function buildPlan(m) {
     else if (p.includes("gc-tmp") && !p.includes("gc-tm")) it.products = [...p, "gc-tm"];
   }
   const using = inUse(m);
-  for (let i = 0; i < out.length; i++) out[i] = encourage(safe(out[i], m), using);
+  for (let i = out.length - 1; i >= 0; i--) { const s = safe(out[i], m); if (s) out[i] = encourage(s, using); else out.splice(i, 1); }
   // Two items can end up praising the same thing: keep the first.
   for (let i = out.length - 1; i >= 0; i--) if (out[i].kept && out.findIndex((x) => x.title === out[i].title) < i) out.splice(i, 1);
   // A new medicine already says "ask your pharmacist"; don't say it twice.
