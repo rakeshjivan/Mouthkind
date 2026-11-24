@@ -55,3 +55,14 @@ test("a part of the day with nothing in it hands over to the next one", () => {
   assert.ok(night.current && night.next);
   assert.ok(v.find((s) => s.id === "morning").past);
 });
+
+test("kidney disease: no 'drink more water', and the routine keeps to the fluid limit", async () => {
+  const { buildPlan, buildModel } = await import("../src/data/engine.js");
+  const r = buildRoutine([{ id: "kidneyFluid", pri: 62 }, { id: "water", pri: 40 }, { id: "gel", pri: 50 }]);
+  const w = r.find((x) => x.id === "day.water");
+  assert.match(w.text, /fluid limit/);
+  assert.equal(w.why, "kidneyFluid");
+  const m = buildModel({ profile: {}, entries: [{ id: "r1", kind: "risk", ts: Date.now(), answers: { conditions: ["kidney"], water: "low" } }] });
+  const ids = buildPlan(m).map((i) => i.id);
+  assert.ok(ids.includes("kidneyFluid") && !ids.includes("water"), ids.join());
+});

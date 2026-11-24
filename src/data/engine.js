@@ -549,7 +549,10 @@ const RULES = [
       because: [`Your dry mouth score averaged ${best.before} before you started and ${best.after} since.`] };
   },
   // Water.
-  (m) => m.has("water", "low") && { id: "water", pri: 40, title: "Drink a little more water", body: "Carry a bottle and take small sips often — little and often, unless your doctor has limited how much you drink.", because: ["You drink less than 4 glasses of water a day."] },
+  (m) => m.has("conditions", "kidney") && { id: "kidneyFluid", pri: 62, title: "Keep your mouth moist within your fluid limit",
+    body: "Sugar-free gum or sugar-free sweets bring up your own saliva without adding fluid, and GC Dry Mouth Gel moistens the mouth without counting as a drink. Rinse and spit rather than swallow. Ice chips and sips still count towards your daily fluid, so keep within the limit your kidney team has set.",
+    because: ["You have kidney disease or are on dialysis."], refs: ["sharifnia2024", "kumar2021"] },
+  (m) => m.has("water", "low") && !m.has("conditions", "kidney") && { id: "water", pri: 40, title: "Drink a little more water", body: "Carry a bottle and take small sips often — little and often, unless your doctor has limited how much you drink.", because: ["You drink less than 4 glasses of water a day."] },
   // Getting started.
   (m) => !m.risk && { id: "startRisk", pri: 35, title: "Do your dry mouth risk check", body: "Two minutes on your health, medicines and habits. It shapes everything else the app suggests.", because: ["The app doesn't know your risk factors yet."], act: { label: "Start", open: "risk" } },
   (m) => !m.sip && { id: "startSip", pri: 33, title: "Do your first dry mouth check", body: "Five quick questions (the GC SIP-SCORE) show how much dryness is affecting you.", because: ["You haven't scored your dry mouth yet."], act: { label: "Check now", open: "sip" } },

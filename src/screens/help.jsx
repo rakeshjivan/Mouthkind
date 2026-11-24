@@ -9,12 +9,16 @@ export function callTarget(profile) {
   return list.find((c) => c.id === "line24") || list[0] || null;
 }
 
-/** Always on screen, just above the footer: call, and when to worry. */
+/** Always on screen, just above the footer: call, and when to worry.
+ * One number saved: rings it. Several: opens a list to choose who. None: add one. */
 export function HelpBar({ profile, open }) {
-  const c = callTarget(profile);
+  const list = careContacts(profile);
+  const c = list.length === 1 ? list[0] : null;
   return (
     <div className="helpbar" role="region" aria-label="Get help">
-      {c ? (
+      {list.length > 1 ? (
+        <button type="button" className="help-btn call" onClick={() => open("call")} aria-haspopup="dialog"><Icon name="phone" size={20} stroke={2.2} /> Call my team</button>
+      ) : c ? (
         <a className="help-btn call" href={telHref(c.phone)} aria-label={`Call ${c.role}${c.name ? `, ${c.name}` : ""}`}>
           <Icon name="phone" size={20} stroke={2.2} /> Call my team
         </a>
@@ -23,6 +27,29 @@ export function HelpBar({ profile, open }) {
       )}
       <button type="button" className="help-btn worry" onClick={() => open("worry")}>When to worry</button>
     </div>
+  );
+}
+
+/** Who to call: every saved number, the 24-hour line first. */
+export function CallSheet({ profile, onClose, open }) {
+  const list = [...careContacts(profile)].sort((a, b) => (b.id === "line24") - (a.id === "line24") || !!b.urgent - !!a.urgent);
+  return (
+    <Sheet title="Call my team" onClose={onClose}>
+      <h2 className="q">Who do you want to call?</h2>
+      {list.some((c) => c.id === "line24") && <p className="lede tight">Unwell during treatment? Call the 24-hour line first, day or night.</p>}
+      <ul className="team-list call-list">
+        {list.map((c) => (
+          <li key={c.id}>
+            <a className={`call-pick${c.id === "line24" ? " urgent" : ""}`} href={telHref(c.phone)}>
+              <span className="team-who"><strong>{c.role}</strong><em>{c.name && <>{c.name} · </>}<span className="team-num">{c.phone}</span></em></span>
+              <span className="call-pick-btn" aria-hidden="true"><Icon name="phone" size={20} stroke={2.2} /></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p className="lede tight">For a medical emergency, call <a href="tel:000">000</a>.</p>
+      <button type="button" className="btn ghost" onClick={() => open("careteam")}>Edit my care team</button>
+    </Sheet>
   );
 }
 

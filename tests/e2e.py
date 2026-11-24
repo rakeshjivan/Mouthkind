@@ -174,7 +174,10 @@ async def main():
         await pg.click("nav >> text=\"Today\""); await pg.wait_for_timeout(200); await pg.get_by_role("button", name="My details").click(); await pg.wait_for_timeout(200)
         await pg.get_by_label("First name").fill("Alexandra")
         await pg.get_by_label("Last name").fill("Fitzgerald-Montgomery")
-        await pg.locator("input[type=date]").fill("1958-03-14")
+        await pg.get_by_label("Day", exact=True).select_option("14")
+        await pg.get_by_label("Month", exact=True).select_option(label="March")
+        await pg.get_by_label("Year", exact=True).select_option("1958")
+        assert await pg.get_by_text("68 years").count() >= 1
         await pg.get_by_label("Gender").select_option("woman")
         await shot("16-me-dark", True)
         await pg.click("nav >> text=Today"); await pg.wait_for_timeout(200)
@@ -193,11 +196,17 @@ async def main():
         await pg.evaluate("""() => { const p = JSON.parse(localStorage.getItem('mkt:profile') || '{}');
             const d = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
             Object.assign(p, { situation: ['cancer'], treatments: ['rt_hn', 'chemo'], stage: 'during', rtStart: d(17), rtWeeks: 7, chemoDates: [d(9)],
-              team: { name: 'Cancer Care', phone24: '07 5202 0000' } });
+              team: { name: 'Cancer Care', phone24: '07 5202 0000' }, contacts: { gp: { name: 'Dr Wu', phone: '07 1234 5678' } } });
             localStorage.setItem('mkt:profile', JSON.stringify(p)); }""")
         await pg.reload(); await pg.wait_for_timeout(500)
         await pg.click("nav >> text=Today"); await pg.wait_for_timeout(200)
         assert await pg.locator(".tx-line", has_text="Week 3 of 7").count() == 1
+        # Two numbers saved: Call my team asks who, 24-hour line first
+        await pg.locator(".helpbar .help-btn.call").click(); await pg.wait_for_timeout(300)
+        picks = dlg.locator(".call-pick")
+        assert await picks.count() >= 1 and await picks.first.get_attribute("href") == "tel:0752020000"
+        await shot("19-call-pick")
+        await pg.keyboard.press("Escape"); await pg.wait_for_timeout(200)
         await pg.locator(".log5").click(); await pg.wait_for_timeout(300)
         await dlg.locator(".painscale").nth(0).get_by_role("radio", name="8", exact=True).click()
         await dlg.locator(".painscale").nth(1).get_by_role("radio", name="5", exact=True).click()

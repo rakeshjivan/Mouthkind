@@ -1,6 +1,7 @@
 import { careContacts, openQuestionCount } from "../data/careTeam.js";
 import { useState } from "react";
 import { Icon } from "../components/ui.jsx";
+import { DateParts } from "../components/dateParts.jsx";
 import { freqFor } from "../data/schedule.js";
 import { REGIONS } from "../data/clinical.js";
 import { GENDERS, ageFrom } from "../data/person.js";
@@ -27,8 +28,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
             <input value={profile.lastName || ""} onChange={(e) => set({ lastName: e.target.value })} autoComplete="family-name" /></label>
         </div>
         <div className="field-row">
-          <label className="field"><span>{profile.carer ? "Their date of birth" : "Date of birth"}{ageFrom(profile.dob) != null ? ` · ${ageFrom(profile.dob)} years` : ""}</span>
-            <input type="date" value={profile.dob || ""} max={new Date().toISOString().slice(0, 10)} min="1900-01-01" onChange={(e) => set({ dob: e.target.value })} autoComplete="bday" /></label>
+          <DateParts label={<>{profile.carer ? "Their date of birth" : "Date of birth"}{ageFrom(profile.dob) != null ? ` · ${ageFrom(profile.dob)} years` : ""}</>} value={profile.dob || ""} onChange={(dob) => set({ dob })} autoComplete="bday" />
           <label className="field"><span>{profile.carer ? "Their gender" : "Gender"}</span>
             <select value={profile.gender || ""} onChange={(e) => set({ gender: e.target.value })}>
               <option value="">Choose…</option>

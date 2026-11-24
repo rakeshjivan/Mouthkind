@@ -27,7 +27,9 @@ export function buildRoutine(plan = [], { noTeeth = false } = {}) {
   if (noTeeth) {
     add("morning", "dentures", "Clean your dentures and rinse your mouth", null, item("dentures"));
     if (item("gel")) add("day", "gel", "GC Dry Mouth Gel before meals", "gc-dmg", item("gel"));
-    if (item("water") || item("gel")) add("day", "water", "Sip water often", null, item("water"));
+    const kid = plan.find((i) => i.id === "kidneyFluid");
+    if (kid) add("day", "water", "Sugar-free sweets or sips, within your fluid limit", null, kid);
+    else if (item("water") || item("gel")) add("day", "water", "Sip water often", null, item("water"));
     add("night", "dentures", "Take your dentures out, clean them and leave them out overnight", null, item("dentures"));
     if (item("gel")) add("night", "gel", "GC Dry Mouth Gel at bedtime", "gc-dmg", item("gel"));
     return out;
@@ -39,7 +41,7 @@ export function buildRoutine(plan = [], { noTeeth = false } = {}) {
   const paste = hf ? { text: "Brush with high-fluoride toothpaste (5,000 ppm). Spit, don't rinse", product: "hf-paste", why: hf }
     : ora ? { text: "Brush gently with OraNurse and a soft brush", product: "oranurse", why: ora }
     : { text: "Brush with fluoride toothpaste. Spit, don't rinse", product: null, why: null };
-  const tmp = item("tmp"), tm = item("tm"), gel = item("gel"), rinse = item("rinse"), water = item("water");
+  const tmp = item("tmp"), tm = item("tm"), gel = item("gel"), rinse = item("rinse"), water = item("water"), kid = plan.find((i) => i.id === "kidneyFluid");
 
   add("morning", "brush", paste.text, paste.product, paste.why);
   if (tmp) add("morning", "tmp", "GC Tooth Mousse™ Plus after brushing", "gc-tmp", tmp);
@@ -47,7 +49,8 @@ export function buildRoutine(plan = [], { noTeeth = false } = {}) {
   if (gel) add("day", "gel", "GC Dry Mouth Gel before meals", "gc-dmg", gel);
   if (tm) add("day", "tm", "GC Tooth Mousse™ after a meal or snack", "gc-tm", tm);
   if (rinse) add("day", "rinse", "Rinse with salt and bicarbonate water, 4 times today", "rinse-home", rinse);
-  if (water || gel) add("day", "water", "Sip water often", null, water);
+  if (kid) add("day", "water", "Sugar-free gum or sips, within your fluid limit", null, kid);
+  else if (water || gel) add("day", "water", "Sip water often", null, water);
 
   add("night", "brush", paste.text, paste.product, paste.why);
   if (tmp) add("night", "tmp", "GC Tooth Mousse™ Plus, then nothing to eat or drink", "gc-tmp", tmp);

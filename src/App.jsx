@@ -24,7 +24,7 @@ import { SetupQuestions } from "./screens/plan.jsx";
 import { CareTeamEdit } from "./screens/careTeam.jsx";
 import { setupState } from "./data/setup.js";
 import { buildRoutine, tickEntry, ticksToday } from "./data/routine.js";
-import { HelpBar, WorrySheet } from "./screens/help.jsx";
+import { CallSheet, HelpBar, WorrySheet } from "./screens/help.jsx";
 import { Sheet } from "./components/ui.jsx";
 import { PlanItem } from "./screens/plan.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, load, save, wipe } from "./lib/store.js";
@@ -175,6 +175,7 @@ export default function App() {
           done: (p) => { setProfile({ ...p, teamAsked: true }); setSheet(qs.length ? "setupq" : null); if (!qs.length) go("home"); },
         } : null} />}
       {sheet === "worry" && <WorrySheet profile={profile} onClose={close} open={open} />}
+      {sheet === "call" && <CallSheet profile={profile} onClose={close} open={open} />}
       {whyItem && (
         <Sheet title="Why this is in your plan" onClose={() => setWhyId(null)}>
           <PlanItem it={whyItem} profile={profile} open={(s) => { setWhyId(null); open(s); }} done={false} startOpen onTick={() => setWhyId(null)} onProduct={() => { setWhyId(null); go("shop"); }}
