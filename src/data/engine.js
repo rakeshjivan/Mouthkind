@@ -93,6 +93,12 @@ const preRT = (m) => !!m.rt && (m.rt.stage === "before" || (m.rt.stage === "duri
 const chemoTx = (m) => m.cancer && (m.tx.includes("chemo") || m.tx.includes("transplant"));
 const preChemo = (m) => chemoTx(m) && m.profile.stage === "before" && m.chemo == null;
 const duringChemo = (m) => chemoTx(m) && !preChemo(m) && m.active;
+// Chemotherapy, radiotherapy (any site), immunotherapy, a transplant or radioactive iodine all
+// commonly dry the mouth (Jensen 2010): the gel and Tooth Mousse for all of them. Treatments not
+// given yet count as unknown, so cancer care with none recorded still gets them.
+const DRYING_TX = ["chemo", "transplant", "rt_hn", "rt_other", "immuno", "rai"];
+export const dryingTx = (m) => m.cancer && (!m.tx.length || m.tx.some((t) => DRYING_TX.includes(t)));
+const acidic = (m) => ["watch", "flag"].includes(m.phPat.level);
 // On dialysis: a daily fluid limit, so advice never says "drink more".
 export const fluidLimit = (m) => m.has("conditions", "dialysis");
 const fresh = (m, id, days) => m.fu[id] && m.now - m.fu[id].ts < days * DAY;
@@ -384,12 +390,12 @@ const RULES = [
     act: { label: "Add to my questions", addQ: SALIVA_TEST_Q },
   },
   // A gentle toothpaste for anyone having cancer treatment or with a dry mouth.
-  (m) => !m.noTeeth && (m.cancer || sipNow(m) >= 8 || dryRecent(m) || soreDays(m) >= 1) && {
-    id: "oranurse", pri: 64,
-    title: T(m, "Brush with a gentle toothpaste: OraNurse", "Brush with a gentle toothpaste: OraNurse"),
-    body: "OraNurse has no flavour and no foaming agent (SLS), so it's gentle on a dry or sore mouth, and it has everyday fluoride. Brush twice a day with a soft brush. Spit, don't rinse. If your dentist gives you a high-fluoride toothpaste, use that instead, and keep OraNurse for days your mouth is too sore.",
-    because: [m.cancer ? "Cancer treatment can leave the mouth dry and sore, and mint or foaming toothpaste can sting."
-      : sipNow(m) >= 8 ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.` : "Your mouth has been dry or sore lately."],
+  (m) => !m.noTeeth && (dryingTx(m) || sipNow(m) >= 8 || dryRecent(m) || soreDays(m) >= 1) && {
+    id: "oranurse", pri: soreDays(m) >= 1 ? 52 : 36,
+    title: "If your toothpaste stings: OraNurse instead",
+    body: "Mint flavour and foaming agents such as SLS (sodium lauryl sulphate) can sting a dry or sore mouth. OraNurse has no flavour and no SLS, and has everyday fluoride, so it can replace your usual toothpaste. Brush twice a day with a soft brush. Spit, don't rinse. If your dentist gives you a high-fluoride toothpaste, use that, and keep OraNurse for days your mouth is too sore.",
+    because: [soreDays(m) >= 1 ? "Your mouth has been sore lately." : m.cancer ? "Cancer treatment can make the mouth sensitive to strong flavours and foaming toothpaste."
+      : sipNow(m) >= 8 ? "A dry mouth is often sensitive to strong flavours and foaming toothpaste." : "Your mouth has been dry lately."],
     refs: ["hong2024", "walsh2019"], products: ["oranurse"],
   },
   // Repeat an early pH test.
@@ -410,12 +416,13 @@ const RULES = [
     if (src.includes("graze")) steps.push("Keep snacks and sweet drinks to mealtimes — every one starts a new acid attack.");
     if (src.includes("reflux")) steps.push("Ask your GP about treating the reflux. After heartburn, rinse with water and wait an hour to brush.");
     if (src.includes("vomit")) steps.push("After vomiting, rinse with water or a bicarbonate rinse, and wait at least 30 minutes before brushing.");
+    steps.push(m.noTeeth ? "" : "After brushing, smear GC Tooth Mousse™ Plus (or Tooth Mousse™) over your teeth. Its CPP-ACP helps buffer acid and supplies the calcium and phosphate your saliva would normally bring, so softened enamel can repair.");
     if (lvl === "flag") steps.push("See your dentist and show them your pH results.");
     const because = [m.phPat.n === 1 ? "Your last pH test was acidic." : `Your saliva was acidic in ${m.phPat.acid} of your last ${m.phPat.n} tests.`];
     if (src.length && !src.includes("none")) because.push(`You mentioned ${list(src.filter((s) => s !== "none").map((s) => ({ drinks: "acidic drinks", graze: "snacking through the day", reflux: "reflux", vomit: "vomiting" })[s]))}.`);
     if (sipNow(m) >= 8) because.push("A dry mouth makes acid harder to clear.");
     return { id: "acid", pri: lvl === "flag" ? 84 : 55, title: lvl === "flag" ? "Bring the acid down and protect your teeth" : "Keep an eye on your saliva pH",
-      body: steps.join(" "), because, refs: ["gcSalivaCheck", ...(src.includes("vomit") ? ["adaPregnancy"] : [])] };
+      body: steps.filter(Boolean).join(" "), because, refs: ["gcSalivaCheck", "agarwal2022", ...(src.includes("vomit") ? ["adaPregnancy"] : [])], products: m.noTeeth ? [] : ["gc-tmp", "gc-tm"] };
   },
   // Head and neck radiotherapy: fluoride for life.
   (m) => {
@@ -494,13 +501,13 @@ const RULES = [
     const a = answered(m, "gelTried");
     // For a dry mouth and all cancer care (not decay risk alone: the gel has no decay benefit of its own).
     const dry = sipNow(m) >= 8;
-    if (!(dry || m.cancer) || m.usedNow.has("gc-dmg") || a === "helps") return;
+    if (!(dry || dryingTx(m)) || m.usedNow.has("gc-dmg") || a === "helps") return;
     const night = answered(m, "dryTime") === "night";
     const because = [dry ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`
-      : "Cancer treatment can dry the mouth, and a moist mouth is more comfortable and heals better."];
+      : "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth, and a moist mouth is more comfortable and heals better."];
     if (night) because.push("Your mouth is driest at night.");
     if (a === "meh") return { id: "gel", pri: 50, title: "Get more from your saliva gel", body: "Use a pea-sized amount spread over the tongue, cheeks and gums with a clean finger — before meals, at bedtime and whenever you need it. Water alone wears off within minutes.", because: [...because, "You said gel didn't help much."], refs: ["nuchit2020"], products: ["gc-dmg"] };
-    return { id: "gel", pri: 66, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Through the day: GC Dry Mouth Gel, as needed", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals, at bedtime and whenever your mouth feels dry. It lasts longer than water." + ([].concat(answered(m, "allergy") || []).includes("milk") ? "" : " You can mix it with GC Tooth Mousse™ or Tooth Mousse™ Plus before you put it on."), because, refs: ["nuchit2020", "mercadante2021"], products: ["gc-dmg"] };
+    return { id: "gel", pri: 66, title: night ? "Try GC Dry Mouth Gel at bedtime" : "Through the day: GC Dry Mouth Gel, as needed", body: "Spread a pea-sized amount over your tongue, cheeks and gums with a clean finger, before meals, at bedtime and whenever your mouth feels dry. It lasts longer than water." + ([].concat(answered(m, "allergy") || []).includes("milk") ? "" : " You can mix it with GC Tooth Mousse™ or Tooth Mousse™ Plus before you put it on."), because, refs: ["nuchit2020", "mercadante2021", ...(dry ? [] : ["jensen2010"])], products: ["gc-dmg"] };
   },
   // Night-time dryness.
   (m) => {
@@ -581,20 +588,21 @@ function checkAdvice(m) {
     // Tooth Mousse Plus morning and night leads the plan (after anything urgent); Tooth Mousse through
     // the day follows straight after the gel.
     // Cancer treatment or a dry mouth puts Tooth Mousse Plus first whatever the decay band.
-    const dryOrCancer = m.cancer || sipNow(m) >= 8;
-    const order = (a, i) => a.id === "tmp" ? (r.band.id === "low" && !dryOrCancer ? base + 5 : 70) : a.id === "tm" ? 65 : base - i;
-    decayPlan(r, m.decayE.answers, { dry: dryOrCancer }).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: order(a, i),
+    const dryOrCancer = dryingTx(m) || sipNow(m) >= 8;
+    const order = (a, i) => a.id === "tmp" ? (r.band.id === "low" && !dryOrCancer && !acidic(m) ? base + 5 : 70) : a.id === "tm" ? 65 : base - i;
+    decayPlan(r, m.decayE.answers, { dry: dryOrCancer, acid: acidic(m) }).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: order(a, i),
       because: [r.noTeeth ? "You don't have natural teeth."
         : (a.id === "tmp" || a.id === "tm") && r.band.id === "low" && dryOrCancer
-          ? (m.cancer ? "Cancer treatment can dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`)
-        : a.id === "tmp" && r.band.id === "low" ? "Daily prevention: calcium, phosphate and fluoride for your teeth every day."
+          ? (dryingTx(m) ? "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`)
+        : a.id === "tmp" && r.band.id === "low" && acidic(m) ? "Your saliva has been acidic, so your teeth need help repairing."
+        : a.id === "tmp" && r.band.id === "low" ? "Optional daily prevention: calcium, phosphate and fluoride for your teeth."
         : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }
-  else if (atRisk(m) || m.cancer) {
+  else if (atRisk(m) || dryingTx(m)) {
     // No tooth decay check yet (it's optional after setup): a dry mouth or cancer treatment still
     // gets the daily Tooth Mousse routine, assuming natural teeth until the check says otherwise.
     const r = scoreDecay({ teeth: "yes" });
-    const why = m.cancer ? "Cancer treatment can dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`;
+    const why = dryingTx(m) ? "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth and leave teeth less protected." : acidic(m) && sipNow(m) < 8 ? "Your saliva has been acidic, so your teeth need help repairing." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`;
     decayPlan(r, { teeth: "yes" }, { dry: true }).filter((a) => a.id === "tmp" || a.id === "tm")
       .forEach((a) => out.push({ ...a, id: `decay.${a.id}`, pri: a.id === "tmp" ? 70 : 65, because: [why] }));
   }

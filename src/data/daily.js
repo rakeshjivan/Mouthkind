@@ -60,6 +60,8 @@ export const triageFor = (a, p = {}, extra = {}) => dailyTriage(a, {
   hb: [].concat(p.fu?.allergy?.v || []).includes("hb"),
   cancer: (p.situation || []).includes("cancer"),
   chemo: (p.situation || []).includes("cancer") && (p.treatments || []).some((t) => t === "chemo" || t === "transplant"),
+  // Chemotherapy, radiotherapy (any site) and immunotherapy commonly dry the mouth (Jensen 2010).
+  dryingTx: (p.situation || []).includes("cancer") && (!(p.treatments || []).length || (p.treatments || []).some((t) => ["chemo", "transplant", "rt_hn", "rt_other", "immuno", "rai"].includes(t))),
 });
 
 export const dailyQuestions = (p = {}, a = {}) => DAILY.filter((q) => !q.when || q.when(p, a));
@@ -136,8 +138,9 @@ export function dailyTriage(a, opts = {}) {
   const isDry = (dry && dry !== "none") || a.night === "once" || a.night === "more";
   // The GC routine: Dry Mouth Gel for a dry mouth and all cancer care; Tooth Mousse for those
   // and a Moderate or High decay risk, unless there are no natural teeth or a milk protein allergy.
-  if ((isDry || cancer) && !opts.hb) tips.push("gel");
-  if ((isDry || cancer || !!opts.decayRisk) && !opts.noTeeth && !opts.milk) tips.push("tmp", "tm");
+  const tx = opts.dryingTx ?? cancer;
+  if ((isDry || tx) && !opts.hb) tips.push("gel");
+  if ((isDry || tx || !!opts.decayRisk) && !opts.noTeeth && !opts.milk) tips.push("tmp", "tm");
   // The GC routine order: Tooth Mousse Plus morning and night, then gel and Tooth Mousse through the day.
   const ORDER = ["rinse", "gentle", "tmp", "gel", "tm", "soft"];
   tips.sort((x, y) => ORDER.indexOf(x) - ORDER.indexOf(y));

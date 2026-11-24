@@ -7,6 +7,7 @@ export const REFS = {
     where: "Support Care Cancer 2019;27:3949–67",
     url: "https://doi.org/10.1007/s00520-019-04848-4",
   },
+  jensen2010: { short: "Jensen 2010", title: "A systematic review of salivary gland hypofunction and xerostomia induced by cancer therapies: prevalence, severity and impact on quality of life", where: "Support Care Cancer 2010;18:1039–1060", url: "https://doi.org/10.1007/s00520-010-0827-8" },
   mercadante2021: {
     short: "Mercadante 2021",
     title: "Salivary gland hypofunction and xerostomia: ISOO/MASCC/ASCO guideline",

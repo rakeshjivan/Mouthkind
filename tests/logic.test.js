@@ -14,9 +14,35 @@ const text = ({ plan, routine, tri }) => [
 const products = ({ plan, routine, tips }) => new Set([...plan.flatMap((i) => i.products || []), ...routine.map((r) => r.product).filter(Boolean), ...tips.flatMap((t) => t.products || [])]);
 const each = (name, fn) => test(name, () => { for (const x of all) fn(x, x.p.name); });
 
-each("GC Dry Mouth Gel only for a dry mouth or cancer care", (x, who) => {
-  const dry = (x.m.sip?.sip ?? 0) >= 8 || x.m.rtHN || x.m.sjogren || (x.p.log && (x.p.log.dryness >= 1 || x.p.log.night !== "no"));
-  if (!dry && !x.m.cancer) assert.ok(!products(x).has("gc-dmg") && !/Dry Mouth Gel/.test(text(x)), who);
+const DRYING = ["chemo", "transplant", "rt_hn", "rt_other", "immuno", "rai"];
+const dryTx = (x) => x.m.cancer && (!x.m.tx.length || x.m.tx.some((t) => DRYING.includes(t)));
+const isDry = (x) => (x.m.sip?.sip ?? 0) >= 8 || x.m.rtHN || x.m.sjogren || (x.p.log && (x.p.log.dryness >= 1 || x.p.log.night !== "no"));
+
+each("GC Dry Mouth Gel only for a dry mouth or a drying cancer treatment", (x, who) => {
+  if (!isDry(x) && !dryTx(x)) assert.ok(!products(x).has("gc-dmg") && !/Dry Mouth Gel/.test(text(x)), who);
+});
+
+each("chemotherapy, radiotherapy (any site) or immunotherapy: gel and Tooth Mousse, whatever the cancer", (x, who) => {
+  if (!dryTx(x)) return;
+  const al = allergy(x.p);
+  if (!al.includes("hb")) assert.ok(x.plan.some((i) => i.id === "gel") || x.m.usedNow.has("gc-dmg"), `${who}: gel`);
+  if (!al.includes("milk") && !x.m.noTeeth) assert.ok(x.routine.some((r) => r.id === "morning.tmp"), `${who}: Tooth Mousse Plus`);
+});
+
+each("acidic saliva: Tooth Mousse, explained as acid buffering with calcium and phosphate", (x, who) => {
+  if (!["watch", "flag"].includes(x.m.phPat.level) || x.m.noTeeth || allergy(x.p).includes("milk")) return;
+  const acid = x.plan.find((i) => i.id === "acid");
+  if (!acid) return; // waiting on a retest
+  assert.match(acid.body, /buffer acid/); assert.match(acid.body, /calcium and phosphate/);
+  assert.ok(acid.products.includes("gc-tmp"), who);
+  assert.ok(x.routine.some((r) => r.id === "morning.tmp"), `${who}: routine`);
+});
+
+each("low risk, not dry, no cancer treatment: Tooth Mousse Plus is optional; OraNurse is never the default", (x, who) => {
+  const tmp = x.plan.find((i) => i.id === "decay.tmp");
+  if (tmp && x.m.decay?.band.id === "low" && !isDry(x) && !dryTx(x) && !["watch", "flag"].includes(x.m.phPat.level))
+    assert.match(tmp.title, /^Optional/, who);
+  assert.ok(!x.routine.some((r) => r.product === "oranurse"), `${who}: OraNurse in routine`);
 });
 
 each("no Tooth Mousse with a milk allergy, and none without natural teeth", (x, who) => {

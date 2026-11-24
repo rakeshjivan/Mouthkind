@@ -287,7 +287,7 @@ export function scoreDecay(answers = {}, ctx = decayContext()) {
  * What to use, by risk level (after CAMBRA's adult recommendations).
  * Returns ordered steps: { id, title, body, products?, refs? }
  */
-export function decayPlan(result, answers = {}, { dry = false } = {}) {
+export function decayPlan(result, answers = {}, { dry = false, acid = false } = {}) {
   if (result.noTeeth) return [
     { id: "dentures", title: "Look after your gums and dentures", body: "Without natural teeth there's no tooth decay to worry about. Clean your dentures every day and take them out at night." },
     { id: "visit", ...checkup({ title: "See your dentist once a year", dentures: true }), refs: ["felton2011"] },
@@ -304,14 +304,16 @@ export function decayPlan(result, answers = {}, { dry = false } = {}) {
       products: ["neutrafluor"], refs: ["featherstone2021", "chen2026"] });
   else
     out.push({ id: "paste", title: "Brush twice a day with fluoride toothpaste",
-      body: "Use a standard fluoride toothpaste (1,000 to 1,450 ppm) morning and night. Spit, don't rinse — the fluoride left on your teeth keeps working.",
+      body: "Use a standard fluoride toothpaste (1,000 to 1,450 ppm) morning and night. Spit, don't rinse — the fluoride left on your teeth keeps working. If mint flavour or foaming agents (SLS) sting or bother you, OraNurse is an unflavoured, SLS-free alternative with everyday fluoride.",
       products: ["oranurse"], refs: ["walsh2019"] });
 
-  // Everyone with natural teeth: fluoride and Tooth Mousse for daily prevention.
-  out.push({ id: "tmp", title: uses("tm") ? "Keep using Tooth Mousse™ Plus" : "Add GC Tooth Mousse™ Plus, morning and night",
+  // Everyone with natural teeth: Tooth Mousse for daily prevention. Recommended with a moderate or
+  // high decay risk, a dry mouth, acidic saliva or cancer treatment; optional otherwise.
+  const optional = lvl === "low" && !dry && !acid;
+  out.push({ id: "tmp", optional, title: uses("tm") ? "Keep using Tooth Mousse™ Plus" : optional ? "Optional: GC Tooth Mousse™ Plus for extra protection" : "Add GC Tooth Mousse™ Plus, morning and night",
       body: has("mouth", "braces")
           ? "After brushing in the morning and at night, smear a pea-sized amount around your brackets and over your teeth. Don't rinse, eat or drink for 30 minutes."
-          : "After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse™ adds calcium and phosphate; Tooth Mousse™ Plus provides additional protection, fortified with 900 ppm fluoride.",
+          : `${optional ? "Your risk is low, so this is an optional extra. " : ""}After brushing in the morning and at night, smear a pea-sized amount over your teeth. Don't rinse, eat or drink for 30 minutes. Tooth Mousse™ adds calcium and phosphate; Tooth Mousse™ Plus provides additional protection, fortified with 900 ppm fluoride. Tooth Mousse™ Plus is for ages 6 and over; for younger children, use Tooth Mousse™.`,
       products: ["gc-tmp", "gc-tm"], refs: ["featherstone2021", "agarwal2022"] });
 
   // Through the day, as needed: Tooth Mousse (no added fluoride) between the morning and night Tooth Mousse Plus.
