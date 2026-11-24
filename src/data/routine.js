@@ -58,7 +58,7 @@ export function buildRoutine(plan = [], { noTeeth = false } = {}) {
   else if (water || gel) add("day", "water", "Sip water often", null, water);
 
   add("night", "brush", paste.text, paste.product, paste.why);
-  if (tmp) add("night", "tmp", tmp.optional ? "Optional: GC Tooth Mousse™ Plus, then nothing to eat or drink" : "GC Tooth Mousse™ Plus, then nothing to eat or drink", "gc-tmp", tmp);
+  if (tmp) add("night", "tmp", tmp.optional ? "GC Tooth Mousse™ Plus daily, after brushing" : "GC Tooth Mousse™ Plus, then nothing to eat or drink", "gc-tmp", tmp);
   if (gel) add("night", "gel", `${gelName} at bedtime`, gelName.startsWith("GC") ? "gc-dmg" : null, gel);
   return out;
 }
