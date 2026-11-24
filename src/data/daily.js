@@ -17,7 +17,7 @@ export const TEETH_FLAGS = [
 ];
 
 export const DAILY = [
-  { id: "dryness", text: "How dry is your mouth right now?", scale: "dry", core: true, refs: ["hjermstad2011"], options: Array.from({ length: 11 }, (_, v) => ({ v, label: String(v) })) },
+  { id: "dryness", text: "How dry is your mouth right now?", scale: "dry", core: true, refs: ["hjermstad2011", "basch2022"], options: Array.from({ length: 11 }, (_, v) => ({ v, label: String(v) })) },
   { id: "pain", text: "Mouth pain right now", scale: "pain", core: true, refs: ["hjermstad2011", "serlin1995"], options: Array.from({ length: 11 }, (_, v) => ({ v, label: String(v) })) },
   { id: "control", text: "Is pain relief keeping it bearable?", when: (p, a) => (a.pain ?? 0) >= 7, options: [
     { v: "yes", label: "Yes" }, { v: "no", label: "No" }, { v: "none", label: "Not taking any" },

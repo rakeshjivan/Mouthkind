@@ -1,7 +1,7 @@
 // ─── Building the plan ─────────────────────────────────────────────────────
-// A short start: the dry mouth risk check, the dry mouth score, the care team's
-// numbers (skippable) and a few questions, then the plan. The tooth decay check and
-// the pH test come after, from their boxes on Home, as optional ways to make the plan more accurate.
+// The baseline: the dry mouth risk check, the dry mouth score and the tooth decay check,
+// then the care team's numbers (skippable) and a few questions, then the plan. The pH
+// test is asked for afterwards and can be skipped by anyone without strips.
 // After that, questions never pop up; any new ones wait behind an optional
 // "Refine your plan" link on the plan.
 import { careContacts } from "./careTeam.js";
@@ -9,6 +9,7 @@ import { careContacts } from "./careTeam.js";
 export const SETUP_STEPS = [
   { id: "risk", label: "Dry mouth risk check", short: "Dry mouth risk", sheet: "risk", mins: 2 },
   { id: "sip", label: "Dry mouth score", short: "Dry mouth score", sheet: "sip", mins: 1 },
+  { id: "decay", label: "Tooth decay check", short: "Tooth decay check", sheet: "decay", mins: 2 },
   { id: "team", label: "Your care team's numbers", short: "Care team numbers", sheet: "careteam", mins: 1, optional: true },
   { id: "questions", label: "A few questions about you", short: "A few questions", sheet: "setupq", mins: 1 },
 ];
@@ -17,9 +18,9 @@ const has = (entries, k) => entries.some((e) => (k === "sip" ? e.sip != null && 
 
 /** Where the person is up to: { steps, built, next, at, total, minsLeft } */
 export function setupState({ entries = [], profile = {}, openQs = 0 } = {}) {
-  const done = { risk: has(entries, "risk"), sip: has(entries, "sip"), team: !!profile.teamAsked || careContacts(profile).length > 0 };
+  const done = { risk: has(entries, "risk"), sip: has(entries, "sip"), decay: has(entries, "decay"), team: !!profile.teamAsked || careContacts(profile).length > 0 };
   // Questions come from the checks, so this step can only be done once they are.
-  done.questions = done.risk && done.sip && done.team && openQs === 0;
+  done.questions = done.risk && done.sip && done.decay && done.team && openQs === 0;
   const steps = SETUP_STEPS.map((s) => ({ ...s, done: done[s.id] }));
   const all = steps.every((s) => s.done);
   const minsLeft = steps.filter((s) => !s.done).reduce((n, s) => n + s.mins, 0);

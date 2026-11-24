@@ -182,11 +182,12 @@ test("products already in use are praised, not recommended as new", () => {
   for (const k of kept) { assert.match(k.title, /^Keep going with/); assert.match(k.body, /^You're already doing the right thing/); assert.ok(k.pri <= 45); }
 });
 
-test("the plan is built step by step: risk, dry mouth score, care team, questions, then the plan", async () => {
+test("the baseline: risk, dry mouth score and decay check, then care team and questions, then the plan", async () => {
   const { setupState } = await import("../src/data/setup.js");
   const s0 = setupState({ entries: [], profile: {}, openQs: 0 });
-  assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built); assert.equal(s0.minsLeft, 5);
-  const checks = [{ kind: "risk" }, { kind: "sip", sip: 10 }];
+  assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built); assert.equal(s0.minsLeft, 7);
+  const checks = [{ kind: "risk" }, { kind: "sip", sip: 10 }, { kind: "decay" }];
+  assert.equal(setupState({ entries: checks.slice(0, 2), profile: {}, openQs: 0 }).next.id, "decay");
   const s1 = setupState({ entries: checks, profile: {}, openQs: 2 });
   assert.equal(s1.next.id, "team");
   const s2 = setupState({ entries: checks, profile: { teamAsked: true }, openQs: 2 });

@@ -164,7 +164,7 @@ export function SetupQuestions({ q: nextQ, m, left, profile, setProfile, onClose
     <Sheet title={refining ? "Refine your plan" : "A few questions about you"} onClose={onClose}
       progress={q ? { of: total, at: asked, label: `${asked + 1} of ${total}` } : null}
       footer={q ? (back.length ? <button className="btn ghost" onClick={goBack}><Icon name="back" size={18} /> Back</button> : null)
-        : <button className="btn primary big" onClick={onPlan}>See my plan</button>}>
+        : <button className="btn primary big" onClick={onPlan}>{refining ? "See my plan" : "See my routine"}</button>}>
       {q ? (<>
         <p className="eyebrow-q">{refining ? "Your recent results raised a question" : "Last step · each answer tailors your plan"}</p>
         <AskCard key={q.id + (revisit ? ":again" : "")} flow q={q} m={m} profile={profile} setProfile={(p) => {

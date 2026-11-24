@@ -52,8 +52,10 @@ async def main():
         # The rest of this test checks each screen on its own, so mark the plan as built.
         await pg.evaluate("() => { const p = JSON.parse(localStorage.getItem('mkt:profile')); p.planBuilt = true; localStorage.setItem('mkt:profile', JSON.stringify(p)); }")
         await pg.reload(); await pg.wait_for_timeout(400)
-        assert await pg.locator(".today").count() == 1
+        assert await pg.locator(".log5").count() == 1 and await pg.locator(".routine").count() == 1
+        assert await pg.locator(".helpbar").count() == 1
         await shot("01-home-empty", True)
+        await pg.click("nav >> text=Progress"); await pg.wait_for_timeout(300)
 
         # Risk check
         await pg.click(".tile.risk"); await pg.wait_for_timeout(450)
@@ -151,13 +153,13 @@ async def main():
             localStorage.setItem('mc:entries', JSON.stringify([...h, ...cur])); }""", history())
         await pg.reload(); await pg.wait_for_timeout(500)
         await shot("12-home-history", True)
-        await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
+        await pg.click("nav >> text=Progress"); await pg.wait_for_timeout(300)
         await shot("13-results", True)
         await btn("Make a summary").click(); await pg.wait_for_timeout(300)
         await shot("14-summary", True)
         await pg.keyboard.press("Escape"); await pg.wait_for_timeout(200)
 
-        await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(300)
+        await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(300)
         await shot("14b-care", True)
         await pg.click("nav >> text=Shop"); await pg.wait_for_timeout(300)
         await shot("14c-shop", True)
@@ -167,20 +169,21 @@ async def main():
         assert "Buy Strawberry" in await tm.locator("a.btn").inner_text()
         await tm.scroll_into_view_if_needed(); await shot("14d-shop-flavour")
         await pg.emulate_media(color_scheme="dark"); await pg.wait_for_timeout(200)
-        await pg.click("nav >> text=Home"); await pg.wait_for_timeout(300)
+        await pg.click("nav >> text=Today"); await pg.wait_for_timeout(300)
         await shot("15-home-dark", True)
-        await pg.click("nav >> text=\"Home\""); await pg.wait_for_timeout(200); await pg.get_by_role("button", name="My details").click(); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=\"Today\""); await pg.wait_for_timeout(200); await pg.get_by_role("button", name="My details").click(); await pg.wait_for_timeout(200)
         await pg.get_by_label("First name").fill("Alexandra")
         await pg.get_by_label("Last name").fill("Fitzgerald-Montgomery")
         await pg.locator("input[type=date]").fill("1958-03-14")
         await pg.get_by_label("Gender").select_option("woman")
         await shot("16-me-dark", True)
-        await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=Today"); await pg.wait_for_timeout(200)
         h = await pg.locator(".hello-line").evaluate("e => [e.getBoundingClientRect().height, parseFloat(getComputedStyle(e).fontSize)]")
         assert h[0] < h[1] * 1.6, h  # one line
         await shot("17-home-name")
         # The dry mouth check no longer asks age or gender once they're in Me
         await pg.emulate_media(color_scheme="light")
+        await pg.click("nav >> text=Progress"); await pg.wait_for_timeout(200)
         await pg.click(".tile.risk"); await pg.wait_for_timeout(300)
         await btn("Change my answers").click(); await pg.wait_for_timeout(300)
         assert await dlg.get_by_text("How old are you?").count() == 0
@@ -193,9 +196,9 @@ async def main():
               team: { name: 'Cancer Care', phone24: '07 5202 0000' } });
             localStorage.setItem('mkt:profile', JSON.stringify(p)); }""")
         await pg.reload(); await pg.wait_for_timeout(500)
-        await pg.click("nav >> text=Home"); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=Today"); await pg.wait_for_timeout(200)
         assert await pg.locator(".tx-line", has_text="Week 3 of 7").count() == 1
-        await pg.locator(".today").get_by_role("button", name="Log today").click(); await pg.wait_for_timeout(300)
+        await pg.locator(".log5").click(); await pg.wait_for_timeout(300)
         await dlg.locator(".painscale").nth(0).get_by_role("radio", name="8", exact=True).click()
         await dlg.locator(".painscale").nth(1).get_by_role("radio", name="5", exact=True).click()
         for q, a in [("Eating and drinking", "Soft foods only"), ("Sores or ulcers", "Ulcers"),
@@ -210,18 +213,18 @@ async def main():
         await shot("20-daily-red")
         await dlg.get_by_role("button", name="Log what I used").click(); await pg.wait_for_timeout(200)
         await dlg.get_by_role("button", name="GC Dry Mouth Gel").click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
-        assert await pg.locator(".today.t-red").count() == 1
+        assert await pg.locator(".alert5.t-red").count() == 1
         await pg.click(".tx-line"); await pg.wait_for_timeout(300)
         await shot("21-journey")
         await dlg.get_by_role("button", name="Jaw opening check").click(); await pg.wait_for_timeout(200)
         await dlg.get_by_role("radio", name="2", exact=True).click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
         assert await dlg.get_by_text("may not be opening fully").count() == 1
         await btn("Done").click(); await pg.wait_for_timeout(200)
-        await pg.click("nav >> text=Tracker"); await pg.wait_for_timeout(300)
+        await pg.click("nav >> text=Progress"); await pg.wait_for_timeout(300)
         assert await pg.get_by_text("My mouth log").count() >= 1
         assert await pg.get_by_role("heading", name="Jaw opening").count() == 1
         await shot("22-tracker-cancer", True)
-        await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(300)
+        await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(300)
         await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200)
         assert await pg.get_by_text("When to get help straight away").count() == 1
         await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200)
@@ -242,7 +245,7 @@ async def main():
         }""")
         await pg.reload(); await pg.wait_for_timeout(500)
         assert await pg.locator(".ask").count() == 0 and await pg.locator(".setup-card").count() == 0
-        await pg.click('nav >> text="Plan"'); await pg.wait_for_timeout(400)
+        await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(400)
         refine = pg.locator(".refine-line")
         assert "1 quick question" in await refine.inner_text()
         await shot("24-refine-link")

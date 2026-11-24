@@ -2,6 +2,7 @@ import { USED, usedDays, usedInsights } from "../data/used.js";
 import { GRADES, TEETH_FLAGS, painBand, teethFlags } from "../data/daily.js";
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
+import { CheckBoxes } from "./home.jsx";
 import { DotSeries, PhTimeline, SymptomChart, levelId } from "../components/kit.jsx";
 import { SIP_QUESTIONS, SIP_OPTIONS, phBand, phColor, sipBand, sipLevel } from "../data/clinical.js";
 import { PH_ZONES, isAcidic, phPattern } from "../data/ph.js";
@@ -55,7 +56,7 @@ function UsedPanel({ entries, open }) {
   );
 }
 
-export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
+export function Results({ profile = {}, prefs = {}, entries, open, onDelete, onShowRisk, onShowDecay }) {
   const [openId, setOpenId] = useState(null);
   const sips = entries.filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => a.ts - b.ts);
   const phs = entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -68,16 +69,17 @@ export function Results({ entries, open, onDelete, onShowRisk, onShowDecay }) {
 
   if (!all.length && !dailies.length && !anyUsed && !jaws.length) return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Tracker</h1></header>
-      <section className="empty-card"><p>Your risk checks, dry mouth scores and pH results will appear here, with charts once you have a few.</p>
-        <button className="btn primary big" onClick={() => open("risk")}>Check my risk</button></section>
+      <header className="hero"><h1 className="display">Progress</h1></header>
+      <CheckBoxes profile={profile} entries={entries} prefs={prefs} open={open} />
+      <section className="empty-card"><p>Your results and mouth log will build up here, with charts once you have a few.</p></section>
     </div>
   );
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Tracker</h1>
-        <p className="lede">Everything you've recorded, to look back on or show your dentist.</p></header>
+      <header className="hero"><h1 className="display">Progress</h1>
+        <p className="lede">Your checks, your mouth log and everything you've recorded, to look back on or show your team.</p></header>
+      <CheckBoxes profile={profile} entries={entries} prefs={prefs} open={open} />
 
       {dailies.length > 0 && (
         <section className="panel">

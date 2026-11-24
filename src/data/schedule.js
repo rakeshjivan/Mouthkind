@@ -59,3 +59,13 @@ export function daysSinceLog(entries = [], now = Date.now()) {
   const day = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
   return Math.round((day(now) - day(last)) / 864e5);
 }
+
+/** How often to ask for the mouth log: daily during cancer treatment (mucositis can change
+ *  day to day), weekly otherwise, as in weekly electronic symptom monitoring (Basch 2022). */
+export const logCadence = (active) => (active ? "daily" : "weekly");
+
+/** Whether the log is due: today for daily, 7 days since the last log for weekly. */
+export function logDue(entries = [], active = false, now = Date.now()) {
+  const d = daysSinceLog(entries, now);
+  return d == null || (logCadence(active) === "daily" ? d >= 1 : d >= 7);
+}

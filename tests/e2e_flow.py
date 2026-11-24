@@ -41,6 +41,23 @@ async def main():
       await dlg.get_by_role("button", name=v).first.click(); await pg.wait_for_timeout(350)
     await pg.wait_for_timeout(300); await pg.screenshot(path=S+"5-sip-result.png")
     nxt=dlg.locator(".sheet-foot .btn.primary"); print("sip next:", await nxt.inner_text())
+    assert "decay" in (await nxt.inner_text()).lower()
+    await nxt.click(); await pg.wait_for_timeout(400)
+    # tooth decay check (dry mouth and age already known)
+    pick=lambda t: dlg.get_by_role("button", name=t)
+    await btn("Yes").click(); await pg.wait_for_timeout(350)
+    await pick("Yes, once").click(); await pg.wait_for_timeout(350)
+    await pick("3 or more times a day").click(); await pg.wait_for_timeout(350)
+    await btn("Once a day").click(); await pg.wait_for_timeout(350)
+    await pick("Sometimes").click(); await pg.wait_for_timeout(350)
+    await btn("None of these").click(); await pg.wait_for_timeout(250)
+    await btn("None of these").click(); await pg.wait_for_timeout(250)
+    await btn("None of these").click(); await pg.wait_for_timeout(250)
+    await pick("1 to 2 years ago").click(); await pg.wait_for_timeout(350)
+    await btn("None of these").click(); await pg.wait_for_timeout(250)
+    if await btn("See my result").count(): await btn("See my result").click()
+    await pg.wait_for_timeout(600); await pg.screenshot(path=S+"5b-decay-result.png")
+    nxt=dlg.locator(".sheet-foot .btn.primary"); print("decay next:", await nxt.inner_text())
     assert "Care team" in await nxt.inner_text()
     await nxt.click(); await pg.wait_for_timeout(400)
     await pg.screenshot(path=S+"6-team.png")
@@ -57,12 +74,20 @@ async def main():
       n+=1; await pg.wait_for_timeout(350)
     print("questions answered:", n)
     await pg.screenshot(path=S+"8-ready.png")
-    await btn("See my plan").click(); await pg.wait_for_timeout(500)
-    await pg.screenshot(path=S+"9-plan.png")
-    await pg.click("nav >> text=Home"); await pg.wait_for_timeout(400)
-    await pg.screenshot(path=S+"10-home-after.png", full_page=True)
-    assert await pg.locator(".team-list li").count() == 1
-    assert await pg.locator(".focus").count() == 1 and await pg.locator(".ask").count() == 0 and await pg.locator(".setup-card").count() == 0
+    ready=dlg.locator(".sheet-foot .btn.primary"); print("ready:", await ready.inner_text())
+    await ready.click(); await pg.wait_for_timeout(500)
+    # Setup ends on Today: the routine, the log button and the help bar
+    await pg.screenshot(path=S+"10-today.png", full_page=True)
+    assert await pg.locator(".routine").count() == 1 and await pg.locator(".rt-slot.now").count() == 1
+    assert await pg.locator(".log5").count() == 1 and await pg.locator(".setup-card").count() == 0 and await pg.locator(".ask").count() == 0
+    assert await pg.locator(".helpbar a.help-btn.call").get_attribute("href") == "tel:0754441234"
+    # Ticking an item counts it and survives a reload
+    first=pg.locator(".rt-slot.now .rt-item input").first
+    await first.check(); await pg.wait_for_timeout(200); await pg.reload(); await pg.wait_for_timeout(400)
+    assert await pg.locator(".rt-slot.now .rt-item input").first.is_checked()
+    await pg.locator(".helpbar .help-btn.worry").click(); await pg.wait_for_timeout(300)
+    assert await dlg.get_by_text("Call 000").count() >= 1 and await dlg.locator(".team-list li").count() == 1
+    await pg.keyboard.press("Escape"); await pg.wait_for_timeout(200)
     assert n >= 1
     print("errors:", errs)
     assert not errs, errs
