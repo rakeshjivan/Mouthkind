@@ -351,3 +351,21 @@ test("cancer or a dry mouth: Tooth Mousse Plus leads, then gel, Tooth Mousse thr
   const ids = buildPlan(model(p, e)).map((i) => i.id).filter((id) => ["decay.tmp", "gel", "decay.tm", "oranurse"].includes(id));
   assert.deepEqual(ids, ["decay.tmp", "gel", "decay.tm", "oranurse"]);
 });
+
+test("care team: extra people can be added, named, called and removed", async () => {
+  const { addExtraContact, removeExtraContact, setContact, careContacts, contactRoles } = await import("../src/data/careTeam.js");
+  let p = addExtraContact({}, "x1");
+  assert.equal(contactRoles(p).at(-1).role, "Other contact");
+  p = setContact(p, "x1", { role: "Dietitian", name: "Sam", phone: "07 5555 0000" });
+  const c = careContacts(p).find((x) => x.id === "x1");
+  assert.equal(c.role, "Dietitian"); assert.equal(c.phone, "07 5555 0000");
+  assert.equal(careContacts(removeExtraContact(p, "x1")).length, 0);
+});
+
+test("Call my team lists only people with a number: blank, name-only and empty added contacts are left out", async () => {
+  const { addExtraContact, setContact, careContacts } = await import("../src/data/careTeam.js");
+  let p = { situation: ["cancer"], team: { name: "Cancer Care", phone24: "07 5202 0000" }, contacts: { gp: { name: "Dr Wu", phone: "" }, nurse: { name: "", phone: "   " } } };
+  p = addExtraContact(p, "x1");                                  // added, left empty
+  p = setContact(addExtraContact(p, "x2"), "x2", { role: "Dietitian" }); // a role but no number
+  assert.deepEqual(careContacts(p).map((c) => c.id), ["line24"]);
+});

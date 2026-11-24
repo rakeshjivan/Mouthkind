@@ -13,13 +13,24 @@ export function contactRoles(profile = {}) {
     { id: "dentist", role: "My dentist", find: "dentist" },
     { id: "pharmacy", role: "My pharmacy", find: "pharmacy", hint: "For high-fluoride toothpaste, saliva gels, thrush treatment and medicine reviews" },
     { id: "gp", role: "My GP" },
+    // Anyone else the person adds (a dietitian, speech pathologist, social worker…).
+    ...(profile.extraContacts || []).map((x) => ({ id: x.id, role: x.role?.trim() || "Other contact", extra: true })),
   ].filter(Boolean);
 }
+
+/** Add an empty extra contact; returns the new profile. */
+export const addExtraContact = (profile = {}, id = `x_${Date.now()}`) =>
+  ({ ...profile, extraContacts: [...(profile.extraContacts || []), { id, role: "", name: "", phone: "" }] });
+/** Remove an extra contact. */
+export const removeExtraContact = (profile = {}, id) =>
+  ({ ...profile, extraContacts: (profile.extraContacts || []).filter((x) => x.id !== id) });
 
 /** Read one contact as { name, phone }. */
 export function getContact(profile = {}, id) {
   if (id === "line24") return { name: profile.team?.name || "", phone: profile.team?.phone24 || "" };
   if (id === "dentist") return { name: profile.dentist?.name || "", phone: profile.dentist?.phone || "" };
+  const x = (profile.extraContacts || []).find((c) => c.id === id);
+  if (x) return { name: x.name || "", phone: x.phone || "", role: x.role || "" };
   return { name: profile.contacts?.[id]?.name || "", phone: profile.contacts?.[id]?.phone || "" };
 }
 
@@ -32,12 +43,14 @@ export function setContact(profile = {}, id, patch) {
     return { ...profile, team: t };
   }
   if (id === "dentist") return { ...profile, dentist: { ...profile.dentist, ...patch } };
+  if ((profile.extraContacts || []).some((c) => c.id === id))
+    return { ...profile, extraContacts: profile.extraContacts.map((c) => (c.id === id ? { ...c, ...patch } : c)) };
   return { ...profile, contacts: { ...profile.contacts, [id]: { ...profile.contacts?.[id], ...patch } } };
 }
 
 /** The contacts that have a number, ready to call. */
 export function careContacts(profile = {}) {
-  return contactRoles(profile).map((r) => ({ ...r, ...getContact(profile, r.id) })).filter((c) => c.phone.trim());
+  return contactRoles(profile).map((r) => { const { role, ...c } = getContact(profile, r.id); return { ...r, ...c }; }).filter((c) => c.phone.trim());
 }
 
 export const telHref = (phone) => `tel:${phone.replace(/[^\d+]/g, "")}`;
