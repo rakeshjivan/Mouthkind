@@ -22,7 +22,7 @@ import { medicineById } from "./medicines.js";
 // checked for this app. Shown in the plan for clinical review.
 // Mercadante 2021 (cancer therapy).
 
-export const RISK_VERSION = 2;
+export const RISK_VERSION = 3; // 3: "Kidney disease or dialysis" split into dialysis and kidney disease
 
 // ── Questions ───────────────────────────────────────────────────────────────
 // "one": pick one option. "many": tick any. Every option carries its points.

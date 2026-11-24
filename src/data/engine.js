@@ -52,7 +52,7 @@ export function buildModel({ profile = {}, entries = [], now = Date.now() } = {}
   return {
     now, profile, fu: profile.fu || {}, snooze: profile.snooze || {},
     who: profile.carer && profile.carerFor ? profile.carerFor : null,
-    answers, risk, has,
+    answers, risk, has, riskV: riskE?.v || 0,
     decay: decay && !decay.noTeeth ? decay : null, noTeeth: !!decay?.noTeeth, decayAns: decayE?.answers || {},
     sips, sip, prevSip, rise: sip && prevSip ? sip.sip - prevSip.sip : 0,
     phs, ph: latest(phs), phPat: phPattern(phs),
@@ -110,6 +110,15 @@ const fresh = (m, id, days) => m.fu[id] && m.now - m.fu[id].ts < days * DAY;
 //          rose again), the result that triggered it.
 // again:   days before it can be asked again once answered (default: never).
 export const FOLLOWUPS = [
+  {
+    // Checks saved before dialysis had its own option: "Kidney disease or dialysis" was one tick.
+    id: "dialysis", pri: () => 92,
+    text: (m) => T(m, "Are you on dialysis?", "Is $ on dialysis?"),
+    why: "Dialysis usually comes with a daily fluid limit, so the advice changes: we won't suggest drinking more.",
+    refs: ["kumar2021"],
+    options: [{ v: "yes", label: "Yes" }, { v: "no", label: "No" }],
+    when: (m) => m.riskV < 3 && m.has("conditions", "kidney"),
+  },
   {
     id: "boneDentist", pri: () => 77,
     text: (m) => T(m, "Does your dentist know about your bone-strengthening medicine?", "Does $'s dentist know about the bone-strengthening medicine?"),

@@ -50,6 +50,18 @@ export default function App() {
 
   const setProfile = useCallback((p) => { setProfileState(p); save("profile", p); }, []);
   const setPrefs = useCallback((p) => { setPrefsState(p); save("prefs", p); }, []);
+  // A "yes" to "Are you on dialysis?" (for checks saved before dialysis had its own option)
+  // moves the old kidney tick to dialysis, so the score and the fluid-limit advice follow.
+  const onDialysis = profile.fu?.dialysis?.v === "yes";
+  useEffect(() => {
+    if (!onDialysis) return;
+    setEntries((prev) => {
+      if (!prev.some((e) => e.kind === "risk" && (e.answers?.conditions || []).includes("kidney"))) return prev;
+      const n = prev.map((e) => (e.kind === "risk" && (e.answers?.conditions || []).includes("kidney")
+        ? { ...e, v: 3, answers: { ...e.answers, conditions: e.answers.conditions.map((c) => (c === "kidney" ? "dialysis" : c)) } } : e));
+      save("entries", n); return n;
+    });
+  }, [onDialysis]);
   const addEntry = useCallback((x) => setEntries((prev) => { const n = [...prev.filter((e) => e.id !== x.id), x]; save("entries", n); return n; }), []);
   const delEntries = useCallback((ids) => setEntries((prev) => { const n = prev.filter((e) => !ids.includes(e.id)); save("entries", n); return n; }), []);
   const restore = useCallback((data) => {

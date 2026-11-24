@@ -86,3 +86,11 @@ test("allergies reach the routine: no Tooth Mousse with a milk allergy, no GC ge
   assert.ok(r.every((x) => !/Tooth Mousse/.test(x.text)));
   assert.ok(r.some((x) => /paraben-free/.test(x.text)) && r.every((x) => !/GC Dry Mouth Gel/.test(x.text)));
 });
+
+test("checks saved before the dialysis split ask once whether the person is on dialysis", async () => {
+  const { buildModel, openQuestions } = await import("../src/data/engine.js");
+  const old = buildModel({ profile: {}, entries: [{ id: "r1", kind: "risk", v: 2, ts: Date.now(), answers: { conditions: ["kidney"] } }] });
+  assert.ok(openQuestions(old).some((q) => q.id === "dialysis"));
+  const now = buildModel({ profile: {}, entries: [{ id: "r1", kind: "risk", v: 3, ts: Date.now(), answers: { conditions: ["kidney"] } }] });
+  assert.ok(!openQuestions(now).some((q) => q.id === "dialysis"));
+});
