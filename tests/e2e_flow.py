@@ -17,6 +17,7 @@ async def main():
     await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(400)
     await pg.screenshot(path=S+"1-home.png")
     assert await pg.locator(".setup-card").count()==1 and await pg.locator(".focus").count()==0 and await pg.locator(".ask").count()==0
+    assert await pg.locator(".helpbar").count()==0  # no help bar until setup is done
     await pg.locator(".setup-card .btn").click(); await pg.wait_for_timeout(400)
     # risk: conditions → none; medFor bladder → next; names skip; count 3 or 4; treatments none; breathing none; habits none; water; age; gender
     await btn("None of these").click(); await pg.wait_for_timeout(250)

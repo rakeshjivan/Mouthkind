@@ -139,7 +139,8 @@ export default function App() {
 
   return (
     <div className="app">
-      <main className={`main${profile.onboarded && !showWelcome && tab === "home" ? " with-help" : ""}`} id="main">
+      {/* The help bar appears once setup is done: the care team's numbers are one of its steps. */}
+      <main className={`main${profile.onboarded && !showWelcome && !building && tab === "home" ? " with-help" : ""}`} id="main">
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={building ? [] : plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
           routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} />}
         {tab === "shop" && <Shop forYou={building ? [] : [...new Set(plan.flatMap((it) => it.products || []))]} />}
@@ -148,7 +149,7 @@ export default function App() {
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} />}
       </main>
 
-      {profile.onboarded && !showWelcome && tab === "home" && <HelpBar profile={profile} open={open} />}
+      {profile.onboarded && !showWelcome && !building && tab === "home" && <HelpBar profile={profile} open={open} />}
       <nav className="tabbar" aria-label="Main">
         {TABS.flatMap((t, i) => [
           // The symptom log: an action, not a tab — always one tap away, in the middle.
