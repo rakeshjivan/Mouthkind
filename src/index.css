@@ -1602,3 +1602,34 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 /* Care team: people added beyond the listed roles */
 .team-add { width: 100%; margin-top: 4px; }
 .team-remove { margin-top: 2px; color: var(--red); }
+
+/* ── Compliant edition ── */
+.lite-setup { padding: 18px; border-radius: 18px; background: var(--tint); margin: 6px 0 18px; }
+.lite-setup h2 { margin: 0 0 10px; font-size: calc(19px * var(--s)); }
+.lite-setup ol { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 10px; }
+.lite-setup li { display: flex; align-items: center; gap: 10px; font-size: calc(16px * var(--s)); }
+.lite-setup li.done { color: var(--ink3); }
+.lite-step-dot { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
+.lite-setup li.done .lite-step-dot { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.lite-due { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 8px 14px; border-radius: 14px; border: 1.5px solid var(--line); margin: -6px 0 16px; }
+.lite-due span { margin-left: auto; color: var(--ink3); }
+.lite-due:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.lite-edit { margin: 4px 0 0; }
+.lite-lib { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; display: grid; gap: 8px; }
+.lite-lib legend { padding: 0; margin-bottom: 8px; font-weight: 650; font-size: calc(17px * var(--s)); }
+.lite-lib .opt { border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; position: relative; }
+.lite-lib .opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.lite-lib .opt:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+.lite-lib .opt-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lite-slot { font-style: normal; color: var(--ink3); font-size: calc(14px * var(--s)); }
+.lite-own { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: 12px; background: var(--tint); }
+.lite-lib .seg { margin: 2px 0; }
+.lite-saved { text-align: center; padding: 8px 0 6px; }
+.lite-saved-mark { width: 60px; height: 60px; margin: 0 auto 8px; border-radius: 50%; display: grid; place-items: center; background: var(--tint); color: var(--accent); }
+.lite-static { margin-top: 10px; padding: 14px 16px; border-radius: 14px; border: 1.5px solid var(--line); display: grid; gap: 10px; justify-items: start; }
+.lite-static p { margin: 0; }
+.lite-del { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 4px; }
+.lite-del li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; padding: 0 4px; border-bottom: 1px solid var(--line); }
+.lite-del .link-btn { min-width: 44px; min-height: 44px; display: grid; place-items: center; }
+.rep-scroll { overflow-x: auto; max-width: 100%; }
+.rep-scroll:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

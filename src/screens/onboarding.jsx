@@ -1,3 +1,4 @@
+import { EDITION } from "../edition.js";
 import { useState } from "react";
 import { BrandMark } from "../components/brandMark.jsx";
 import { Icon } from "../components/ui.jsx";
@@ -51,8 +52,8 @@ export function Welcome({ profile, onDone }) {
         {at === "about" && (<>
           <h2 className="q">{p.carer ? "About the person you care for" : "About you"}</h2>
           {p.carer
-            ? <div className="carer-note"><Icon name="info" size={18} /><p><b>Enter their details, not yours.</b> Everything in the app — the checks, results and plan — is about them.</p></div>
-            : <p className="lede tight">Your age and gender are used in your risk checks, so you won't be asked again.</p>}
+            ? <div className="carer-note"><Icon name="info" size={18} /><p><b>Enter their details, not yours.</b> {EDITION === "compliant" ? "Everything in the app — the diary, scores and records — is about them." : "Everything in the app — the checks, results and plan — is about them."}</p></div>
+            : <p className="lede tight">{EDITION === "compliant" ? "All optional. Used only on the summary for your care team." : "Your age and gender are used in your risk checks, so you won't be asked again."}</p>}
           <div className="field-row">
             <label className="field"><span>{p.carer ? "Their first name" : "First name"}</span>
               <input value={p.firstName || ""} onChange={(e) => setName(e.target.value)} autoComplete={p.carer ? "off" : "given-name"} placeholder={p.carer ? "e.g. Margaret" : ""} /></label>

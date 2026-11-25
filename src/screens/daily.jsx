@@ -23,7 +23,7 @@ export function PainScale({ value, onPick, label = "Mouth pain, 0 to 10", kind =
 }
 
 /** The symptom log: one screen of taps, then what to do. Logging again the same day updates the entry. */
-export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, decayRisk, fluidLimit, onShop, onRemind }) {
+export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, decayRisk, fluidLimit, onShop, onRemind, onSaved }) {
   const [a, setA] = useState(() => {
     if (!initial) return {};
     const { id, ts, kind, grade, full, ...rest } = initial;
@@ -46,7 +46,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
       footer={<button className="btn primary big" disabled={!ready} onClick={() => {
         const e = { id: initial?.id || `dl_${Date.now()}`, ts: initial?.ts && new Date(initial.ts).toDateString() === new Date().toDateString() ? initial.ts : Date.now(),
           kind: "daily", ...a, dry: dryWord(a.dryness), grade: mucositisGrade(a), full: true };
-        onSave(e); setDone(e);
+        onSave(e); if (onSaved) onSaved(e); else setDone(e);
       }}>{ready ? "Save" : `${left} to go`}</button>}>
       <h2 className="q">How's {who} mouth today?</h2>
       <p className="lede tight">One tap on each line. It takes under a minute.</p>

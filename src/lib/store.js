@@ -4,7 +4,9 @@
 // `driver` for Capacitor Preferences or SQLite without touching callers.
 
 // The testing release keeps its own data, so it can never change a live user's results.
-const PREFIX = "mkt:";
+// The compliant edition keeps its own again, so the two testing apps don't mix.
+import { EDITION } from "../edition.js";
+const PREFIX = EDITION === "compliant" ? "mkc:" : "mkt:";
 const driver = {
   get(k) {
     try { const v = localStorage.getItem(PREFIX + k); return v == null ? null : JSON.parse(v); } catch { return null; }

@@ -6,8 +6,8 @@ import { CallTeam } from "./daily.jsx";
 import { questionsText } from "../data/questions.js";
 
 /** What to expect, now and next, for each treatment. */
-export function Journey({ profile, onClose, openTool, onEdit }) {
-  const j = journey(profile);
+export function Journey({ profile, onClose, openTool, onEdit, transform }) {
+  const j = transform ? transform(journey(profile)) : journey(profile);
   const chemo = hasTx(profile, "chemo") || hasTx(profile, "transplant");
   return (
     <Sheet title="What to expect" onClose={onClose}

@@ -6,7 +6,9 @@ BASE = os.environ.get("BASE_URL", "http://localhost:4173/")
 OUT = os.environ.get("SHOTS", "shots")
 # Live and testing keep data under different keys; use the one this build uses.
 import re as _re
-PFX = _re.search(r'PREFIX = "([^"]+)"', open(os.path.join(os.path.dirname(__file__), "..", "src", "lib", "store.js")).read()).group(1)
+_src = open(os.path.join(os.path.dirname(__file__), "..", "src", "lib", "store.js")).read()
+# Either PREFIX = "mk9:" (live) or PREFIX = EDITION === "compliant" ? "mkc:" : "mkt:" (testing): the full app's key is the last one.
+PFX = _re.findall(r'"(m[a-z0-9]*:)"', _re.search(r'const PREFIX = [^;]+;', _src).group(0))[-1]
 DAY = 86400000
 
 
