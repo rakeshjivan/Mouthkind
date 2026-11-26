@@ -1,5 +1,5 @@
 # The clinician-in-the-loop build (src/edition.js = "clinician"), from a fresh install:
-# welcome → the questions (risk, score, decay, team, follow-ups) → Today with no plan →
+# welcome → the questions (dry mouth factors, assessment, team, follow-ups; no decay check) → Today with no plan →
 # diary → the clinician view (confirm, review, sign) → Today with the signed plan.
 # Checks that no risk band, factor or plan reaches a patient screen before a plan is signed,
 # that the diary's note doesn't depend on what was logged, and that findings can be sent.
@@ -38,8 +38,10 @@ async def main():
     await dlg.get_by_role("button", name="Less than 4 glasses").click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="65 to 79").click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="Woman or female").click(); await pg.wait_for_timeout(600)
-    await text("risk saved"); await pg.screenshot(path=S + "2-risk-saved.png")
-    assert "Saved for your dentist" in await dlg.inner_text()
+    await text("risk saved"); await pg.screenshot(path=S + "2-risk-saved.png", full_page=True)
+    body = await dlg.inner_text()
+    assert "Saved for your dentist" in body and "What can affect a dry mouth" in body, body
+    assert "Bladder tablets for urgency or leaking" in body and not re.search(r"\d+ ?pts|/100", body)
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(400)
     # Dry mouth assessment: score and the instrument's band, never called SIP
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(300)
@@ -49,21 +51,8 @@ async def main():
     await pg.wait_for_timeout(300); await text("sip"); await pg.screenshot(path=S + "3-sip.png")
     assert "Saved to your records" in await dlg.inner_text()
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(400)
-    # Tooth decay questions
-    pick = lambda t: dlg.get_by_role("button", name=t)
-    await btn("Yes").click(); await pg.wait_for_timeout(350)
-    await pick("Yes, once").click(); await pg.wait_for_timeout(350)
-    await pick("3 or more times a day").click(); await pg.wait_for_timeout(350)
-    await btn("Once a day").click(); await pg.wait_for_timeout(350)
-    for _ in range(8):
-      if "Saved for your dentist" in await dlg.inner_text(): break
-      if await pick("1 to 2 years ago").count(): await pick("1 to 2 years ago").click()
-      elif await btn("None of these").count(): await btn("None of these").click()
-      elif await btn("See my result").count(): await btn("See my result").click()
-      await pg.wait_for_timeout(350)
-    await text("decay saved"); await pg.screenshot(path=S + "4-decay-saved.png")
-    assert "Saved for your dentist" in await dlg.inner_text()
-    await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(400)
+    # No tooth decay check: straight on to the care team
+    assert "tooth decay" not in (await dlg.inner_text()).lower()
     # Care team, then the follow-up questions
     await dlg.get_by_label("Phone").nth(1).fill("07 5444 1234")
     await btn("Save and continue").click(); await pg.wait_for_timeout(500)
@@ -80,6 +69,7 @@ async def main():
     await text("today unsigned"); await pg.screenshot(path=S + "6-today-unsigned.png", full_page=True)
     assert await pg.locator(".planfrom.wait").count() == 1 and await pg.locator(".routine").count() == 0
     assert await pg.locator(".helpbar").count() == 1
+    assert "A dry mouth puts teeth at risk" in await pg.locator(".teeth-note").inner_text()
     # Diary: mouth questions only, and the same note whatever is logged
     notes = []
     for pain in ["9", "0"]:
@@ -99,8 +89,16 @@ async def main():
     assert notes[0] == notes[1], "the saved note must not depend on what was logged"
     for t in ["Records", "Help", "Shop"]:
       await pg.click(f'nav >> text="{t}"'); await pg.wait_for_timeout(300); await text(t)
+      if t == "Records":
+        assert "What can affect a dry mouth" in await pg.locator("main").inner_text()
+        await pg.screenshot(path=S + "4-records.png", full_page=True)
     await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(200)
     await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200); await text("learn unsigned")
+    main = await pg.locator("main").inner_text()
+    assert "Start here" in main and "A dry mouth, tooth decay and erosion" in main and "Choosing a dry mouth product" in main
+    await pg.get_by_role("button", name=re.compile("Choosing a dry mouth product")).click(); await pg.wait_for_timeout(200)
+    assert "6.7" in await pg.locator("main").inner_text()
+    await pg.screenshot(path=S + "4b-learn-products.png", full_page=True)
     await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200); await text("plan unsigned")
     assert "Your plan comes from your dentist" in await pg.locator("main").inner_text()
     sipnames = [w for w, t in seen if re.search(r"\bSIP\b|SIP-SCORE", t)]
@@ -114,7 +112,8 @@ async def main():
     await pg.click('nav >> text="Today"'); await pg.wait_for_timeout(200)
     await pg.locator(".planfrom").get_by_role("button", name="Send my answers").click(); await pg.wait_for_timeout(300)
     shared = await pg.evaluate("window.__shared")
-    assert shared and "DRY MOUTH RISK CHECK" in shared[-1]["text"], shared
+    assert shared and "WHAT CAN AFFECT MY DRY MOUTH" in shared[-1]["text"], shared
+    assert not re.search(r"/100|\bpts\b|RISK CHECK|TOOTH DECAY", shared[-1]["text"]), shared[-1]["text"]
     # The clinician view
     await pg.locator(".planfrom").get_by_role("button", name="For my dentist").click(); await pg.wait_for_timeout(300)
     await pg.screenshot(path=S + "8-confirm.png")

@@ -4,7 +4,9 @@ import assert from "node:assert/strict";
 import { PERSONAS, NOW } from "./personas.js";
 import { withContext } from "./audit.js";
 import { WATER_OPTIONS, buildModel, buildOptions, buildPlan } from "../src/data/engine.js";
-import { AHPRA, findingsText } from "../src/clin/findings.js";
+import { AHPRA, dryFactors, findingsText } from "../src/clin/findings.js";
+import { setupState } from "../src/data/setup.js";
+import { CARE_TOPICS } from "../src/data/care.js";
 
 for (const p of PERSONAS) {
   test(`clinician options: ${p.name}`, () => {
@@ -19,9 +21,25 @@ for (const p of PERSONAS) {
     if (m.has("conditions", "dialysis")) { assert.equal(water.length, 0); assert.ok(opts.some((o) => o.id === "kidneyFluid")); }
     else { assert.equal(water.length, 1); assert.equal(water[0].item.title, "Keep hydrated"); assert.ok(water[0].ticked); }
     for (const o of opts.filter((x) => x.contra)) { assert.equal(o.ticked, false); assert.ok(o.warn.length, o.id); }
-    const txt = findingsText(p.profile, entries);
+    // The clinician build has no tooth decay check: decay entries are left out before the engine.
+    const clinEntries = entries.filter((e) => e.kind !== "decay");
+    const cm = buildModel({ profile: p.profile, entries: clinEntries, now: NOW });
+    const copts = buildOptions(cm);
+    assert.ok(!copts.some((o) => o.ticked && /tooth decay risk is/i.test((o.item.because || []).join(" "))), "no option rests on a decay band");
+    if (!cm.noTeeth && !cm.rtHN) { const hf = copts.find((o) => o.id === "hf"); assert.ok(hf && !hf.ticked, "high fluoride offered, not suggested"); }
+    const txt = findingsText(p.profile, clinEntries);
     assert.match(txt, /DRY MOUTH RISK CHECK/);
     assert.match(txt, /does not replace clinical judgement/);
+    assert.doesNotMatch(txt, /TOOTH DECAY/);
+    // What the patient sends: answers only, no score, band or points.
+    const mine = findingsText(p.profile, clinEntries, null, { patient: true });
+    assert.doesNotMatch(mine, /\/100|\bpts\b|risk check|\b(low|moderate|high|very high) risk\b|clinical judgement/i);
+    const risk = clinEntries.find((e) => e.kind === "risk");
+    if (risk) {
+      assert.match(mine, /WHAT CAN AFFECT MY DRY MOUTH/);
+      const x = dryFactors(risk.answers);
+      for (const g of x.groups) for (const r of g.rows) { assert.equal(r.pts, undefined); assert.ok(r.label); }
+    }
   });
 }
 
@@ -37,3 +55,26 @@ test("AHPRA format: three letters and ten digits", () => {
   for (const bad of ["DEN12345", "de0001234567", "DEN00012345678", "0001234567DEN"]) assert.ok(!AHPRA.test(bad), bad);
 });
 
+
+test("clinician setup skips the tooth decay check", () => {
+  const st = setupState({ entries: [], profile: {}, openQs: 0, skip: ["decay"] });
+  assert.ok(!st.steps.some((x) => x.id === "decay"));
+  assert.equal(st.total, 4);
+});
+
+test("dry mouth factors are listed in question order, the same for everyone, with no points", () => {
+  const a = dryFactors({ habits: ["smoke"], conditions: ["sjogren"], medTypes: ["bladder"], meds: "3" });
+  const labels = a.groups.flatMap((g) => g.rows.map((r) => r.label));
+  assert.ok(labels.includes("Sjögren's syndrome") && labels.includes("Smoking"));
+  assert.deepEqual(a.groups.map((g) => g.id), a.groups.map((g) => g.id).sort((x, y) => ["meds", "treat", "health", "sleep", "habits", "about"].indexOf(x) - ["meds", "treat", "health", "sleep", "habits", "about"].indexOf(y)));
+  assert.ok(dryFactors({}).none);
+});
+
+test("general information on teeth and dry mouth products is there for everyone, with no brand names", () => {
+  for (const id of ["teeth", "products"]) {
+    const t = CARE_TOPICS.find((x) => x.id === id);
+    assert.ok(t && t.general && t.refs.length >= 3, id);
+    assert.ok(!t.products, id);
+    assert.doesNotMatch(t.steps.join(" "), /GC|Tooth Mousse|NeutraFluor|OraNurse|Biot[eè]ne/);
+  }
+});

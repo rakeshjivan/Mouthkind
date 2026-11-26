@@ -11,8 +11,9 @@ import { fmtDate } from "../lib/store.js";
 // `clin`: the clinician-in-the-loop build. "My plan" is the plan the patient's professional
 // signed, and Learn highlights the topics they suggested instead of matching results.
 export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile, open, setup, onSetup, refine, onShop, openSheet, clin }) {
-  const mine = CARE_TOPICS.filter((t) => (clin ? (clin.plan?.topics || []).includes(t.id) : t.forYou(ctx)));
-  const rest = CARE_TOPICS.filter((t) => !mine.includes(t));
+  const general = CARE_TOPICS.filter((t) => t.general);
+  const mine = CARE_TOPICS.filter((t) => !t.general && (clin ? (clin.plan?.topics || []).includes(t.id) : t.forYou(ctx)));
+  const rest = CARE_TOPICS.filter((t) => !t.general && !mine.includes(t));
   // Two views: the personal plan, and a library of topics to read ("Learn").
   const topicFocus = focus && focus !== "plan";
   const [view, setView] = useState(topicFocus ? "learn" : "plan");
@@ -87,11 +88,13 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
           : <section className="plan-wait"><h2>No plan yet</h2><p>Do your checks and your plan appears here.</p></section>
       ) : (<>
         <p className="lede tight">What helps a dry or acidic mouth, and protects your teeth.</p>
+        <h2 className="list-h first">Start here</h2>
+        {general.map((t) => <Topic key={t.id} t={t} />)}
         {mine.length > 0 && (<>
-          <h2 className="list-h first">{clin ? "Your dentist suggested" : "For you"}</h2>
+          <h2 className="list-h">{clin ? "Your dentist suggested" : "For you"}</h2>
           {mine.map((t) => <Topic key={t.id} t={t} mineFlag={false} />)}
         </>)}
-        <h2 className={`list-h${mine.length ? "" : " first"}`}>{mine.length ? "Everything else" : "All topics"}</h2>
+        <h2 className="list-h">{mine.length ? "Everything else" : "More topics"}</h2>
         {rest.map((t) => <Topic key={t.id} t={t} />)}
         <p className="foot-note">General information — your dentist can tailor it to you.</p>
       </>)}

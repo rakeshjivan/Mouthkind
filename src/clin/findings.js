@@ -2,8 +2,8 @@
 // What the clinician view shows, written out so it can be emailed or shared. Nothing is
 // sent by the app: the phone's own share sheet or mail app does that, and only when the
 // person chooses to.
-import { scoreRisk } from "../data/risk.js";
-import { scoreDecay } from "../data/decay.js";
+import { RISK_GROUPS, RISK_QUESTIONS, fullAnswers, scoreRisk } from "../data/risk.js";
+import { medicineById } from "../data/medicines.js";
 import { sipLevel } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
 import { REFS } from "../data/references.js";
@@ -17,11 +17,29 @@ export const sipsOf = (entries) => entries.filter((e) => e.sip != null && e.kind
 export const phsOf = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
 export const fullName = (p = {}) => [p.firstName ?? p.name, p.lastName].filter(Boolean).join(" ").trim();
 
+/**
+ * "What can affect a dry mouth": what the person told us that is known to dry the mouth, in the
+ * order the questions ask it, grouped, with the general information on each. No points, no
+ * score, no band and no ranking: the same text appears for everyone who gives that answer.
+ */
+export function dryFactors(answers = {}) {
+  const a = fullAnswers(answers);
+  const rows = [];
+  for (const q of RISK_QUESTIONS) {
+    if (!q.options || q.id === "medFor") continue;
+    const v = a[q.id];
+    const picked = q.options.filter((o) => (q.type === "one" ? o.v === v : [].concat(v || []).includes(o.v)) && o.pts > 0);
+    for (const o of picked) if (!rows.some((r) => r.q === q.id && r.v === o.v)) rows.push({ q: q.id, v: o.v, label: o.as || o.label, why: o.why || "", refs: o.refs || [] });
+  }
+  const named = (a.medList || []).map((x) => { const m = x.id ? medicineById(x.id) : null; return { name: x.name || m?.g || "", known: m ? (m.c === "rep" ? "reported" : m.c ? "known" : "no") : "unknown" }; }).filter((x) => x.name);
+  const groups = RISK_GROUPS.map((g) => ({ id: g.id, label: g.label, rows: rows.filter((r) => g.qs.includes(r.q)) })).filter((g) => g.rows.length);
+  return { groups, named, none: !rows.length };
+}
+
 /** Everything the professional reviews, worked out once. */
 export function findings(profile = {}, entries = []) {
-  const risk = latest(entries, "risk"), decay = latest(entries, "decay");
+  const risk = latest(entries, "risk");
   const r = risk ? scoreRisk(risk.answers) : null;
-  const d = decay ? scoreDecay(decay.answers, decay.ctx) : null;
   const sips = sipsOf(entries), phs = phsOf(entries);
   const diary = entries.filter((e) => e.kind === "daily").sort((a, b) => a.ts - b.ts);
   const recent = diary.filter((e) => Date.now() - e.ts < 28 * 864e5);
@@ -32,34 +50,40 @@ export function findings(profile = {}, entries = []) {
     e.eat === "none" && `${fmtDate(e.ts)}: can't eat or drink`,
   ].filter(Boolean));
   const jaws = entries.filter((e) => e.kind === "jaw" && e.fingers).sort((a, b) => a.ts - b.ts);
-  return { risk, r, decay, d, sips, phs, pat: phPattern(phs), diary, recent, dryAvg: avg("dryness"), painAvg: avg("pain"), flags, jaws };
+  return { risk, r, sips, phs, pat: phPattern(phs), diary, recent, dryAvg: avg("dryness"), painAvg: avg("pain"), flags, jaws };
 }
 
 /** The findings as plain text, for an email or a message. */
-export function findingsText(profile = {}, entries = [], plan = null) {
+// `patient`: what the patient's own "Send my answers" sends: their answers and records, with no
+// score, band or points of the app's own (those stay in the clinician view).
+export function findingsText(profile = {}, entries = [], plan = null, { patient = false } = {}) {
   const f = findings(profile, entries);
   const L = [];
   const name = fullName(profile);
-  L.push(`Mouthkind findings${name ? ` for ${name}` : ""}`);
+  L.push(`${patient ? "My Mouthkind answers" : "Mouthkind findings"}${name ? ` for ${name}` : ""}`);
   if (profile.dob) L.push(`Date of birth: ${fmtDate(new Date(`${profile.dob}T00:00:00`).getTime())}`);
-  L.push(`Prepared ${fmtDate(Date.now())}. Patient-reported answers, with the app's referenced scoring. Decision support for health professionals; it does not replace clinical judgement.`, "");
+  L.push(patient ? `Prepared ${fmtDate(Date.now())}. My own answers and records, for my dentist or care team.`
+    : `Prepared ${fmtDate(Date.now())}. Patient-reported answers, with the app's referenced scoring. Decision support for health professionals; it does not replace clinical judgement.`, "");
 
+  if (patient) {
+    L.push("WHAT CAN AFFECT MY DRY MOUTH (my answers)");
+    const x = f.risk ? dryFactors(f.risk.answers) : null;
+    if (!x) L.push("Not done.");
+    else {
+      L.push(`Answered ${fmtDate(f.risk.ts)}.`);
+      if (x.none) L.push("Nothing known to dry the mouth.");
+      x.groups.forEach((g) => g.rows.forEach((r) => L.push(`- ${g.label}: ${r.label}`)));
+      if (x.named.length) L.push(`Medicines I listed: ${x.named.map((m) => m.name).join(", ")}.`);
+    }
+    L.push("");
+  } else {
   L.push("DRY MOUTH RISK CHECK");
   if (f.r) {
     L.push(`Score ${f.r.score}/100, ${f.r.band.label} (${fmtDate(f.risk.ts)}). Points-based checklist of published risk factors; not a validated instrument.`);
     f.r.factors.forEach((x) => L.push(`- ${x.label}: ${x.pts} pts${x.refs.length ? ` [${x.refs.map((k) => REFS[k]?.short || k).join("; ")}]` : ""}`));
   } else L.push("Not done.");
   L.push("");
-
-  L.push("TOOTH DECAY RISK (patient-answered CAMBRA items)");
-  if (f.d) {
-    if (f.d.noTeeth) L.push("No natural teeth.");
-    else {
-      L.push(`${f.d.score} points, ${f.d.band.label} (${fmtDate(f.decay.ts)}). Clinical indicators not included.`);
-      [...f.d.factors, ...f.d.protective].forEach((x) => L.push(`- ${x.label}: ${x.pts} pts${(x.refs || []).length ? ` [${x.refs.map((k) => REFS[k]?.short || k).join("; ")}]` : ""}`));
-    }
-  } else L.push("Not done.");
-  L.push("");
+  }
 
   L.push("DRY MOUTH ASSESSMENT (Summated Xerostomia Inventory, 5 to 15)");
   if (f.sips.length) f.sips.slice(-8).forEach((s) => L.push(`- ${fmtDate(s.ts)}: ${s.sip}, ${sipLevel(s.sip).label}`));
@@ -68,8 +92,8 @@ export function findingsText(profile = {}, entries = [], plan = null) {
 
   L.push("RESTING SALIVA pH (test strip)");
   if (f.phs.length) {
-    f.phs.slice(-8).forEach((p) => L.push(`- ${fmtDate(p.ts)}: pH ${p.ph.toFixed(1)}, ${phZone(p.ph).label}`));
-    if (f.pat.level === "flag") L.push(`Acidic in ${f.pat.acid} of the last ${f.pat.n} tests.`);
+    f.phs.slice(-8).forEach((p) => L.push(`- ${fmtDate(p.ts)}: pH ${p.ph.toFixed(1)}${patient ? "" : `, ${phZone(p.ph).label}`}`));
+    if (!patient && f.pat.level === "flag") L.push(`Acidic in ${f.pat.acid} of the last ${f.pat.n} tests.`);
   } else L.push("None recorded.");
   L.push("");
 

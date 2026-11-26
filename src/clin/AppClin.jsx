@@ -7,7 +7,7 @@
 //    with allergy, dialysis and no-teeth warnings. The professional chooses and signs.
 //  • The patient follows the signed plan ("Your plan from …") until the review date.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Icon, Sheet } from "../components/ui.jsx";
+import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { Home, latestOf, phReadings, sipReadings } from "../screens/home.jsx";
 import { Care } from "../screens/care.jsx";
 import { Shop } from "../screens/shop.jsx";
@@ -17,8 +17,6 @@ import { scoreRisk } from "../data/risk.js";
 import { RiskFlow, dryModel } from "../screens/risk.jsx";
 import { profileAnswers } from "../data/person.js";
 import { activeTreatment, inCancerCare } from "../data/journey.js";
-import { DecayFlow } from "../screens/decay.jsx";
-import { decayContext, scoreDecay } from "../data/decay.js";
 import { FrequencyPicker, LogReminder, PhFlow, Reminder, SipFlow } from "../screens/extras.jsx";
 import { Me } from "../screens/me.jsx";
 import { Backup } from "../screens/backup.jsx";
@@ -36,7 +34,7 @@ import { PlanItem } from "../screens/plan.jsx";
 import { DEFAULT_PREFS, DEFAULT_PROFILE, fmtDate, load, save, wipe } from "../lib/store.js";
 import { DiarySaved, LiteSummary, Records } from "../lite/screens.jsx";
 import { ClinicianSheet, PlanFrom } from "./Clinician.jsx";
-import { findingsText, sendFindings } from "./findings.js";
+import { dryFactors, findingsText, sendFindings } from "./findings.js";
 
 const TABS = [
   { id: "home", label: "Today", icon: "home" },
@@ -45,7 +43,7 @@ const TABS = [
   { id: "shop", label: "Shop", icon: "cart" },
 ];
 
-export const PURPOSE = "Mouthkind supports registered health professionals to assess dry mouth and tooth decay risk in their patients and to choose a mouth care plan, using referenced, published criteria that the professional can review. Patients use it to complete questionnaires and a symptom diary, record saliva pH, keep their care team's contacts, read general information, and follow the plan their professional has chosen. It does not diagnose, and it does not replace the professional's judgement.";
+export const PURPOSE = "Mouthkind supports registered health professionals to assess dry mouth in their patients and to choose a mouth care plan, using referenced, published criteria that the professional can review. Patients use it to complete questionnaires and a symptom diary, record saliva pH, keep their care team's contacts, read general information, and follow the plan their professional has chosen. It does not diagnose, and it does not replace the professional's judgement.";
 
 const ABOUT = (
   <details className="panel about">
@@ -58,8 +56,13 @@ const ABOUT = (
   </details>
 );
 
-/** The end of the risk and decay checks: saved, with no result of the app's own. */
+/**
+ * The end of the dry mouth questions: saved, with no result of the app's own. Below it, the
+ * person's own record of what can affect a dry mouth: what they told us that is known to dry
+ * the mouth, with the same general information everyone giving that answer sees.
+ */
 function SavedForDentist({ entry, onClose, onRedo, next, what }) {
+  const x = entry?.kind === "risk" ? dryFactors(entry.answers) : null;
   return (
     <Sheet title={what} onClose={onClose}
       footer={<>
@@ -69,7 +72,42 @@ function SavedForDentist({ entry, onClose, onRedo, next, what }) {
       <div className="lite-saved"><span className="lite-saved-mark" aria-hidden="true"><Icon name="check" size={28} stroke={3} /></span>
         <h2 className="q">Saved for your dentist</h2>
         <p className="lede">Your answers from {fmtDate(entry.ts)} are saved on this phone. Your dentist or care team will go through them with you and choose your plan.</p></div>
+      {x && <DryFactors x={x} />}
     </Sheet>
+  );
+}
+
+const KNOWN = { known: "known to dry the mouth", reported: "dry mouth sometimes reported", no: "not known to dry the mouth", unknown: "not in our list: ask your pharmacist" };
+function DryFactors({ x }) {
+  return (
+    <section className="dryrec" aria-label="What can affect a dry mouth">
+      <h3 className="list-h first">What can affect a dry mouth</h3>
+      <p className="soft-note">{x.none ? "Nothing you told us is known to dry the mouth." : "You told us about these. Each is known to affect saliva or to make a dry mouth more likely. This is general information, not a result: your dentist will look at it with you."}</p>
+      {x.groups.map((g) => (
+        <div key={g.id} className="dryrec-g">
+          <h4>{g.label}</h4>
+          <ul>{g.rows.map((r) => <li key={`${r.q}.${r.v}`}><strong>{r.label}</strong>{r.why && <span>{r.why}</span>}</li>)}</ul>
+        </div>
+      ))}
+      {x.named.length > 0 && (
+        <div className="dryrec-g"><h4>Medicines you listed</h4>
+          <ul>{x.named.map((m) => <li key={m.name}><strong>{m.name}</strong><span>{KNOWN[m.known]}</span></li>)}</ul>
+          <p className="soft-note">Never stop or change a medicine yourself. Your pharmacist or GP can review them with you.</p></div>
+      )}
+      {x.groups.some((g) => g.rows.some((r) => r.refs.length)) && <details className="srcs"><summary>Sources</summary><Sources refs={[...new Set(x.groups.flatMap((g) => g.rows.flatMap((r) => r.refs)))]} /></details>}
+    </section>
+  );
+}
+
+/** For everyone, whatever they answered: why a dry mouth puts teeth at risk. */
+function TeethNote({ onRead }) {
+  return (
+    <section className="teeth-note" aria-label="Your teeth">
+      <Icon name="tooth" size={22} />
+      <div><strong>A dry mouth puts teeth at risk</strong>
+        <p>Saliva protects teeth. With less of it, tooth decay and acid wear (erosion) can happen quickly. Fluoride toothpaste twice a day, less sugar between meals and regular check-ups help.</p>
+        <button type="button" className="link-btn" onClick={onRead}>Read more <Icon name="chev" size={14} /></button></div>
+    </section>
   );
 }
 
@@ -119,15 +157,10 @@ export default function AppClin() {
   const latestSip = sipReadings(entries).at(-1)?.sip ?? null;
   const phLevel = phPattern(phReadings(entries)).level;
   const fromProfile = profileAnswers(profile);
-  const riskHas = (q, v) => [].concat(risk?.answers?.[q] || []).includes(v);
-  const decayCtx = decayContext({ dryRisk: riskR?.band.id || null, sip: latestSip, ph: phLevel, ageAns: fromProfile.age || risk?.answers?.age || null,
-    rtHN: riskHas("cancer", "rt_hn") || (inCancerCare(profile) && (profile.treatments || []).includes("rt_hn")), sjogren: riskHas("conditions", "sjogren"),
-    acid: riskHas("conditions", "pregnantSick") ? "Morning sickness or vomiting" : riskHas("conditions", "eating") || riskHas("conditions", "reflux") ? "Vomiting or reflux" : null,
-    smoke: risk ? riskHas("habits", "smoke") || riskHas("habits", "vape") : null });
-  const view = useMemo(() => entries.map((e) => (e.kind === "decay" ? { ...e, ctx: { ...(e.ctx || {}), rtHN: decayCtx.rtHN, sjogren: decayCtx.sjogren, acid: decayCtx.acid, smoke: decayCtx.smoke } } : e)), [entries, decayCtx.rtHN, decayCtx.sjogren, decayCtx.acid, decayCtx.smoke]);
-  const decay = latestOf(view, "decay");
-  const decayR = decay && scoreDecay(decay.answers, decay.ctx);
-  const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null,
+  // No tooth decay check in this build: the dentist assesses decay in the chair. Any decay
+  // answers saved by an older version are left out.
+  const view = useMemo(() => entries.filter((e) => e.kind !== "decay"), [entries]);
+  const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: null,
     cancer: inCancerCare(profile), tx: profile.treatments || [], active: activeTreatment(profile) });
   const daily = latestOf(entries, "daily");
   const showWelcome = !profile.onboarded && !entries.length;
@@ -135,7 +168,7 @@ export default function AppClin() {
   const options = useMemo(() => buildOptions(model), [model]);
   const qs = openQuestions(model);
   const q = qs[0] || null;
-  const setup = setupState({ entries: view, profile, openQs: qs.length });
+  const setup = setupState({ entries: view, profile, openQs: qs.length, skip: ["decay"] });
   const building = !setup.built;
   useEffect(() => { if (setup.all && !profile.planBuilt) setProfile({ ...profile, planBuilt: true }); }, [setup.all, profile, setProfile]);
   const continueSetup = () => {
@@ -148,13 +181,13 @@ export default function AppClin() {
   // What the patient sees: only the plan their professional signed.
   const signed = profile.clinPlan || null;
   const plan = useMemo(() => signed?.items || [], [signed]);
-  const routine = useMemo(() => (signed ? buildRoutine(plan, { noTeeth: !!decayR?.noTeeth }) : []), [signed, plan, decayR?.noTeeth]);
+  const routine = useMemo(() => (signed ? buildRoutine(plan, { noTeeth: model.noTeeth }) : []), [signed, plan, model.noTeeth]);
   const ticks = ticksToday(entries);
   const onTick = (id) => addEntry(tickEntry(entries, routine, id));
   const whyItem = whyId && plan.find((i) => i.id === whyId);
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
-  const send = () => sendFindings(findingsText(profile, view, signed), "My Mouthkind answers");
-  const card = <PlanFrom plan={signed} onOpen={() => setSheet("clinician")} onSee={() => go("advice", "plan")} onSend={send} />;
+  const send = () => sendFindings(findingsText(profile, view, signed, { patient: true }), "My Mouthkind answers");
+  const card = <><PlanFrom plan={signed} onOpen={() => setSheet("clinician")} onSee={() => go("advice", "plan")} onSend={send} /><TeethNote onRead={() => go("advice", "teeth")} /></>;
 
   return (
     <div className="app">
@@ -164,7 +197,11 @@ export default function AppClin() {
         {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel="In your plan" />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} openSheet={setSheet} focus={focus} plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open}
           setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} clin={{ plan: signed, onOpen: () => setSheet("clinician") }} />}
-        {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} />}
+        {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} extra={
+          <section className="panel">
+            <div className="panel-h"><h2>What can affect a dry mouth</h2><button className="link-btn" onClick={() => open(risk ? "riskresult" : "risk")}>{risk ? "See" : "Start"}</button></div>
+            <p className="soft-note">{risk ? `Your medicines, health and habits, from ${fmtDate(risk.ts)}. Saved for your dentist.` : "Your medicines, health and habits. About 2 minutes."}</p>
+          </section>} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} about={ABOUT} />}
       </main>
 
@@ -182,8 +219,6 @@ export default function AppClin() {
 
       {sheet === "risk" && <RiskFlow last={risk} model={{ ...dryModel(fromProfile), Result: (p) => <SavedForDentist {...p} what="Dry mouth risk questions" /> }} next={next} onClose={close} onSave={addEntry} />}
       {sheet === "riskresult" && risk && <SavedForDentist entry={risk} what="Dry mouth risk questions" onClose={close} onRedo={() => setSheet("risk")} />}
-      {sheet === "decay" && <DecayFlow last={decay} ctx={decayCtx} next={next} onClose={close} onSave={addEntry} Result={(p) => <SavedForDentist {...p} what="Tooth decay questions" />} />}
-      {sheet === "decayresult" && decay && <SavedForDentist entry={decay} what="Tooth decay questions" onClose={close} onRedo={() => setSheet("decay")} />}
       {sheet === "freq" && (
         <FrequencyPicker value={prefs.sipEvery} first={!!afterFreq} onClose={() => { setAfterFreq(null); close(); }}
           onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq); setAfterFreq(null); }} />

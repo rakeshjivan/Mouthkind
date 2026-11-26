@@ -776,5 +776,12 @@ export function buildOptions(m) {
     const at = out.findIndex((o) => (o.item.pri ?? 0) < h.pri);
     out.splice(at < 0 ? out.length : at, 0, { id: h.id, item: h, warn: [], ticked: true });
   }
+  // No tooth decay check (the clinician build): high-fluoride toothpaste is offered for the
+  // professional to decide on clinically, never marked as suggested.
+  if (!m.decayE && !m.noTeeth && !out.some((o) => ["hf", "rtFluoride"].includes(o.id))) {
+    const hf = { id: "hf", pri: 63, title: "Use a high-fluoride toothpaste", body: "5,000 ppm toothpaste twice a day instead of your usual toothpaste. Spit, don't rinse.",
+      because: ["Offered for your clinical decision: the app doesn't assess tooth decay risk."], refs: ["featherstone2021", "chen2026"], products: ["neutrafluor"] };
+    out.push({ id: hf.id, item: hf, warn: [], ticked: false });
+  }
   return out;
 }

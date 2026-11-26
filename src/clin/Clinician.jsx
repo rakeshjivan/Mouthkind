@@ -106,14 +106,13 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
       <h2 className="q">{name || "Patient"}</h2>
       <p className="lede tight">{[profile.dob && `Born ${fmtDate(new Date(`${profile.dob}T00:00:00`).getTime())}`, signed && `Last plan ${fmtDate(signed.ts)} by ${signed.by.name}`].filter(Boolean).join(" · ") || "Patient-reported answers and records"}</p>
 
-      {(al.length > 0 || dialysis || f.d?.noTeeth) && (
+      {(al.length > 0 || dialysis) && (
         <section className="clin-warn" aria-label="Safety notes">
           <h3><Icon name="alert" size={18} /> Safety notes</h3>
           <ul>
             {al.includes("milk") && <li>Milk protein allergy: CPP-ACP products (Tooth Mousse™) are contraindicated.</li>}
             {al.includes("hb") && <li>Hydroxybenzoate (paraben) allergy: GC Dry Mouth Gel is contraindicated.</li>}
             {dialysis && <li>On dialysis: fluid limit. Water advice is limited to "within your fluid limit".</li>}
-            {f.d?.noTeeth && <li>No natural teeth: tooth decay options are left out.</li>}
           </ul>
         </section>
       )}
@@ -133,10 +132,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
           <p><b>Dry mouth risk: {f.r.score}/100, {f.r.band.label.toLowerCase()}</b> ({fmtDate(f.risk.ts)}). A points-based checklist of published risk factors; not a validated instrument.</p>
           {f.r.factors.length > 0 && <FactorTable rows={f.r.factors} />}
         </>) : <p>Dry mouth risk check not done.</p>}
-        {f.d ? (f.d.noTeeth ? <p><b>Tooth decay:</b> no natural teeth.</p> : (<>
-          <p><b>Tooth decay risk: {f.d.score} points, {f.d.band.label.toLowerCase()}</b> ({fmtDate(f.decay.ts)}). Patient-answered CAMBRA items; clinical indicators not included.</p>
-          <FactorTable rows={[...f.d.factors, ...f.d.protective]} />
-        </>)) : <p>Tooth decay check not done.</p>}
+        <p className="soft-note">Tooth decay risk is not assessed by the app: assess it clinically. Tooth Mousse™ and fluoride options below are listed for a dry mouth, where saliva's protection of the teeth is reduced.</p>
         {f.pat.level === "flag" && <p><b>pH pattern:</b> acidic in {f.pat.acid} of the last {f.pat.n} tests.</p>}
       </section>
 

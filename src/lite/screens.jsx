@@ -144,7 +144,7 @@ export function DiarySaved({ onClose, open }) {
   );
 }
 
-export function Records({ entries, open, onDelete }) {
+export function Records({ entries, open, onDelete, extra = null }) {
   const diary = diaryOf(entries), sips = sipsOf(entries), phs = phsOf(entries);
   return (
     <div className="screen">
@@ -171,6 +171,7 @@ export function Records({ entries, open, onDelete }) {
           <p className="panel-foot">Dry mouth assessment: five questions from the Summated Xerostomia Inventory, 5 (no dryness) to 15.</p>
         </>) : <p className="soft-note">No scores yet.</p>}
       </section>
+      {extra}
 
       <section className="panel">
         <div className="panel-h"><h2>Saliva pH</h2><button className="link-btn" onClick={() => open("ph")}>Record a result</button></div>
