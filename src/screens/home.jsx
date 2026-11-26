@@ -4,7 +4,7 @@ import { phColor, sipLevel } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
 import { scoreRisk } from "../data/risk.js";
 import { scoreDecay } from "../data/decay.js";
-import { daysSinceLog, logCadence, logDue, nextCheck } from "../data/schedule.js";
+import { daysSinceLog, logDue, nextCheck } from "../data/schedule.js";
 import { fmtShort } from "../lib/store.js";
 import { firstName } from "../data/person.js";
 import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
@@ -157,8 +157,6 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
     : sipNext?.due ? { tone: "accent", title: "Your dry mouth assessment is due", sub: "5 quick questions", act: "Start", go: () => open("sip") }
     : !phSkip && (phNext?.due || !ph) ? { tone: "accent", title: ph ? "Your pH test is due" : "Test your saliva pH", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : null;
-  // The log: daily during cancer treatment, weekly otherwise.
-  const weekly = logCadence(active) === "weekly";
   const due = logDue(entries, active);
   const since = daysSinceLog(entries);
   const tx = cancer ? journey(profile, Date.now(), { general: !!clin }).cards[0] : null;
@@ -189,7 +187,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
         <button type="button" className={`log5${due ? " due" : ""}`} onClick={() => open("daily")}>
           <span className="log5-icon" aria-hidden="true"><Icon name="plus" size={20} stroke={2.6} /></span>
           <span className="log5-text">
-            <strong>{dailyToday ? "Today's mouth log" : weekly ? "Your weekly mouth check" : `How's ${who ? `${who}'s` : "your"} mouth today?`}</strong>
+            <strong>{dailyToday ? "Today's mouth log" : `Log how ${who ? `${who}'s` : "my"} mouth feels`}</strong>
             <em>{dailyToday ? [daily.dryness != null && `Dryness ${daily.dryness}`, daily.pain != null && `Pain ${daily.pain}`].filter(Boolean).join(" · ") + " · Update"
               : due ? (since != null && since >= 2 ? `Last logged ${since} days ago · under a minute` : "Not logged yet · under a minute")
               : `Logged ${since === 1 ? "yesterday" : `${since} days ago`} · next in ${7 - since} day${7 - since === 1 ? "" : "s"}`}</em>

@@ -1752,7 +1752,8 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .teeth-book > svg { color: var(--amber); flex: none; margin-top: 2px; }
 .clin-teeth { margin: 4px 0 12px; padding-left: 18px; } .clin-teeth li { margin-bottom: 4px; }
 /* The "?" beside an option, and its pop-up */
-.pick-item { position: relative; }
+.pick-item { position: relative; display: flex; flex-direction: column; }
+.pick-item > .pick-row { width: 100%; box-sizing: border-box; }
 .pick-item.has-info > .pick-row { padding-right: 64px; }
 .pick-item.has-info > .pick-row .pick-dot { margin-right: 4px; }
 .pick-info { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); color: var(--accent); font-weight: 800; font-size: 17px; cursor: pointer; display: grid; place-items: center; }

@@ -1,5 +1,5 @@
 # The build-your-plan flow from a fresh install: every step in order, then the plan.
-# Run against `npx vite preview --port 4173`.
+# Full edition. Build it with `VITE_EDITION=full npx vite build --outDir dist-full`, serve that folder and set BASE_URL.
 import asyncio
 from playwright.async_api import async_playwright
 import os
@@ -14,24 +14,24 @@ async def main():
     wl=pg.locator(".welcome")
     await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
     await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)  # about you
-    await wl.get_by_role("button", name="My medicines are drying my mouth").click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(400)
+    await wl.get_by_role("button", name="My medicines are drying my mouth", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(400)
     await pg.screenshot(path=S+"1-home.png")
     assert await pg.locator(".setup-card").count()==1 and await pg.locator(".focus").count()==0 and await pg.locator(".ask").count()==0
-    assert await pg.locator(".helpbar").count()==0  # no help bar until setup is done
+    assert await pg.locator(".helpbar").count()==1  # urgent help is reachable from the start, even during setup
     await pg.locator(".setup-card .btn").click(); await pg.wait_for_timeout(400)
     # risk: conditions → none; medFor bladder → next; names skip; count 3 or 4; treatments none; breathing none; habits none; water; age; gender
     await btn("None of these").click(); await pg.wait_for_timeout(250)
-    await dlg.get_by_role("button", name="Bladder urgency or leaking").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
+    await dlg.get_by_role("button", name="Bladder urgency or leaking", exact=True).click(); await btn("Next").click(); await pg.wait_for_timeout(250)
     await btn("Skip").click(); await pg.wait_for_timeout(250)
-    await dlg.get_by_role("button", name="3 or 4").click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="3 or 4", exact=True).click(); await pg.wait_for_timeout(400)
     await btn("None of these").click(); await pg.wait_for_timeout(250)
     await btn("None of these").click(); await pg.wait_for_timeout(250)
     await btn("None of these").click(); await pg.wait_for_timeout(250)
     await dlg.get_by_role("button", name="I don't drink alcohol", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="1 to 3", exact=True).click(); await pg.wait_for_timeout(400)
-    await dlg.get_by_role("button", name="Less than 4 glasses").click(); await pg.wait_for_timeout(400)
-    await dlg.get_by_role("button", name="65 to 79").click(); await pg.wait_for_timeout(400)
-    await dlg.get_by_role("button", name="Woman or female").click(); await pg.wait_for_timeout(600)
+    await dlg.get_by_role("button", name="Less than 4 glasses", exact=True).click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="65 to 79", exact=True).click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="Woman or female", exact=True).click(); await pg.wait_for_timeout(600)
     await pg.screenshot(path=S+"2-risk-result.png")
     nxt=dlg.locator(".sheet-foot .btn.primary"); print("risk next:", await nxt.inner_text())
     assert "Dry mouth assessment" in await nxt.inner_text()
@@ -72,7 +72,7 @@ async def main():
       opt=a.locator(".ask-opt")
       if await opt.count(): await opt.first.click()
       else:
-        await a.locator(".chip").first.click(); await a.get_by_role("button", name="Save").click()
+        await a.locator(".chip").first.click(); await a.get_by_role("button", name="Save", exact=True).click()
       n+=1; await pg.wait_for_timeout(350)
     print("questions answered:", n)
     await pg.screenshot(path=S+"8-ready.png")

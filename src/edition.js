@@ -7,4 +7,5 @@
 //   "clinician" — TGA option 3: the full app's engine, with its results and plan options
 //                 shown only in a clinician view. A registered professional chooses and
 //                 signs the plan the patient follows.
-export const EDITION = "clinician";
+// VITE_EDITION=full (or compliant) builds another edition, for its own tests.
+export const EDITION = import.meta.env?.VITE_EDITION || "clinician";
