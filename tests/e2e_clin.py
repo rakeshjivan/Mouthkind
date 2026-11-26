@@ -100,10 +100,14 @@ async def main():
     await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(200)
     await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200); await text("learn unsigned")
     main = await pg.locator("main").inner_text()
-    assert "Start here" in main and "Protecting your teeth when your mouth is dry" in main and "What saliva does" in main and "Choosing a dry mouth product" in main
-    await pg.get_by_role("button", name=re.compile("Choosing a dry mouth product")).click(); await pg.wait_for_timeout(200)
-    assert "6.7" in await pg.locator("main").inner_text()
+    assert all(x in main for x in ["Start here", "What a dry mouth does", "Protecting your teeth", "Easing the dryness", "What's bothering you?", "Your situation"])
+    assert "During cancer treatment" not in main, "cancer topics only in cancer care"
+    await pg.get_by_role("button", name=re.compile("Easing the dryness")).click(); await pg.wait_for_timeout(250)
+    sheet = await dlg.inner_text()
+    assert "6.7" in sheet and "What to look for" in sheet and "See products with these features" in sheet
     await pg.screenshot(path=S + "4b-learn-products.png", full_page=True)
+    await dlg.get_by_role("button", name="Close", exact=True).last.click(); await pg.wait_for_timeout(200)
+    await pg.screenshot(path=S + "4c-learn.png", full_page=True)
     await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200); await text("plan unsigned")
     assert "Your plan comes from a health professional" in await pg.locator("main").inner_text()
     sipnames = [w for w, t in seen if re.search(r"\bSIP\b|SIP-SCORE", t)]

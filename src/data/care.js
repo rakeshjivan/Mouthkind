@@ -189,6 +189,7 @@ export const CARE_TOPICS = [
   },
   {
     id: "teeth", icon: "tooth", title: "Protecting your teeth when your mouth is dry", general: true, shop: true,
+    look: ["Calcium and phosphate", "Fluoride", "Buffers plaque acid"],
     short: "Less saliva means less acid neutralising and less mineral. Put both back.",
     forYou: () => false,
     sections: [
@@ -221,6 +222,7 @@ export const CARE_TOPICS = [
   },
   {
     id: "products", icon: "drop", title: "Choosing a dry mouth product", general: true, shop: true,
+    look: ["Gel", "Close to neutral pH", "Sugar-free", "Range of flavours"],
     short: "Look for a gel, close to neutral pH, sugar-free, in a flavour you like.",
     forYou: () => false,
     sections: [
@@ -284,13 +286,14 @@ export const CARE_TOPICS = [
       "Have less alcohol, especially in the evening. Cut back on caffeine too if you notice it dries your mouth.",
       "Use an alcohol-free mouthwash.",
       "Breathe through your mouth? Ask your GP to check for a blocked nose, allergies or sleep apnoea.",
-      "Snore, or use CPAP or a splint? See \"Snoring, sleep apnoea and CPAP\".",
+      "Snore, or use CPAP or a splint? See \"A dry mouth at night, snoring and CPAP\".",
       "A humidifier in the bedroom can help at night.",
     ],
     refs: ["mador2005", "kennedy2019", "wolff2017"],
   },
   {
-    id: "sleep", icon: "user", title: "Snoring, sleep apnoea and CPAP", shop: true,
+    id: "sleep", icon: "moon", title: "A dry mouth at night, snoring and CPAP", shop: true,
+    look: ["Gel", "Close to neutral pH", "Sugar-free"],
     short: "Dry mouth on waking is very common. A few changes help.",
     forYou: (c) => has(c, "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
     steps: [
@@ -306,7 +309,8 @@ export const CARE_TOPICS = [
     refs: ["kreivi2010", "ulander2014", "vidal2024", "oksenberg2006", "raoof2023", "mador2005", "kennedy2019", "dawes2008"],
   },
   {
-    id: "clean", icon: "check", title: "Clean gently, twice a day",
+    id: "clean", icon: "check", title: "Clean gently, twice a day", shop: true,
+    look: ["Unflavoured", "SLS-free", "Fluoride"],
     short: "A soft brush and fluoride toothpaste, morning and night.",
     forYou: (c) => c.risk === "high" || c.risk === "veryhigh" || c.ph === "flag" || c.decay === "high" || c.decay === "veryhigh",
     steps: [
