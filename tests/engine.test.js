@@ -118,13 +118,15 @@ test("after head and neck radiotherapy, tooth decay risk is very high even with 
   assert.equal(scoreDecay(clean, decayContext({ ageAns: "40" })).band.id, "low");
 });
 
-test("near-certain causes are very high; weak answers count at half", async () => {
+test("near-certain causes are very high; every scored answer has a source", async () => {
   const { scoreRisk } = await import("../src/data/risk.js");
   assert.equal(scoreRisk({ cancer: ["rt_hn"] }).band.id, "veryhigh");
   assert.equal(scoreRisk({ conditions: ["sjogren"] }).band.id, "veryhigh");
-  const r = scoreRisk({ habits: ["vape", "caffeine"], water: "low", sex: "f" });
+  const r = scoreRisk({ habits: ["vape"], water: "low", sex: "f" });
   assert.equal(r.band.id, "low");
-  assert.ok(r.factors.filter((f) => f.limited).every((f) => f.note));
+  assert.ok(r.factors.every((f) => !f.limited && f.refs.length));
+  // Recorded for context only: their medicines are what's counted.
+  assert.equal(scoreRisk({ conditions: ["heart", "stroke", "dementia"] }).score, 0);
 });
 
 test("allergies take Tooth Mousse and the gel out of the plan", () => {
@@ -184,18 +186,18 @@ test("products already in use are praised, not recommended as new", () => {
 
 test("the baseline: risk, dry mouth score and decay check, then care team and questions, then the plan", async () => {
   const { setupState } = await import("../src/data/setup.js");
-  const s0 = setupState({ entries: [], profile: {}, openQs: 0 });
+  const s0 = setupState({ entries: [], profile: {}, openQs: 0, skip: ["teeth"] });
   assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built); assert.equal(s0.minsLeft, 7);
   const checks = [{ kind: "risk" }, { kind: "sip", sip: 10 }, { kind: "decay" }];
-  assert.equal(setupState({ entries: checks.slice(0, 2), profile: {}, openQs: 0 }).next.id, "decay");
-  const s1 = setupState({ entries: checks, profile: {}, openQs: 2 });
+  assert.equal(setupState({ entries: checks.slice(0, 2), profile: {}, openQs: 0, skip: ["teeth"] }).next.id, "decay");
+  const s1 = setupState({ entries: checks, profile: {}, openQs: 2, skip: ["teeth"] });
   assert.equal(s1.next.id, "team");
-  const s2 = setupState({ entries: checks, profile: { teamAsked: true }, openQs: 2 });
+  const s2 = setupState({ entries: checks, profile: { teamAsked: true }, openQs: 2, skip: ["teeth"] });
   assert.equal(s2.next.id, "questions"); assert.ok(!s2.built);
-  const s3 = setupState({ entries: checks, profile: { dentist: { phone: "07 1111 2222" } }, openQs: 0 });
+  const s3 = setupState({ entries: checks, profile: { dentist: { phone: "07 1111 2222" } }, openQs: 0, skip: ["teeth"] });
   assert.ok(s3.all && s3.built && !s3.next);
   // Once built, a new question doesn't take the plan away.
-  assert.ok(setupState({ entries: checks, profile: { teamAsked: true, planBuilt: true }, openQs: 1 }).built);
+  assert.ok(setupState({ entries: checks, profile: { teamAsked: true, planBuilt: true }, openQs: 1, skip: ["teeth"] }).built);
 });
 
 test("without the decay check, a dry mouth still gets the Tooth Mousse routine", () => {
@@ -221,8 +223,9 @@ test("people see low, moderate or high — never 'Very high' or a number out of 
   const { DECAY_BANDS } = await import("../src/data/decay.js");
   const { sipLevel } = await import("../src/data/clinical.js");
   for (const b of [...RISK_BANDS, ...DECAY_BANDS]) assert.ok(["Low", "Moderate", "High"].includes(b.label), b.label);
-  assert.equal(sipLevel(7).label, "Low"); assert.equal(sipLevel(8).label, "Moderate");
-  assert.equal(sipLevel(10).label, "Moderate"); assert.equal(sipLevel(11).label, "High"); assert.equal(sipLevel(15).label, "High");
+  assert.equal(sipLevel(7).label, "Minimal"); assert.equal(sipLevel(8).label, "Mild to moderate");
+  assert.equal(sipLevel(10).label, "Mild to moderate"); assert.equal(sipLevel(11).label, "Moderate to severe"); assert.equal(sipLevel(13).id, "high");
+  assert.equal(sipLevel(14).full, "Severe xerostomia symptoms"); assert.equal(sipLevel(15).id, "high");
   const m = buildModel({ profile: {}, entries: [
     { id: "s1", kind: "sip", ts: Date.now() - 20 * 864e5, sip: 9 }, { id: "s2", kind: "sip", ts: Date.now(), sip: 13 },
     { id: "r1", kind: "risk", ts: Date.now(), answers: { cancer: ["rt_hn"] } }] });

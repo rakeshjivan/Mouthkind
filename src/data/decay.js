@@ -21,7 +21,8 @@ import { checkup } from "./dental.js";
 // Dry mouth comes from the person's other checks when they have done them
 // (dry mouth risk band, latest SIP score, pH pattern), so it isn't asked twice.
 //
-// `limited: true` = commonly listed but no primary source checked for this app.
+// Every scored answer cites a primary source (interdental cleaning, bridges, crowding and
+// gaps were removed in 2026-11: no primary source linked them to decay).
 
 export const DECAY_VERSION = 2; // 2: fillings and gums re-weighted, gum questions added, pH weight lowered
 
@@ -46,8 +47,8 @@ export const DECAY_QUESTIONS = [
         why: "Recent decay is the strongest sign that more is on the way — it shows the conditions for decay are there now.", refs: ["featherstone2021", "senneby2015"] },
       { v: "more", label: "Yes, more than once", as: "Decay or fillings more than once in 3 years", pts: 16, floor: "high",
         why: "Repeated decay shows the balance in your mouth is tipped towards decay.", refs: ["featherstone2021", "senneby2015"] },
-      { v: "unsure", label: "Not sure — I haven't seen a dentist", as: "No recent check-up to know", pts: 4, limited: true,
-        why: "Decay is often painless at first, so without a check-up there's no way to know." },
+      { v: "unsure", label: "Not sure — I haven't seen a dentist", as: "No recent check-up to know", pts: 4,
+        why: "Decay is often painless at first, and people without regular check-ups have more untreated decay.", refs: ["clarkson1993", "hagman2021"] },
     ],
   },
   {
@@ -79,18 +80,6 @@ export const DECAY_QUESTIONS = [
     ],
   },
   {
-    id: "between", type: "one", section: "Cleaning", when: NAT,
-    text: "How often do you clean between your teeth?",
-    hint: "With floss, interdental brushes or a water flosser.",
-    options: [
-      { v: "daily", label: "Every day", pts: 0 },
-      { v: "some", label: "Sometimes", pts: 1, as: "Cleaning between teeth only sometimes", limited: true,
-        why: "Plaque left between teeth is where decay often starts." },
-      { v: "never", label: "Never", pts: 2, as: "Not cleaning between teeth", limited: true,
-        why: "Plaque left between teeth is where decay often starts." },
-    ],
-  },
-  {
     id: "mouth", type: "many", section: "Your teeth", when: NAT, none: "None of these",
     text: "Do any of these apply to your teeth?",
     options: [
@@ -98,18 +87,12 @@ export const DECAY_QUESTIONS = [
         why: "Roots are softer than enamel and decay more easily, especially as we get older.", refs: ["featherstone2021", "duke2021", "chen2026"] },
       { v: "braces", label: "I have braces, or a wire retainer glued behind my teeth", as: "Braces or a fixed retainer", pts: 6,
         why: "Plaque collects around brackets and wires; about half of people with braces get early decay (white spots).", refs: ["salerno2024", "featherstone2021"] },
-      { v: "partial", label: "I wear a partial denture (a plate with clasps)", as: "Partial denture", pts: 5, limited: true,
-        why: "Plaque gathers where the plate and clasps touch your teeth." },
+      { v: "partial", label: "I wear a partial denture (a plate with clasps)", as: "Partial denture", pts: 5,
+        why: "Teeth that hold a partial denture get decay more often than other teeth.", refs: ["syed2026", "miyamoto2007"] },
       { v: "fillings", label: "I have lots of fillings or crowns", as: "Lots of fillings or crowns", pts: 5,
         why: "Past decay is the strongest predictor of future decay, and the edges of fillings and crowns can decay again.", refs: ["senneby2015", "arino2016", "pitiphat2002"] },
       { v: "grooves", label: "My dentist says I have deep grooves in my back teeth", as: "Deep grooves in the back teeth", pts: 3,
         why: "Deep pits and grooves trap food and plaque that a brush can't reach.", refs: ["featherstone2021"] },
-      { v: "bridge", label: "I have a bridge", as: "A bridge", pts: 2, limited: true,
-        why: "The teeth holding a bridge, and the space under it, are hard to keep clean." },
-      { v: "crowded", label: "My teeth are crowded or overlap", as: "Crowded teeth", pts: 2, limited: true,
-        why: "Overlapping teeth are harder to clean." },
-      { v: "gaps", label: "I have gaps where teeth have been taken out", as: "Missing teeth", pts: 2, limited: true,
-        why: "Missing teeth often mean past decay, and the teeth next to a gap are harder to clean." },
     ],
   },
   {
@@ -161,12 +144,12 @@ export const DECAY_QUESTIONS = [
     text: "When did you last see a dentist for a check-up?",
     options: [
       { v: "1", label: "In the last year", pts: 0 },
-      { v: "2", label: "1 to 2 years ago", pts: 1, as: "Check-up 1 to 2 years ago", limited: true,
-        why: "Early decay can be stopped without a filling if it's found in time." },
-      { v: "more", label: "More than 2 years ago", pts: 3, as: "No check-up for over 2 years", limited: true,
-        why: "Early decay can be stopped without a filling if it's found in time." },
-      { v: "pain", label: "Only when something hurts", pts: 3, as: "Dentist only when something hurts", limited: true,
-        why: "By the time decay hurts it usually needs a filling. Found early, it can often be stopped." },
+      { v: "2", label: "1 to 2 years ago", pts: 1, as: "Check-up 1 to 2 years ago",
+        why: "Early decay can be stopped without a filling if it's found in time.", refs: ["clarkson1993", "hagman2021"] },
+      { v: "more", label: "More than 2 years ago", pts: 3, as: "No check-up for over 2 years",
+        why: "People who don't have regular check-ups have more untreated decay, including on the roots.", refs: ["clarkson1993", "hagman2021"] },
+      { v: "pain", label: "Only when something hurts", pts: 3, as: "Dentist only when something hurts",
+        why: "By the time decay hurts it usually needs a filling. Found early, it can often be stopped.", refs: ["clarkson1993", "hagman2021"] },
     ],
   },
   {
@@ -230,10 +213,10 @@ function contextFactors(ctx) {
   const known = ctx.rtHN || ctx.sjogren;
   if (known) { /* dryness already counted through the cause */ }
   else if (ctx.sip != null && ctx.sip >= 11)
-    out.push({ q: "ctx", v: "sip", label: "High dry mouth score", pts: 8, dryStrong: true, from: "sip",
+    out.push({ q: "ctx", v: "sip", label: "Dry mouth assessment: moderate to severe or worse", pts: 8, dryStrong: true, from: "sip",
       why: "Your dry mouth check shows a lot of dryness. Less saliva means much less protection from decay.", refs: ["featherstone2021"] });
   else if (ctx.sip != null && ctx.sip >= 8)
-    out.push({ q: "ctx", v: "sip", label: "Moderate dry mouth score", pts: 4, from: "sip",
+    out.push({ q: "ctx", v: "sip", label: "Dry mouth assessment: mild to moderate", pts: 4, from: "sip",
       why: "Your dry mouth check shows some dryness, so your saliva protects your teeth less.", refs: ["featherstone2021"] });
   else if (ctx.sip == null && (ctx.dryRisk === "high" || ctx.dryRisk === "veryhigh"))
     out.push({ q: "ctx", v: "dryrisk", label: "High risk of dry mouth", pts: 4, from: "risk",
@@ -351,7 +334,7 @@ export function decayPlan(result, answers = {}, { dry = false, acid = false } = 
 export const DECAY_GROUPS = [
   { id: "history", label: "Past decay", qs: ["recent"], act: false },
   { id: "diet", label: "Food and drink", qs: ["sugar"], act: true, actNote: "Keep sugar to mealtimes." },
-  { id: "clean", label: "Cleaning", qs: ["brush", "between", "dentist"], act: true, actNote: "Twice-daily fluoride toothpaste and regular check-ups." },
+  { id: "clean", label: "Cleaning", qs: ["brush", "dentist"], act: true, actNote: "Twice-daily fluoride toothpaste and regular check-ups." },
   { id: "teeth", label: "Your teeth", qs: ["mouth"], act: false },
   { id: "gums", label: "Your gums", qs: ["gums"], act: true, actNote: "Brush gently along the gumline twice a day, clean between your teeth, and ask your dentist or hygienist about a gum check." },
   { id: "saliva", label: "Saliva", qs: ["dry", "ctx"], act: true, actNote: "Saliva gel, water and sugar-free gum help." },

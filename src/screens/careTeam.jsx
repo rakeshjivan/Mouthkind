@@ -1,3 +1,4 @@
+import { EDITION } from "../edition.js";
 import { useState } from "react";
 import { Icon, Sheet } from "../components/ui.jsx";
 import { PUBLIC_DENTAL_URL, addExtraContact, careContacts, contactRoles, findNearHref, getContact, openQuestionCount, removeExtraContact, rolesText, setContact, stateFromPostcode, telHref } from "../data/careTeam.js";
@@ -42,13 +43,13 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
   const tidy = (x) => ({ ...x, extraContacts: (x.extraContacts || []).filter((c) => [c.role, c.name, c.phone].some((v) => (v || "").trim())) });
   const save = () => (setup ? setup.done(tidy(p)) : (setProfile(tidy(p)), onClose()));
   return (
-    <Sheet title={setup ? "Build your plan" : "My care team"} onClose={onClose}
+    <Sheet title={setup ? (EDITION === "full" ? "Build your plan" : "Getting started") : "My care team"} onClose={onClose}
       footer={setup ? <>
         <button className="btn ghost" onClick={() => setup.done(profile)}>Skip for now</button>
         <button className="btn primary big" onClick={save}>Save and continue</button>
       </> : <button className="btn primary big" onClick={save}>Save</button>}>
       <h2 className="q">{setup ? "Your care team's numbers" : "My care team"}</h2>
-      <p className="lede tight">{setup ? "Add the one or two you'd most likely call, so they're one tap away on Home. You can add the rest later." : "Add whoever you might need to call. Leave any you don't have blank."}</p>
+      <p className="lede tight">{setup ? "Add the one or two you'd most likely call, so they're one tap away on Today. You can add the rest later." : "Add whoever you might need to call. Leave any you don't have blank."}</p>
       {contactRoles(p).map((r) => {
         const c = getContact(p, r.id);
         if (r.extra) return (
@@ -70,11 +71,11 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
               <label className="field"><span>Name or clinic</span><input value={c.name} onChange={(e) => set(r.id, { name: e.target.value })} /></label>
               <label className="field"><span>Phone</span><input type="tel" inputMode="tel" value={c.phone} onChange={(e) => set(r.id, { phone: e.target.value })} /></label>
             </div>
-            {r.find && !c.phone.trim() && <FindNear what={r.find} postcode={p.postcode || ""} onPostcode={(v) => setP((x) => ({ ...x, postcode: v }))} cancer={r.find === "dentist" && contactRoles(p).some((x) => x.id === "line24")} />}
+            {r.find && <FindNear what={r.find} postcode={p.postcode || ""} onPostcode={(v) => setP((x) => ({ ...x, postcode: v }))} cancer={r.find === "dentist" && contactRoles(p).some((x) => x.id === "line24")} />}
           </fieldset>
         );
       })}
-      <button type="button" className="btn ghost team-add" onClick={() => setP((x) => addExtraContact(x))}><Icon name="plus" size={18} /> Add someone else</button>
+      <button type="button" className="btn ghost team-add" onClick={() => setP((x) => addExtraContact(x))}><Icon name="plus" size={18} /> Add a new contact</button>
       <p className="small">For example a dietitian, speech pathologist, physiotherapist, social worker or oral medicine specialist.</p>
     </Sheet>
   );

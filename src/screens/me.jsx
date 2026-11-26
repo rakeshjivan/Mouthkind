@@ -8,7 +8,7 @@ import { GENDERS, ageFrom } from "../data/person.js";
 import { SITUATIONS } from "./onboarding.jsx";
 import { TREATMENTS, hasTx } from "../data/journey.js";
 
-export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
+export function Me({ profile, setProfile, prefs, setPrefs, open, onErase, about, ageNote }) {
   const [sure, setSure] = useState(false);
   const set = (p) => setProfile({ ...profile, ...p });
   return (
@@ -20,7 +20,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
         <h2 className="panel-title">{profile.carer ? `About ${profile.firstName || "the person you care for"}` : "About you"}</h2>
         {profile.carer
           ? <div className="carer-note"><Icon name="info" size={18} /><p><b>These are their details, not yours.</b> The checks, results and plan are all about them.</p></div>
-          : <p className="soft-note tight">Your age and gender are used in your risk checks, so they aren't asked again. All optional.</p>}
+          : <p className="soft-note tight">{ageNote || "Your age and gender are used in your risk checks, so they aren't asked again. All optional."}</p>}
         <div className="field-row">
           <label className="field"><span>{profile.carer ? "Their first name" : "First name"}</span>
             <input value={profile.firstName ?? profile.name ?? ""} onChange={(e) => set({ firstName: e.target.value, name: e.target.value, ...(profile.carer ? { carerFor: e.target.value } : {}) })} autoComplete={profile.carer ? "off" : "given-name"} /></label>
@@ -106,13 +106,13 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase }) {
             : <button className="btn ghost" onClick={() => setSure(true)}>Delete</button>}</div>
       </section>
 
-      <details className="panel about">
+      {about || <details className="panel about">
         <summary><h2 className="panel-title">About Mouthkind</h2><Icon name="chev" size={18} /></summary>
         <p><strong>Who made it.</strong> Dr Rakesh Jivan, a dentist with over 25 years in practice. He is Scientific Affairs Manager at GC Australasia, which makes GC Tooth Mousse™, GC Tooth Mousse™ Plus, GC Dry Mouth Gel and GC Saliva-Check BUFFER. Those products are recommended where they fit, alongside other brands and non-product advice.</p>
-        <p><strong>How the checks work.</strong> The dry mouth score is the GC SIP-SCORE, which uses the five questions of the Summated Xerostomia Inventory, a validated measure of dry mouth. The dry mouth and tooth decay risk checks are screening checks: they add up known risk factors from published research and guidelines (including CAMBRA), weighted by clinical judgement, and are not yet validated against saliva tests or dental examinations. Even the best-validated decay risk tools are only moderately accurate, so your dentist's examination comes first.</p>
+        <p><strong>How the checks work.</strong> The dry mouth assessment uses five questions from the Summated Xerostomia Inventory, a validated measure of dry mouth symptoms. The dry mouth and tooth decay risk checks are screening checks: they add up known risk factors from published research and guidelines (including CAMBRA), weighted by clinical judgement, and are not yet validated against saliva tests or dental examinations. Even the best-validated decay risk tools are only moderately accurate, so your dentist's examination comes first.</p>
         <p><strong>Where the advice comes from.</strong> Guidelines and studies are listed under "Sources" on each piece of advice.</p>
         <p><strong>Your privacy.</strong> Everything stays on this device. Nothing is sent anywhere unless you choose to share or back it up.</p>
-      </details>
+      </details>}
 
       <p className="foot-note">Mouthkind {__APP_VERSION__} · General information only, not a diagnosis — talk to your dentist, GP or pharmacist about your results.</p>
     </div>

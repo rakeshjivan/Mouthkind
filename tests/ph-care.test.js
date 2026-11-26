@@ -34,8 +34,12 @@ test("care topics: real products and sources, and they respond to results", () =
   }
   const ids = (ctx) => CARE_TOPICS.filter((t) => t.forYou(careContext(ctx))).map((t) => t.id);
   assert.deepEqual(ids({}), []);
-  assert.ok(ids({ ph: "flag" }).includes("protect") && ids({ ph: "flag" }).includes("diet") && ids({ ph: "flag" }).includes("dentist"));
-  assert.ok(ids({ sip: 9 }).includes("moisten"));
+  assert.ok(ids({ ph: "flag" }).includes("diet") && ids({ ph: "flag" }).includes("dentist"));
+  // General information names no brands and shows no product cards.
+  for (const t of CARE_TOPICS) {
+    assert.ok(!t.products, `${t.id} has product cards`);
+    assert.doesNotMatch(t.steps.join(" "), /\bGC\b|Tooth Mousse|NeutraFluor|OraNurse|Recaldent|Biot[eè]ne/i, t.id);
+  }
   const r = scoreRisk({ medTypes: ["bladder"], habits: ["smoke"], water: "low" });
   const mine = ids({ factors: r.factors, risk: r.band.id });
   for (const id of ["medicines", "habits", "water"]) assert.ok(mine.includes(id), id);

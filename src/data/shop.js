@@ -33,6 +33,16 @@ export const SHOP_FLAVOURS = {
 
 // The products shown on the Shop screen, in this order (ids from products.js).
 export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "oranurse"];
+// What each product has from Learn's "What to look for" lists, in the same words, so the
+// general information and the Shop line up without Learn naming a brand. Keep these to what
+// the product's own label or IFU states.
+export const SHOP_MEETS = {
+  "gc-dmg": ["Gel", "Close to neutral pH", "Sugar-free", "Range of flavours"],
+  "gc-tmp": ["Calcium and phosphate", "Fluoride (900 ppm)", "Buffers plaque acid"],
+  "gc-tm": ["Calcium and phosphate", "Buffers plaque acid", "No added fluoride"],
+  "neutrafluor": ["High fluoride (5,000 ppm)"],
+  "oranurse": ["Unflavoured", "SLS-free", "Fluoride"],
+};
 // Who sells each product, for the button label.
 export const SHOP_SELLER = { oranurse: "OraNurse" };
 

@@ -18,8 +18,9 @@ import { medicineById } from "./medicines.js";
 // Raoof 2023 (OSA, CPAP, MAD); Sunavala-Dossabhoy 2022 (radioiodine);
 // Usmani 2019 (bladder antimuscarinics); Shiboski 2017 (Sjögren's);
 // Villa 2015 (causes overview).
-// `limited: true` = plausible and commonly listed, but no primary source yet
-// checked for this app. Shown in the plan for clinical review.
+// Every scored answer cites a primary source. Answers recorded for context but not
+// scored (heart disease, stroke, dementia, triptans) dry the mouth through their
+// medicines, which are counted on the medicine screens.
 // Mercadante 2021 (cancer therapy).
 
 export const RISK_VERSION = 3; // 3: "Kidney disease or dialysis" split into dialysis and kidney disease
@@ -32,7 +33,7 @@ export const RISK_VERSION = 3; // 3: "Kidney disease or dialysis" split into dia
 export const MED_PURPOSES = [
   { v: "mood", label: "Depression, anxiety or low mood", g: "antidep" },
   { v: "mental", label: "Bipolar, schizophrenia or psychosis", g: "antipsych" },
-  { v: "sleep", label: "Sleep", g: "sleep" },
+  { v: "sleep", label: "Sleep problems or insomnia", g: "sleep" },
   { v: "pain", label: "Strong or long-term pain", hint: "Not just paracetamol or ibuprofen now and then", g: "opioid" },
   { v: "nerve", label: "Epilepsy or nerve pain", g: "seizure" },
   { v: "bp", label: "Blood pressure, heart or fluid", g: "bp" },
@@ -47,7 +48,7 @@ export const MED_PURPOSES = [
   { v: "stomach", label: "Nausea, travel sickness or stomach cramps", g: "gut" },
   { v: "adhd", label: "ADHD", g: "stimulant" },
   { v: "parkinsons", label: "Parkinson's", g: "parkinson" },
-  { v: "migraine", label: "Migraine", g: "migraine" },
+  { v: "migraine", label: "Migraine", g: null },
   { v: "muscle", label: "Muscle spasm", g: "relaxant" },
   { v: "acne", label: "Acne (isotretinoin)", g: "acne" },
   { v: "smoking", label: "Quitting smoking", g: "smoking" },
@@ -87,7 +88,7 @@ export function deriveMeds(a, lookup) {
   out.medRep = rep ? String(Math.min(rep, 3)) : undefined;
   for (const [q, set] of Object.entries(extra)) out[q] = [...new Set([...(a[q] || []), ...set])];
   const n = (a.medList || []).length;
-  out.meds = n ? countBand(Math.max(n, f.filter((v) => v !== "other").length)) : f.length ? a.meds : "0";
+  out.meds = n ? countBand(Math.max(n, f.filter((v) => v !== "other").length)) : f.length || a.medFor.includes("unsure") ? a.meds : "0";
   return out;
 }
 
@@ -100,28 +101,29 @@ export const RISK_QUESTIONS = [
       { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025", "vonbultz2007"] },
       { v: "dialysis", label: "Kidney failure, on dialysis", pts: 10, why: "About half of people on haemodialysis have a dry mouth (28–79% across studies), from fluid limits, the medicines and the kidney disease itself.", refs: ["kumar2021", "laheij2021"] },
       { v: "kidney", label: "Kidney disease, not on dialysis", pts: 5, why: "Saliva flow is lower in chronic kidney disease, even before dialysis, and the medicines for it often dry the mouth.", refs: ["oyetola2015", "laheij2021"] },
-      { v: "heart", label: "Heart disease or high blood pressure", as: "Heart disease or high blood pressure", pts: 2, limited: true, why: "Mostly through the medicines used to treat it — fluid tablets and some blood pressure tablets reduce saliva." },
-      { v: "stroke", label: "Stroke", pts: 3, limited: true, why: "A stroke can affect swallowing and mouth control, and often brings several new medicines." },
+      { v: "heart", label: "Heart disease or high blood pressure", pts: 0 },
+      { v: "stroke", label: "Stroke", pts: 0 },
       { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Dry mouth is common in Parkinson's, partly from the medicines used to treat it.", refs: ["martimbianco2021"] },
-      { v: "dementia", label: "Dementia or Alzheimer's", pts: 4, limited: true, why: "Drinking less and the medicines used make a dry mouth more likely." },
+      { v: "dementia", label: "Dementia or Alzheimer's", pts: 0 },
       { v: "mood", label: "Depression or anxiety", pts: 4, why: "Anxiety reduces saliva, and the medicines for these conditions often do too.", refs: ["villa2015", "wolff2017"] },
-      { v: "thyroid", label: "Thyroid disease", pts: 2, why: "Thyroid problems are linked with lower saliva flow.", refs: ["naik2018"], limited: true },
+      { v: "thyroid", label: "Thyroid disease", pts: 2, why: "Thyroid problems are linked with lower saliva flow.", refs: ["naik2018", "aghahosseini2016", "bergdahl2001"] },
       { v: "hiv", label: "HIV", pts: 5, why: "HIV can affect the salivary glands, and dry mouth is common in people living with HIV.", refs: ["mkonyi2025", "vonbultz2007"] },
       { v: "hepc", label: "Hepatitis C", pts: 4, why: "Hepatitis C is linked with a Sjögren's-like dryness of the mouth and eyes.", refs: ["cacoub2017", "vonbultz2007"] },
       { v: "sarcoid", label: "Sarcoidosis", pts: 6, why: "Sarcoidosis can inflame the salivary glands.", refs: ["vonbultz2007"] },
       { v: "longcovid", label: "Long COVID", pts: 2, why: "Dry mouth and taste changes can linger after COVID-19.", refs: ["avais2025"] },
-      { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, limited: true, why: "Stomach acid wears teeth, and repeated vomiting can leave the mouth dry." },
-      { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, limited: true, why: "Vomiting, restricted fluids and some medicines can dry the mouth and wear the teeth." },
+      { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, why: "Stomach acid wears teeth, and long-standing reflux lowers the pH of saliva.", refs: ["preetha2015"] },
+      { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, why: "Saliva flow is lower and a dry mouth more common with bulimia, and vomiting wears the teeth.", refs: ["dynesen2008", "rytomaa1998"] },
       { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 10, why: "More than half of pregnant women report a dry mouth, and gums become more sensitive.", refs: ["nazir2026"] },
       { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 12, acid: true, why: "More than half of pregnant women report a dry mouth, and vomiting adds to it: it brings stomach acid onto the teeth and can leave you dehydrated.", refs: ["nazir2026", "adaPregnancy"] },
       { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
+      { v: "unsure", label: "Not sure", pts: 0 },
     ],
   },
   {
     id: "medFor", type: "many", section: "Medicines", text: "Do you take any medicines for these conditions?",
     hint: "Tick any that apply. Include tablets, inhalers, injections or patches you use most days.",
     none: "No regular medicines",
-    options: MED_PURPOSES.map(({ v, label, hint }) => ({ v, label, hint, pts: 0 })),
+    options: [...MED_PURPOSES.map(({ v, label, hint }) => ({ v, label, hint, pts: 0 })), { v: "unsure", label: "I take medicines but I'm not sure what for", pts: 0 }],
   },
   {
     id: "medList", type: "lookup", section: "Medicines", text: "Add your medicine names",
@@ -137,6 +139,7 @@ export const RISK_QUESTIONS = [
       { v: "3", label: "3 or 4", as: "3 or 4 regular medicines", pts: 7, why: "The more medicines you take, the more likely a dry mouth is.", refs: ["wolff2017", "villa2016"] },
       { v: "5", label: "5 to 9", as: "5 to 9 regular medicines", pts: 14, why: "Taking five or more medicines (polypharmacy) is one of the strongest everyday causes of dry mouth.", refs: ["wolff2017", "villa2016"] },
       { v: "10", label: "10 or more", as: "10 or more regular medicines", pts: 20, why: "Ten or more medicines makes a dry mouth very likely.", refs: ["wolff2017", "villa2016"] },
+      { v: "unsure", label: "Not sure how many", pts: 0 },
     ],
   },
   // The medicine groups share one answer (medTypes), shown over two screens.
@@ -154,7 +157,7 @@ export const RISK_QUESTIONS = [
       { v: "stimulant", label: "ADHD medicines", hint: "e.g. methylphenidate, dexamfetamine, lisdexamfetamine (Vyvanse)", pts: 4, why: "Stimulants and other ADHD medicines commonly cause dry mouth.", refs: ["wolff2017"] },
       { v: "parkinson", label: "Parkinson's medicines", hint: "e.g. levodopa, benztropine, pramipexole", pts: 5, why: "Several Parkinson's medicines reduce saliva.", refs: ["wolff2017"] },
       { v: "relaxant", label: "Muscle relaxants", hint: "e.g. baclofen, orphenadrine", pts: 3, why: "Some muscle relaxants reduce saliva.", refs: ["wolff2017"] },
-      { v: "migraine", label: "Migraine tablets (triptans)", hint: "e.g. sumatriptan, rizatriptan", pts: 2, why: "Triptans can cause a dry mouth.", refs: [], limited: true },
+      { v: "migraine", label: "Migraine tablets (triptans)", hint: "e.g. sumatriptan, rizatriptan", pts: 0 },
       { v: "cannabis", label: "Medicinal cannabis", hint: "THC or THC/CBD products", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
     ],
   },
@@ -171,7 +174,7 @@ export const RISK_QUESTIONS = [
       { v: "inhaler", label: "Inhalers for asthma or COPD", hint: "e.g. tiotropium (Spiriva), umeclidinium, ipratropium, steroid inhalers", pts: 3, why: "Some inhalers dry the mouth directly.", refs: ["wolff2017"] },
       { v: "gut", label: "Medicines for stomach cramps, nausea or travel sickness", hint: "e.g. Buscopan, hyoscine (Kwells), prochlorperazine (Stemetil)", pts: 4, why: "These medicines block the nerves that drive saliva.", refs: ["wolff2017"] },
       { v: "acne", label: "Isotretinoin for acne", hint: "e.g. Roaccutane, Oratane", pts: 6, why: "About half of people taking isotretinoin get a dry mouth, and most get dry lips.", refs: ["alqahtani2026"] },
-      { v: "smoking", label: "Quit-smoking tablets", hint: "e.g. varenicline (Champix), bupropion (Zyban)", pts: 2, why: "Both list dry mouth as a common side effect.", refs: ["wolff2017"] },
+      { v: "smoking", label: "Quit-smoking tablets", hint: "e.g. varenicline (Champix), bupropion (Zyban)", pts: 2, why: "Varenicline and bupropion both list dry mouth as a common side effect.", refs: ["wolff2017"] },
       { v: "allergy", label: "Non-drowsy antihistamines, most days", hint: "e.g. cetirizine, loratadine, fexofenadine", pts: 2, why: "Even non-drowsy antihistamines can dry the mouth a little.", refs: ["wolff2017"] },
       { v: "decong", label: "Cold and flu tablets or decongestants, most days", hint: "e.g. pseudoephedrine", pts: 2, why: "Decongestants dry the mouth while you take them.", refs: ["wolff2017"] },
     ],
@@ -193,32 +196,54 @@ export const RISK_QUESTIONS = [
       { v: "rai", label: "Radioactive iodine for thyroid cancer", pts: 12, why: "Radioactive iodine collects in the salivary glands and can damage them.", refs: ["sunavala2022"] },
       { v: "immuno", label: "Cancer immunotherapy", hint: "e.g. Keytruda (pembrolizumab), Opdivo (nivolumab), Yervoy", pts: 8, why: "Immunotherapy can trigger a Sjögren's-like dryness of the mouth and eyes, often underrecognised.", refs: ["bitoun2024"] },
       { v: "chemo", label: "Chemotherapy, now or in the last 6 months", pts: 10, why: "Chemotherapy often thins and reduces saliva during and after treatment.", refs: ["mercadante2021"] },
+      { v: "unsure", label: "Not sure", pts: 0 },
     ],
   },
   {
     id: "breathing", type: "many", section: "Sleep and breathing", text: "Do any of these apply to you?", none: "None of these",
     options: [
-      { v: "mouth", label: "I breathe through my mouth, day or night", as: "Mouth breathing", pts: 6, why: "Breathing through your mouth dries it out, especially overnight.", refs: [], limited: true },
+      { v: "mouth", label: "I breathe through my mouth, day or night", as: "Mouth breathing", pts: 6, why: "Breathing through your mouth dries it out, especially overnight.", refs: ["dawes2004"] },
       { v: "snore", label: "I snore, or have sleep apnoea", as: "Snoring or sleep apnoea", pts: 4, why: "Sleep apnoea is linked with waking up with a dry mouth.", refs: ["raoof2023"] },
       { v: "cpap", label: "I use a CPAP machine", as: "Using a CPAP machine", pts: 5, why: "Many CPAP users report a dry mouth, especially with mouth leaks.", refs: ["raoof2023"] },
       { v: "mad", label: "I wear a sleep apnoea or snoring splint", as: "Wearing a sleep apnoea splint", pts: 3, why: "Splints that hold the jaw forward can leave the mouth dry.", refs: ["raoof2023"] },
+      { v: "unsure", label: "Not sure", pts: 0 },
     ],
   },
   {
     id: "habits", type: "many", section: "Everyday habits", text: "Do any of these apply to you?", none: "None of these",
     options: [
-      { v: "smoke", label: "I smoke", as: "Smoking", pts: 5, why: "Smoking is linked with a drier mouth and less saliva.", refs: [], limited: true },
-      { v: "vape", label: "I vape", as: "Vaping", pts: 4, why: "Vaping liquids draw moisture from the mouth.", refs: [], limited: true },
+      { v: "smoke", label: "I smoke", as: "Smoking", pts: 5, why: "Smokers make less saliva and report a dry mouth more often.", refs: ["rad2010", "nigar2022", "chaffee2026"] },
+      { v: "vape", label: "I vape", as: "Vaping", pts: 4, why: "Daily vaping is linked with a dry mouth almost twice as often.", refs: ["chaffee2026"] },
       { v: "cannabis", label: "I use cannabis, prescribed or not", as: "Cannabis use", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
-      { v: "alcohol", label: "I have more than 2 alcoholic drinks most days", as: "More than 2 alcoholic drinks most days", pts: 3, why: "Alcohol dries the mouth.", refs: [], limited: true },
-      { v: "caffeine", label: "I have more than 3 coffees, teas or energy drinks a day", as: "More than 3 caffeinated drinks a day", pts: 2, why: "Caffeine can add to a dry mouth.", refs: [], limited: true },
+      // Recorded, not scored: the evidence that usual amounts dry the mouth is weak.
+    ],
+  },
+  {
+    // Recorded, not scored. Bands follow the Australian guideline (NHMRC 2020): no more than 10 standard drinks a week.
+    id: "alcohol", type: "one", section: "Everyday habits", text: "How many standard drinks of alcohol do you have in a usual week?",
+    hint: "One standard drink is a middy (285 ml) of full-strength beer, a small glass (100 ml) of wine, or a 30 ml nip of spirits.",
+    options: [
+      { v: "none", label: "I don't drink alcohol", pts: 0 },
+      { v: "low", label: "1 to 5", as: "1 to 5 standard drinks a week", pts: 0, record: true, why: "Alcohol can leave the mouth feeling drier, especially in the evening. An alcohol-free mouthwash is better for a dry mouth." },
+      { v: "mid", label: "6 to 10", as: "6 to 10 standard drinks a week", pts: 0, record: true, why: "Alcohol can leave the mouth feeling drier, especially in the evening, and many drinks are acidic or sugary." },
+      { v: "high", label: "More than 10", as: "More than 10 standard drinks a week", pts: 0, record: true, why: "More than 10 standard drinks a week is above the Australian guideline. Alcohol can leave the mouth drier, and many drinks are acidic or sugary." },
+    ],
+  },
+  {
+    // Recorded, not scored: the evidence that usual amounts dry the mouth is weak.
+    id: "caffeine", type: "one", section: "Everyday habits", text: "How many cups of tea or coffee do you have on a usual day?",
+    hint: "Count cola and energy drinks too.",
+    options: [
+      { v: "none", label: "None", pts: 0 },
+      { v: "low", label: "1 to 3", pts: 0 },
+      { v: "high", label: "4 or more", as: "4 or more cups of tea or coffee a day", pts: 0, record: true, why: "Usual amounts of tea and coffee don't dry the mouth much for most people, but some notice it, and sugar in them feeds decay." },
     ],
   },
   {
     id: "water", type: "one", section: "Everyday habits", text: "How much water do you drink on a normal day?",
     hint: "Count water and other drinks that aren't alcohol or caffeine.",
     options: [
-      { v: "low", label: "Less than 4 glasses", as: "Less than 4 glasses of water a day", pts: 4, why: "Not drinking enough leaves less fluid for saliva.", refs: [], limited: true },
+      { v: "low", label: "Less than 4 glasses", as: "Less than 4 glasses of water a day", pts: 4, why: "Being short of fluid lowers resting saliva flow.", refs: ["ito2026"] },
       { v: "mid", label: "4 to 7 glasses", pts: 0 },
       { v: "high", label: "8 glasses or more", pts: 0 },
     ],
@@ -306,6 +331,9 @@ function countConditionsOnce(factors, a) {
   }
 }
 
+/** The sections where the person answered "Not sure" (so a professional can go through them). */
+export const unsureOf = (answers = {}) => [...new Set(RISK_QUESTIONS.filter((q) => [].concat(answers[q.id] ?? []).includes("unsure")).map((q) => (q.section === "Health" ? "Health conditions" : q.section)))];
+
 /** The answers with medicines worked out, as scoring sees them. */
 export const fullAnswers = (a = {}) => migrate(a);
 
@@ -325,12 +353,14 @@ function orderPurposes(q, a) {
 export function scoreRisk(answers = {}) {
   answers = migrate(answers);
   const factors = [];
+  const recorded = []; // answers kept for the record and for general information, with no points
   // Every question with points counts, including the medicine groups worked out from the
   // medicine screens and a count taken from the names given.
   for (const q of RISK_QUESTIONS) {
     if (!q.options) continue;
     const a = answers[q.id];
     const picked = q.type === "one" ? q.options.filter((o) => o.v === a) : q.options.filter((o) => (a || []).includes(o.v));
+    for (const o of picked) if (!(o.pts > 0) && o.record) recorded.push({ q: q.id, v: o.v });
     for (const o of picked) if (o.pts > 0) factors.push({ q: q.id, v: o.v, label: o.as || o.label, pts: o.pts, why: o.why, refs: o.refs || [], major: !!o.major, limited: !!o.limited, acid: !!o.acid });
   }
   // Answers without a checked primary source count at half until one is found.
@@ -343,7 +373,7 @@ export function scoreRisk(answers = {}) {
   let band = [...RISK_BANDS].reverse().find((b) => score >= b.lo);
   // A near-certain cause (head and neck radiotherapy, Sjögren's) is always "very high".
   if (major) band = RISK_BANDS[3];
-  return { score, band, factors, major };
+  return { score, band, factors, major, recorded };
 }
 
 /** Practical next steps for this person's factors, most useful first. */
@@ -353,7 +383,7 @@ export function riskAdvice(result, answers = {}) {
   const medPts = result.factors.filter((f) => f.q === "meds" || f.q === "medTypes").reduce((s, f) => s + f.pts, 0);
   const out = [];
   if (result.band.lo >= 10)
-    out.push({ id: "track", title: "Check how dry your mouth actually is", body: "Risk factors don't always mean symptoms. The five-question dry mouth score (SIP) shows how much dryness is affecting you, and tracking it shows whether it's changing." });
+    out.push({ id: "track", title: "Check how dry your mouth actually is", body: "Risk factors don't always mean symptoms. The five-question dry mouth assessment shows how much dryness is affecting you, and tracking it shows whether it's changing." });
   if (has("conditions", "menopause") || has("medTypes", "hrt"))
     out.push({ id: "menopause", title: "Menopause and your mouth",
       body: has("medTypes", "hrt")
@@ -372,8 +402,8 @@ export function riskAdvice(result, answers = {}) {
     out.push({ id: "nose", title: "Find out why you mouth-breathe", body: "A blocked nose, allergies or sleep apnoea are common causes. Your GP can check, and treating the cause helps the dryness." });
   if (has("habits", "smoke") || has("habits", "vape"))
     out.push({ id: "smoke", title: "Smoking and vaping", body: "Both dry the mouth. Quitting helps your saliva and your teeth — Quitline (13 78 48 in Australia, 0800 778 778 in New Zealand) is free." });
-  if (has("water", "low") || has("habits", "caffeine") || has("habits", "alcohol"))
-    out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day. Cut back on alcohol, and on caffeine if it dries your mouth, and use an alcohol-free mouthwash." });
+  if (has("water", "low"))
+    out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day." });
   if (has("conditions", "pregnant") || has("conditions", "pregnantSick"))
     out.push({ id: "pregnant", title: "Looking after your mouth in pregnancy", body: "Tell your dentist you're pregnant — check-ups and most treatment are safe, and the second trimester is often the most comfortable time. Gums often swell and bleed more in pregnancy: keep brushing gently twice a day and clean between your teeth. Keep sweet snacks to mealtimes.", refs: ["adaPregnancy", "pbbTeeth"] });
   if (result.factors.some((f) => f.acid) || has("medTypes", "glp1"))
@@ -397,7 +427,7 @@ export const RISK_GROUPS = [
   { id: "treat", label: "Cancer treatment", qs: ["cancer"], act: false },
   { id: "health", label: "Health conditions", qs: ["conditions"], act: false },
   { id: "sleep", label: "Sleep and breathing", qs: ["breathing"], act: true, actNote: "Your GP or sleep clinic can often help." },
-  { id: "habits", label: "Daily habits", qs: ["habits", "water"], act: true, actNote: "Small changes here make a real difference." },
+  { id: "habits", label: "Daily habits", qs: ["habits", "alcohol", "caffeine", "water"], act: true, actNote: "Small changes here make a real difference." },
   { id: "about", label: "Age and gender", qs: ["age", "sex"], act: false },
 ];
 export function riskBreakdown(result) {

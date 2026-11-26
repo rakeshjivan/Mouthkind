@@ -1,6 +1,8 @@
 # Mouthkind
 
-*Dry mouth, checked and tracked.*
+*Mouthkind supports registered health professionals to assess dry mouth and tooth decay risk in their patients and to choose a mouth care plan, using referenced, published criteria that the professional can review. Patients use it to complete questionnaires and a symptom diary, record saliva pH, keep their care team's contacts, read general information, and follow the plan their professional has chosen. It does not diagnose, and it does not replace the professional's judgement.*
+
+**Editions** (`src/edition.js`): `clinician` (testing now: TGA option 3, the engine's results and plan options shown only in a clinician view, `src/clin/`), `compliant` (diary, records and general information, `src/lite/`) and `full` (live).
 
 A dry mouth app for anyone. Two parts:
 

@@ -1,3 +1,4 @@
+import { EDITION } from "../edition.js";
 import { useState } from "react";
 import { BrandMark } from "../components/brandMark.jsx";
 import { Icon } from "../components/ui.jsx";
@@ -5,18 +6,20 @@ import { DateParts } from "../components/dateParts.jsx";
 import { Pick, TickRows } from "../components/kit.jsx";
 import { STAGES, TREATMENTS } from "../data/journey.js";
 import { GENDERS, ageFrom } from "../data/person.js";
+import { WorrySheet } from "./help.jsx";
 
 export const SITUATIONS = [
-  { v: "cancer", label: "Cancer treatment", hint: "Before, during or after radiotherapy, chemotherapy or other treatment" },
+  { v: "cancer", label: "I'm having, or have had, cancer treatment", hint: "Before, during or after radiotherapy, chemotherapy or other treatment" },
   { v: "sjogren", label: "Sjögren's or another condition that dries the mouth" },
-  { v: "meds", label: "Medicines that dry my mouth" },
-  { v: "checking", label: "Just checking how my mouth is going" },
+  { v: "meds", label: "My medicines are drying my mouth" },
+  { v: "checking", label: "My mouth feels dry" },
 ];
 
 /** First run: who it's for, what brings them here, and (for cancer care) their treatment. Everything can be changed later in Me. */
 export function Welcome({ profile, onDone }) {
   const [p, setP] = useState({ ...profile });
   const [step, setStep] = useState(0);
+  const [worry, setWorry] = useState(false);
   const set = (x) => setP({ ...p, ...x });
   const cancer = (p.situation || []).includes("cancer");
   const steps = ["who", "about", "why", ...(cancer ? ["tx", "dates", "team"] : [])];
@@ -31,28 +34,28 @@ export function Welcome({ profile, onDone }) {
   // The patient's details. For a carer, firstName is the person they care for.
   const setName = (v) => set({ firstName: v, name: v, ...(p.carer ? { carerFor: v } : {}) });
   return (
-    <div className="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Mouthkind: Dry Mouth Care">
+    <div className="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Mouthkind: Dry Mouth Tracker">
       <div className="welcome-in">
         <div className="welcome-top">
           {step > 0 ? <button className="icon-btn" onClick={() => setStep(step - 1)} aria-label="Back"><Icon name="back" /></button> : <span />}
           <div className="pips" aria-hidden="true">{steps.map((s, i) => <span key={s} className={i <= step ? "on" : ""} />)}</div>
-          <button className="link-btn" onClick={finish}>Skip</button>
+          {!["who", "about", "why"].includes(at) ? <button className="link-btn" onClick={finish}>Skip</button> : <span />}
         </div>
 
         {at === "who" && (<>
-          <p className="brand"><BrandMark size={30} />Mouthkind <span className="brand-sub">Dry Mouth Care</span></p>
-          <h1 className="display">Looking after a dry or sore mouth, together.</h1>
-          <p className="lede">A few taps so the app shows what matters to you. Everything stays on this phone.</p>
-          <h2 className="q">Who are you using Mouthkind for?</h2>
-          <Pick options={[{ v: false, label: "Myself" }, { v: true, label: "Someone I care for" }]} value={p.carer}
+          <p className="brand welcome-brand"><BrandMark size={22} />Mouthkind</p>
+          <h1 className="display">Keep track of a dry mouth.</h1>
+          <p className="lede">Record how your mouth feels, keep your results in one place, and share them with a health professional. Everything stays on this phone.</p>
+          <h2 className="q welcome-q">Who is using Mouthkind?</h2>
+          <Pick options={[{ v: false, label: "Me" }, { v: true, label: "Someone I care for" }]} value={p.carer}
             onPick={(v) => set({ carer: v, ...(v ? { carerFor: p.firstName || p.carerFor || "" } : {}) })} />
         </>)}
 
         {at === "about" && (<>
           <h2 className="q">{p.carer ? "About the person you care for" : "About you"}</h2>
           {p.carer
-            ? <div className="carer-note"><Icon name="info" size={18} /><p><b>Enter their details, not yours.</b> Everything in the app — the checks, results and plan — is about them.</p></div>
-            : <p className="lede tight">Your age and gender are used in your risk checks, so you won't be asked again.</p>}
+            ? <div className="carer-note"><Icon name="info" size={18} /><p><b>Enter their details, not yours.</b> {EDITION === "compliant" ? "Everything in the app — the diary, scores and records — is about them." : "Everything in the app — the checks, results and plan — is about them."}</p></div>
+            : <p className="lede tight">{EDITION === "compliant" ? "All optional. Used only on the summary for your care team." : "Your age and gender are used in your risk checks, so you won't be asked again."}</p>}
           <div className="field-row">
             <label className="field"><span>{p.carer ? "Their first name" : "First name"}</span>
               <input value={p.firstName || ""} onChange={(e) => setName(e.target.value)} autoComplete={p.carer ? "off" : "given-name"} placeholder={p.carer ? "e.g. Margaret" : ""} /></label>
@@ -71,7 +74,6 @@ export function Welcome({ profile, onDone }) {
             <label className="field"><span>Your first name (optional)</span>
               <input value={p.carerName || ""} onChange={(e) => set({ carerName: e.target.value })} autoComplete="given-name" /></label>
           )}
-          <p className="soft-note">All optional, and you can change them any time in Me.</p>
         </>)}
 
         {at === "why" && (<>
@@ -82,7 +84,7 @@ export function Welcome({ profile, onDone }) {
 
         {at === "tx" && (<>
           <h2 className="q">Which treatments{p.carer ? ` is ${p.carerFor || "the person you care for"} having` : ""}?</h2>
-          <p className="lede tight">Tick all that apply. This tailors what to expect and when.</p>
+          <p className="lede tight">Tick all that apply. This sets which treatments "What to expect" covers.</p>
           <TickRows options={TREATMENTS} value={p.treatments || []} onChange={(v) => set({ treatments: v })} />
         </>)}
 
@@ -118,8 +120,11 @@ export function Welcome({ profile, onDone }) {
         </>)}
 
         <div className="welcome-foot">
+          <button type="button" className="link-btn welcome-help" onClick={() => setWorry(true)}><Icon name="alert" size={16} /> Get help now</button>
           <button className="btn primary big" disabled={!canNext} onClick={next}>{last ? "Start" : "Next"}</button>
         </div>
+        {/* Urgent help is never behind the questions. */}
+        {worry && <WorrySheet profile={p} onClose={() => setWorry(false)} open={null} />}
       </div>
     </div>
   );

@@ -34,7 +34,7 @@ function UsedPanel({ entries, open }) {
       <div className="panel-h"><h2>What I used</h2><button className="link-btn" onClick={() => open("used")}>Log</button></div>
       {ins.map((x) => (
         <p key={x.v} className={`insight ${x.change < 0 ? "better" : x.change > 0 ? "worse" : ""}`}>
-          Since starting <b>{x.label}</b> on {fmtShort(x.first)}, your dry mouth score has {x.change < 0 ? "dropped" : x.change > 0 ? "risen" : "stayed"} {x.change ? `from ${x.before} to ${x.after}` : `at about ${x.after}`} on average.
+          Since starting <b>{x.label}</b> on {fmtShort(x.first)}, your dry mouth assessment score has {x.change < 0 ? "dropped" : x.change > 0 ? "risen" : "stayed"} {x.change ? `from ${x.before} to ${x.after}` : `at about ${x.after}`} on average.
         </p>
       ))}
       {ins.length > 0 && <p className="panel-foot">A pattern in your own results, not proof — other things change at the same time.</p>}
@@ -51,7 +51,7 @@ function UsedPanel({ entries, open }) {
           })}
           <p className="panel-foot">Last 6 weeks.</p>
         </div>
-      ) : <p className="soft-note">Log what you use — gel, Tooth Mousse™, rinses — and after a few weeks this shows whether your dry mouth score changed.</p>}
+      ) : <p className="soft-note">Log what you use — gel, Tooth Mousse™, rinses — and after a few weeks this shows whether your dry mouth assessment changed.</p>}
     </section>
   );
 }
@@ -95,11 +95,11 @@ export function Results({ profile = {}, prefs = {}, entries, open, onDelete, onS
       )}
 
       <section className="panel">
-        <div className="panel-h"><h2>Dry mouth score</h2><button className="link-btn" onClick={() => open("sip")}>Check now</button></div>
+        <div className="panel-h"><h2>Dry mouth assessment</h2><button className="link-btn" onClick={() => open("sip")}>Start</button></div>
         {sips.length ? (<>
           <p className="big-read"><strong>{sipLevel(sips.at(-1).sip).label}</strong> · <span style={{ color: sipLevel(sips.at(-1).sip).color }}>{sipLevel(sips.at(-1).sip).full.toLowerCase()}</span></p>
           {sips.length > 1 && <LevelSeries items={sips.slice(-20).map((s) => ({ id: sipLevel(s.sip).id, ts: s.ts }))} tone="dry" />}
-          <p className="panel-foot">GC SIP-SCORE: low, moderate or high dryness.</p>
+          <p className="panel-foot">Five questions from the Summated Xerostomia Inventory, scored 5 to 15.</p>
         </>) : <p className="soft-note">No checks yet.</p>}
       </section>
 
@@ -158,7 +158,7 @@ export function Results({ profile = {}, prefs = {}, entries, open, onDelete, onS
                   <span className="entry2-pills">
                     {e.kind === "decay" && <span className="pill">Decay risk: {DECAY_BANDS.find((b) => b.id === e.band)?.label.toLowerCase()}</span>}
                     {e.kind === "risk" && <span className="pill">Dry mouth risk: {RISK_BANDS.find((b) => b.id === e.band)?.label.toLowerCase()}</span>}
-                    {e.sip != null && e.kind !== "risk" && <span className="pill dry">Dry mouth score: {sipLevel(e.sip).label.toLowerCase()}</span>}
+                    {e.sip != null && e.kind !== "risk" && <span className="pill dry">Dry mouth assessment: {sipLevel(e.sip).label.toLowerCase()}</span>}
                     {e.ph != null && <span className="pill">pH {e.ph.toFixed(1)}</span>}
                   </span>
                 </span>
@@ -215,7 +215,7 @@ export function Summary({ entries, profile, onClose }) {
           </>)) : <p>No decay risk check recorded.</p>}
         </section>
         <section>
-          <h2>GC SIP-SCORE (5–15)</h2>
+          <h2>Dry mouth assessment (5–15)</h2>
           {sips.length ? (
             <table><thead><tr><th>Date</th><th>Score</th><th>Band</th><th>Recall</th></tr></thead>
               <tbody>{sips.map((s) => <tr key={s.id}><td>{fmtDate(s.ts)}</td><td>{s.sip}</td><td>{sipBand(s.sip).label}</td><td>{s.recall ? freqFor(s.recall).recall : "Last two weeks"}</td></tr>)}</tbody></table>

@@ -8,13 +8,13 @@ import { downloadText } from "../lib/store.js";
 
 // ─── How often ─────────────────────────────────────────────────────────────
 export function FrequencyPicker({ value, onPick, onClose, first }) {
-  const [v, setV] = useState(value ?? 14);
+  const [v, setV] = useState(value ?? 7);
   return (
     <Sheet title="How often to check" onClose={onClose}
       footer={<button className="btn primary big" onClick={() => onPick(v)}>{first ? "Continue" : "Save"}</button>}>
       <h2 className="q">How often would you like to check your mouth?</h2>
       <p className="lede tight">Each time: a pH test and the five dry mouth questions. You can change this whenever you like.</p>
-      <Pick options={FREQUENCIES.map((f) => ({ v: f.days, label: f.label, hint: f.recommended ? "Recommended — most people's dryness changes slowly" : f.days === 1 ? "Useful when things are changing quickly, like during treatment" : "Useful when you're trying a new product or medicine" }))}
+      <Pick options={FREQUENCIES.map((f) => ({ v: f.days, label: f.label, hint: f.recommended ? "Suits most people: often enough to see if things are helping" : f.days === 1 ? "Useful when things are changing quickly, like during treatment" : "Enough when things are steady" }))}
         value={v} onPick={setV} />
     </Sheet>
   );
@@ -65,7 +65,7 @@ export function LogReminder({ prefs, setPrefs, onClose, weekly = false }) {
 }
 
 // ─── GC SIP-SCORE: five questions ──────────────────────────────────────────
-export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp, next }) {
+export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp, next, plain }) {
   const f = freqFor(every);
   // Keep the score from before this one; the prop updates once we save.
   const [previous] = useState(prevAtOpen);
@@ -77,19 +77,19 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
     const b = sipLevel(done.sip);
     const diff = previous ? done.sip - previous.sip : null;
     return (
-      <Sheet title="Dry mouth score" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
+      <Sheet title="Dry mouth assessment" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className="sip-result">
           <Gauge score={done.sip} />
-          <p className="sip-num">{b.label}</p>
+          <p className="sip-num">{plain ? `${done.sip} out of 15` : b.label}</p>
           <p className="sip-band" style={{ color: b.color }}>{b.full}</p>
           {diff != null && <p className="soft-note center">{diff === 0 ? "The same as last time." : diff > 0 ? "Drier than last time." : "Less dry than last time."}</p>}
         </div>
-        <p className="lede">{done.sip >= 11
+        {plain ? <p className="lede">Saved to your records. Your scores over time are there to show your dentist or doctor.</p> : <p className="lede">{done.sip >= 11
           ? "That's a lot of dryness to live with. Show your scores to your dentist or doctor — there's more they can do, including checking your medicines and prescribing saliva stimulants."
           : done.sip >= 8 ? "Dryness is affecting you. Sip water often, use a saliva gel such as GC Dry Mouth Gel before meals and bed, and protect your teeth with fluoride."
-            : "Your mouth isn't very dry right now. Keep protecting your teeth every day with fluoride toothpaste and GC Tooth Mousse™."}</p>
+            : "Your mouth isn't very dry right now. Keep protecting your teeth every day with fluoride toothpaste and GC Tooth Mousse™."}</p>}
         {followUp}
-        <Sources refs={["thomson2011", "mercadante2021"]} />
+        <Sources refs={["thomson2011", "gcSipScore", "mercadante2021"]} />
       </Sheet>
     );
   }
@@ -101,7 +101,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
     onSave(e); setDone(e);
   };
   return (
-    <Sheet title="Dry mouth score" onClose={onClose}
+    <Sheet title="Dry mouth assessment" onClose={onClose}
       progress={intro ? null : { of: 5, at: k, label: `${k + 1} of 5` }}
       footer={intro ? <button className="btn primary big" onClick={() => setK(0)}>Start</button>
         : k > 0 ? <button className="btn ghost" onClick={() => setK(k - 1)}><Icon name="back" size={18} /> Back</button> : null}>
@@ -109,7 +109,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
         <div className="intro">
           <div className="intro-mark dry"><Icon name="drop" size={28} /></div>
           <h2 className="q">Five quick questions</h2>
-          <p className="lede">This is the GC SIP-SCORE. Think about {f.days === 1 ? "today" : f.days === 7 ? "the last week" : "the last two weeks"}. Your result shows as low, moderate or high.</p>
+          <p className="lede">Think about {f.days === 1 ? "today" : f.days === 7 ? "the last week" : "the last two weeks"}. You'll get a score from 5 to 15.{previous ? "" : " Your first one is your baseline, and later ones are compared with it."}</p>
         </div>
       ) : (<>
         <p className="eyebrow-q">{f.recall}</p>
@@ -125,7 +125,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
 }
 
 // ─── A saliva pH result ────────────────────────────────────────────────────
-export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp, next, onSkip }) {
+export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp, next, onSkip, plain }) {
   // Results from before this test; the prop updates once we save.
   const [readings] = useState(atOpen);
   const [ph, setPh] = useState(null);
@@ -137,7 +137,7 @@ export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp, ne
     const pat = phPattern([...readings, saved]);
     return (
       <Sheet title="Saliva pH" onClose={onClose}
-        footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : pat.level === "flag" || pat.level === "watch"
+        footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : !plain && (pat.level === "flag" || pat.level === "watch")
           ? <><button className="btn ghost" onClick={onClose}>Done</button><button className="btn primary" onClick={onCare}>What helps</button></>
           : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className={`ph-saved ${z.tone}`}>
@@ -145,7 +145,7 @@ export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp, ne
           <p className="ph-big">pH {saved.ph.toFixed(1)}</p>
           <p className="ph-zone">{z.label}</p>
         </div>
-        {pat.level === "flag" ? (
+        {plain ? <p className="lede">Saved to your records. The colour zones are the ones printed on saliva pH test strips; your dentist can tell you what your results mean for you.</p> : pat.level === "flag" ? (
           <div className="alert-x red">
             <strong>Your saliva has been acidic in {pat.acid} of your last {pat.n} tests.</strong>
             <p>Saliva that stays acidic lets acid-loving bacteria take over and strips minerals from your teeth — even if your mouth doesn't feel dry. Book a dentist visit and show them these results. Until then, follow the steps in Care: protect your teeth, and keep sugar and acid to mealtimes.</p>
@@ -154,7 +154,7 @@ export function PhFlow({ readings: atOpen, onClose, onSave, onCare, followUp, ne
           <p className="lede">{z.id === "ok" ? "Healthy today." : "One acidic result isn't a worry on its own."} Keep testing{readings.length + 1 < PH_WINDOW ? "" : " — if most of your results are acidic, it's time to see your dentist"}.</p>
         ) : <p className="lede">A healthy result. Keep testing to see your pattern over time.</p>}
         {followUp}
-        <Sources refs={["gcSalivaCheck"]} />
+        {!plain && <Sources refs={["gcSalivaCheck"]} />}
       </Sheet>
     );
   }

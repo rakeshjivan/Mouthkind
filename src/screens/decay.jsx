@@ -7,7 +7,7 @@ import { fmtDate } from "../lib/store.js";
 import { RiskFlow } from "./risk.jsx";
 
 /** The tooth decay risk check. `ctx` carries dry mouth and pH from the other checks. */
-export function DecayFlow({ last, ctx, onClose, onSave, onShop, next }) {
+export function DecayFlow({ last, ctx, onClose, onSave, onShop, next, Result }) {
   const model = {
     title: "Tooth decay risk check",
     questions: (a) => visibleQuestions(a, ctx),
@@ -15,7 +15,7 @@ export function DecayFlow({ last, ctx, onClose, onSave, onShop, next }) {
       const r = scoreDecay(a, ctx);
       return { id: id || `d_${Date.now()}`, ts: Date.now(), kind: "decay", v: DECAY_VERSION, answers: a, ctx, score: r.score, band: r.band.id };
     },
-    Result: (p) => <DecayResult {...p} onShop={onShop} next={next} />,
+    Result: Result ? (p) => <Result {...p} next={next} /> : (p) => <DecayResult {...p} onShop={onShop} next={next} />,
   };
   return <RiskFlow last={last} onClose={onClose} onSave={onSave} model={model} />;
 }

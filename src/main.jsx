@@ -2,7 +2,11 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@fontsource-variable/inter";
 import "./index.css";
-import App from "./App.jsx";
+import FullApp from "./App.jsx";
+import CompliantApp from "./lite/AppLite.jsx";
+import ClinicianApp from "./clin/AppClin.jsx";
+import { EDITION } from "./edition.js";
+const App = EDITION === "compliant" ? CompliantApp : EDITION === "clinician" ? ClinicianApp : FullApp;
 import { registerSW } from "virtual:pwa-register";
 
 // New versions install themselves. An iPhone home-screen app often resumes without

@@ -81,7 +81,7 @@ export function WorrySheet({ profile, onClose, open }) {
           ))}
         </ul>
       ) : <p className="lede tight">No numbers saved yet.</p>}
-      <button type="button" className="btn ghost" onClick={() => open("careteam")}>{list.length ? "Edit my care team" : "Add my care team's numbers"}</button>
+      {open && <button type="button" className="btn ghost" onClick={() => open("careteam")}>{list.length ? "Edit my care team" : "Add my care team's numbers"}</button>}
       <Sources refs={WORRY_REFS} />
     </Sheet>
   );

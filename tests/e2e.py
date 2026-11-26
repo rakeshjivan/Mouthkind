@@ -1,4 +1,4 @@
-"""Click-through of the main journey. Start `npm run build && npx vite preview` first."""
+"""Click-through of the main journey (full edition). Build it with `VITE_EDITION=full npx vite build --outDir dist-full`, serve that folder and set BASE_URL."""
 import asyncio, os, time
 from playwright.async_api import async_playwright
 
@@ -6,7 +6,9 @@ BASE = os.environ.get("BASE_URL", "http://localhost:4173/")
 OUT = os.environ.get("SHOTS", "shots")
 # Live and testing keep data under different keys; use the one this build uses.
 import re as _re
-PFX = _re.search(r'PREFIX = "([^"]+)"', open(os.path.join(os.path.dirname(__file__), "..", "src", "lib", "store.js")).read()).group(1)
+_src = open(os.path.join(os.path.dirname(__file__), "..", "src", "lib", "store.js")).read()
+# Either PREFIX = "mk9:" (live) or PREFIX = EDITION === "compliant" ? "mkc:" : "mkt:" (testing): the full app's key is the last one.
+PFX = _re.findall(r'"(m[a-z0-9]*:)"', _re.search(r'const PREFIX = [^;]+;', _src).group(0))[-1]
 DAY = 86400000
 
 
@@ -37,19 +39,19 @@ async def main():
         shot = lambda n, full=False: pg.screenshot(path=f"{OUT}/{n}.png", full_page=full)
         btn = lambda name: pg.get_by_role("button", name=name, exact=True)
         dlg = pg.get_by_role("dialog")
-        pick = lambda t: dlg.get_by_role("button", name=t)
+        pick = lambda t: dlg.get_by_role("button", name=_re.compile("^" + _re.escape(t)))  # not the "?" next to it
         exact = lambda t: dlg.get_by_role("button", name=t, exact=True)
 
         await pg.goto(BASE); await pg.wait_for_timeout(400)
         # First run: welcome
         await shot("00-welcome")
         wl = pg.locator(".welcome")
-        await wl.get_by_role("button", name="Myself").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
-        await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)  # about you (all optional)
-        await wl.get_by_role("button", name="Medicines that dry my mouth").click()
-        await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(300)
+        await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
+        await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)  # about you (all optional)
+        await wl.get_by_role("button", name="My medicines are drying my mouth", exact=True).click()
+        await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(300)
         assert await pg.locator(".setup-card").count() == 1
-        assert await pg.locator(".helpbar").count() == 0  # no help bar until setup is done
+        assert await pg.locator(".helpbar").count() == 1  # urgent help is reachable from the start, even during setup
         # The rest of this test checks each screen on its own, so mark the plan as built.
         await pg.evaluate("() => { const p = JSON.parse(localStorage.getItem('mkt:profile')); p.planBuilt = true; localStorage.setItem('mkt:profile', JSON.stringify(p)); }")
         await pg.reload(); await pg.wait_for_timeout(400)
@@ -94,9 +96,11 @@ async def main():
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("I use a CPAP machine").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
+        await pick("1 to 5").click(); await pg.wait_for_timeout(350)
+        await pick("1 to 3").click(); await pg.wait_for_timeout(350)
         await pick("Less than 4 glasses").click(); await pg.wait_for_timeout(350)
         await pick("65 to 79").click(); await pg.wait_for_timeout(350)
-        assert await dlg.get_by_role("button", name="I use a different term").count() == 1
+        assert await dlg.get_by_role("button", name="I use a different term", exact=True).count() == 1
         await pick("Woman or female").click(); await pg.wait_for_timeout(600)
         await shot("04-risk-result")
         assert await dlg.get_by_text("Added to your plan").count() == 1
@@ -111,7 +115,6 @@ async def main():
         await pick("Yes, once").click(); await pg.wait_for_timeout(350)
         await pick("3 or more times a day").click(); await pg.wait_for_timeout(350)
         await exact("Once a day").click(); await pg.wait_for_timeout(350)
-        await pick("Sometimes").click(); await pg.wait_for_timeout(350)
         await pick("My gums have shrunk back").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await pick("My gums bleed when I brush or floss").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
@@ -130,7 +133,8 @@ async def main():
         await shot("06-frequency")
         await pick("Once a week").click()
         await btn("Continue").click(); await pg.wait_for_timeout(400)
-        await btn("Start").click(); await pg.wait_for_timeout(300)
+        st = dlg.get_by_role("button", name="Start", exact=True)
+        if await st.count(): await st.click(); await pg.wait_for_timeout(300)
         await shot("07-sip-q1")
         for v in ["Often", "Sometimes", "Often", "Sometimes", "Often"]:
             await pick(v).click(); await pg.wait_for_timeout(350)
@@ -139,7 +143,7 @@ async def main():
 
         # pH
         await pg.click(".tile.ph"); await pg.wait_for_timeout(400)
-        await dlg.get_by_role("button", name="pH 6.2").click()
+        await dlg.get_by_role("button", name="pH 6.2", exact=True).click()
         await shot("09-ph")
         await btn("Save result").click(); await pg.wait_for_timeout(300)
         await shot("09b-ph-saved")
@@ -173,7 +177,7 @@ async def main():
         await pg.emulate_media(color_scheme="dark"); await pg.wait_for_timeout(200)
         await pg.click("nav >> text=Today"); await pg.wait_for_timeout(300)
         await shot("15-home-dark", True)
-        await pg.click("nav >> text=\"Today\""); await pg.wait_for_timeout(200); await pg.get_by_role("button", name="My details").click(); await pg.wait_for_timeout(200)
+        await pg.click("nav >> text=\"Today\""); await pg.wait_for_timeout(200); await pg.get_by_role("button", name="My details", exact=True).click(); await pg.wait_for_timeout(200)
         await pg.get_by_label("First name").fill("Alexandra")
         await pg.get_by_label("Last name").fill("Fitzgerald-Montgomery")
         await pg.get_by_label("Day", exact=True).select_option("14")
@@ -217,17 +221,17 @@ async def main():
                      ("Swelling, breathing or swallowing", "No problems"), ("Bone showing in the mouth", "No"),
                      ("White patches or coating", "No"), ("Temperature of 38°C or more", "Yes")]:
             await dlg.get_by_role("radiogroup", name=q).get_by_role("radio", name=a, exact=True).click()
-        await dlg.get_by_role("group", name="Anything new with your teeth or gums?").get_by_role("button", name="Broken tooth or filling").click()
+        await dlg.get_by_role("group", name="Anything new with your teeth or gums?").get_by_role("button", name="Broken tooth or filling", exact=True).click()
         await btn("Save").click(); await pg.wait_for_timeout(300)
         assert await dlg.get_by_text("Contact your treatment team now").count() == 1
         assert await dlg.locator("a.call-btn").get_attribute("href") == "tel:0752020000"
         await shot("20-daily-red")
-        await dlg.get_by_role("button", name="Log what I used").click(); await pg.wait_for_timeout(200)
-        await dlg.get_by_role("button", name="GC Dry Mouth Gel").click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("button", name="Log what I used", exact=True).click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("button", name="GC Dry Mouth Gel", exact=True).click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
         assert await pg.locator(".alert5.t-red").count() == 1
         await pg.click(".tx-line"); await pg.wait_for_timeout(300)
         await shot("21-journey")
-        await dlg.get_by_role("button", name="Jaw opening check").click(); await pg.wait_for_timeout(200)
+        await dlg.get_by_role("button", name="Jaw opening check", exact=True).click(); await pg.wait_for_timeout(200)
         await dlg.get_by_role("radio", name="2", exact=True).click(); await dlg.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(200)
         assert await dlg.get_by_text("may not be opening fully").count() == 1
         await btn("Done").click(); await pg.wait_for_timeout(200)
@@ -263,8 +267,8 @@ async def main():
         await refine.click(); await pg.wait_for_timeout(300)
         ask = dlg.locator(".ask")
         assert "got drier" in await ask.inner_text()
-        await ask.get_by_role("button", name="A new or changed medicine").click()
-        await ask.get_by_role("button", name="Save").click(); await pg.wait_for_timeout(300)
+        await ask.get_by_role("button", name="A new or changed medicine", exact=True).click()
+        await ask.get_by_role("button", name="Save", exact=True).click(); await pg.wait_for_timeout(300)
         assert await dlg.get_by_text("Your plan is updated").count() == 1
         await btn("See my plan").click(); await pg.wait_for_timeout(400)
         assert await pg.locator(".refine-line").count() == 0

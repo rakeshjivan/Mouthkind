@@ -30,9 +30,12 @@ const P = {
   thermo: ["M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"],
   chev: ["m9 18 6-6-6-6"],
   jaw: ["M3.5 8.5c2.8-2.2 14.2-2.2 17 0-.8 7-4.4 11.5-8.5 11.5S4.3 15.5 3.5 8.5z", "M12 10.5v6.5", "m9.8 12.4 2.2-2.2 2.2 2.2", "m9.8 15.1 2.2 2.2 2.2-2.2"],
+  moon: ["M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"],
   leaf: ["M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z", "M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"],
   search: ["M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z", "m21 21-4.3-4.3"],
   info: ["M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", "M12 16v-4", "M12 8h.01"],
+  send: ["M22 2 11 13", "M22 2 15 22l-4-9-9-4z"],
+  camera: ["M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z", "M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"],
 };
 export function Icon({ name, size = 22, stroke = 2, className = "" }) {
   return (
@@ -52,19 +55,19 @@ export function Gauge({ score }) {
     return `M ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1}`;
   };
   const lvl = score == null ? null : sipLevel(score);
-  const at = lvl ? SIP_LEVELS.indexOf(lvl) : 1;
+  const at = lvl ? SIP_LEVELS.findIndex((l) => l.id === lvl.id) : 1;
   // The needle points to the middle of the level, so the dial never reads as a number.
   const angle = 180 - ((at + 0.5) / 3) * 180;
   return (
     <svg viewBox="0 0 300 178" className="gauge" role="img"
-      aria-label={lvl ? `Dry mouth score: ${lvl.label.toLowerCase()}` : "No dry mouth score yet"}>
+      aria-label={lvl ? `Dry mouth assessment: ${lvl.full.toLowerCase()}` : "No dry mouth assessment yet"}>
       {SIP_LEVELS.map((l, i) => (
         <path key={l.id} d={arc(R, i / 3 + (i ? 0.006 : 0), (i + 1) / 3 - (i < 2 ? 0.006 : 0))}
           stroke={lvl ? l.color : "var(--dim)"} strokeWidth={SW} fill="none"
-          opacity={!lvl || lvl === l ? 1 : 0.28} />
+          opacity={!lvl || lvl.id === l.id ? 1 : 0.28} />
       ))}
-      <text x="18" y="172" className="g-end">Low</text>
-      <text x="282" y="172" className="g-end" textAnchor="end">High</text>
+      <text x="18" y="172" className="g-end">Minimal</text>
+      <text x="282" y="172" className="g-end" textAnchor="end">Severe</text>
       <g className="needle" style={{ transform: `rotate(${90 - angle}deg)` }}>
         <path d="M 150 152 L 145 148 L 150 48 L 155 148 Z" fill="var(--ink)" />
       </g>
@@ -130,6 +133,9 @@ export function PhInput({ value, onPick, readOnly }) {
 // ─── Bottom sheet ──────────────────────────────────────────────────────────
 export function Sheet({ title, onClose, onBack, progress, children, footer, tone }) {
   const ref = useRef(null);
+  const bodyRef = useRef(null);
+  // A new question (or step) always opens at the top.
+  useEffect(() => { bodyRef.current?.scrollTo?.(0, 0); }, [progress?.at, title]);
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
@@ -151,7 +157,7 @@ export function Sheet({ title, onClose, onBack, progress, children, footer, tone
           ) : <span className="sheet-title">{title}</span>}
           <span className="sheet-count">{progress?.label || ""}</span>
         </div>
-        <div className="sheet-body">{children}</div>
+        <div className="sheet-body" ref={bodyRef}>{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>

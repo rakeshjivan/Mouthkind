@@ -4,8 +4,8 @@ import { careContacts, contactRoles, getContact, openQuestionCount, setContact }
 
 test("cancer care gets the 24-hour line, specialist and nurse; others don't see a treatment line", () => {
   const ids = (p) => contactRoles(p).map((r) => r.id);
-  assert.deepEqual(ids({ situation: ["cancer"] }), ["line24", "specialist", "nurse", "dentist", "pharmacy", "gp"]);
-  assert.deepEqual(ids({ situation: ["meds"] }), ["specialist", "dentist", "pharmacy", "gp"]);
+  assert.deepEqual(ids({ situation: ["cancer"] }), ["line24", "gp", "specialist", "nurse", "dentist", "pharmacy"]);
+  assert.deepEqual(ids({ situation: ["meds"] }), ["gp", "specialist", "nurse", "dentist", "pharmacy"]);
 });
 
 test("older team and dentist numbers carry over, and only contacts with a number are listed", () => {
@@ -36,5 +36,5 @@ test("postcodes map to states, and the find link searches near the postcode", as
   assert.equal(stateFromPostcode("4558"), "QLD"); assert.equal(stateFromPostcode("2600"), "ACT"); assert.equal(stateFromPostcode("0800"), "NT");
   assert.equal(stateFromPostcode("2000"), "NSW"); assert.equal(stateFromPostcode("12"), null);
   assert.match(findNearHref("dentists", "4558"), /dentists%20near%204558/);
-  assert.equal(rolesText({ situation: ["meds"] }), "specialist, dentist, pharmacy and GP");
+  assert.equal(rolesText({ situation: ["meds"] }), "GP, specialist, care nurse, dentist and pharmacy");
 });
