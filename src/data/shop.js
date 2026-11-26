@@ -7,6 +7,7 @@ export const SHOP_URL = "https://www.chemistwarehouse.com.au/search?query=tooth%
 export const SHOP_LINKS = {
   "oranurse": "https://oranurseaustralia.com.au/product/unflavoured-toothpaste/",
   "neutrafluor": "https://www.chemistwarehouse.com.au/buy/69127/colgate-toothpaste-neutrafluor-5000-sensitive-115g-fluoride-potassium-s3",
+  "neutrafluor-plus": "https://www.chemistwarehouse.com.au/buy/39917/colgate-toothpaste-neutrafluor-5000-plus-56g-fluoride-s3",
 };
 
 // Products that come in flavours: each flavour has its own photo and page.
@@ -32,7 +33,7 @@ export const SHOP_FLAVOURS = {
 };
 
 // The products shown on the Shop screen, in this order (ids from products.js).
-export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "oranurse"];
+export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "neutrafluor-plus", "oranurse"];
 // What each product has from Learn's "What to look for" lists, in the same words, so the
 // general information and the Shop line up without Learn naming a brand. Keep these to what
 // the product's own label or IFU states.
@@ -41,6 +42,7 @@ export const SHOP_MEETS = {
   "gc-tmp": ["Calcium and phosphate", "Fluoride (900 ppm)", "Buffers plaque acid"],
   "gc-tm": ["Calcium and phosphate", "Buffers plaque acid", "No added fluoride"],
   "neutrafluor": ["High fluoride (5,000 ppm)"],
+  "neutrafluor-plus": ["High fluoride (5,000 ppm)"],
   "oranurse": ["Unflavoured", "SLS-free", "Fluoride"],
 };
 // Who sells each product, for the button label.
@@ -50,6 +52,7 @@ export const SHOP_SELLER = { oranurse: "OraNurse" };
 // then the app shows a plain placeholder tile.
 export const SHOP_IMAGES = {
   "neutrafluor": "products/neutrafluor.webp",
+  "neutrafluor-plus": "products/neutrafluor-plus.webp",
   "oranurse": "products/oranurse.webp",
 };
 

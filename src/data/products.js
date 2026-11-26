@@ -84,6 +84,23 @@ export const PRODUCTS = [
     pharmacist: true,
   },
   {
+    id: "neutrafluor-plus", name: "Colgate NeutraFluor 5000 Plus", job: "protect",
+    form: "High-fluoride toothpaste (5,000 ppm), Freshmint · Pharmacist Only", regions: { AU: "yes" },
+    why: "Sodium fluoride 11.05 mg/g (5,000 ppm fluoride), a dental caries preventive for people at high risk of tooth decay.",
+    // From the pack (AUST R 71490). Where Chemist Warehouse's page differs (it says 6 years and over), the pack is followed.
+    use: "Adults and children 10 years and older: use every day in place of your regular toothpaste, or as your dentist or doctor directs. Put a thin ribbon on a soft toothbrush and brush thoroughly for two minutes. Spit out the excess, and don't eat, drink or rinse for 30 minutes. Children 10 to 16 should use it with an adult supervising.",
+    cautions: ["Pharmacist Only medicine: the pharmacist will check it suits you.", "Don't swallow. Keep out of reach of children."],
+    refs: ["agarwal2022"],
+    benefits: [
+      "A dental caries preventive for people at high risk of tooth decay, as recommended by a dentist or doctor.",
+      "5,000 ppm fluoride: a professional-strength toothpaste used in place of your regular one.",
+      "Freshmint flavour.",
+    ],
+    details: "Toothpaste, Freshmint. Sodium fluoride 11.05 mg/g (5,000 ppm fluoride). Contains benzoates and saccharin. 56 g. Pharmacist Only Medicine. AUST R 71490. Colgate-Palmolive.",
+    warnings: ["Children under 10 years should not use it.", "Do not swallow.", "Keep out of reach of infants and children.", "Read the enclosed leaflet before use.", "Allergic reactions to fluoride toothpastes have rarely been reported. Stop and see your dentist or doctor if you notice any unwanted effect.", "Store below 25°C."],
+    pharmacist: true,
+  },
+  {
     id: "hf-paste", name: "High-fluoride toothpaste (5,000 ppm)", job: "protect",
     form: "Ask your pharmacist or dentist", regions: { AU: "yes", NZ: "yes" },
     why: "The strongest everyday protection against decay when saliva is low. In Australia it's a Pharmacist Only medicine.",

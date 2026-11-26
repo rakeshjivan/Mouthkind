@@ -1844,7 +1844,7 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .me-screen > .panel input, .me-screen > .panel select, .me-screen > .panel textarea { background: var(--card); }
 /* Shop: each product a pastel card; buy near the top; warnings always open; the rest folds. */
 .shop-item[class*="tone-"] { background: var(--tbg); box-shadow: none; }
-.shop-img { flex: none; width: 92px; height: 112px; border-radius: 16px; background: var(--card); display: grid; place-items: center; overflow: hidden; }
+.shop-img { flex: none; width: 116px; height: 116px; border-radius: 16px; background: var(--card); display: grid; place-items: center; overflow: hidden; }
 .shop-img img { max-height: 104px; width: auto; }
 .shop-item .meets li { background: var(--card); }
 .shop-buy { background: var(--card); border-radius: 16px; padding: 12px; margin: 12px 0; }
@@ -1864,3 +1864,5 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .shop-warn p { margin: 0; line-height: 1.45; }
 .shop-warn b { display: block; margin-bottom: 2px; }
 .shop-item .shop-statement { margin: 10px 2px 0; }
+.shop-img .pimg { width: 108px; height: 108px; }
+.shop-img .pimg { background: #fff; }

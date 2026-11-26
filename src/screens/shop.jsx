@@ -6,7 +6,7 @@ import { externalClick } from "../lib/external.js";
 import { ProductImage } from "../components/productImage.jsx";
 
 // Each product keeps one pastel, the same as its subject elsewhere in the app.
-const SHOP_TONE = { "gc-dmg": "green", "gc-tmp": "peach", "gc-tm": "amber", neutrafluor: "blue", oranurse: "lilac" };
+const SHOP_TONE = { "gc-dmg": "green", "gc-tmp": "peach", "gc-tm": "amber", neutrafluor: "blue", "neutrafluor-plus": "rose", oranurse: "lilac" };
 
 /** One product, laid out to read top to bottom: what it is, choose and buy, what it does,
  *  the warnings (always open), then how to use and the full details folded away. */
