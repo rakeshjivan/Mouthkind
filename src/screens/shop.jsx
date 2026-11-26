@@ -17,7 +17,13 @@ export function ShopItem({ p }) {
       </div>
       {p.benefits ? <ul className="pcard-list">{p.benefits.map((b) => <li key={b}>{b}</li>)}</ul> : <p>{p.why}</p>}
       <p className="prod-use"><b>How to use:</b> {p.use}</p>
-      {p.cautions?.length > 0 && <p className="shop-caution">{p.cautions.join(" ")}</p>}
+      {p.details && <p className="shop-details"><b>Product details:</b> {p.details}</p>}
+      {p.warnings?.length > 0 ? <p className="shop-caution"><b>Warnings:</b> {p.warnings.join(" ")}</p>
+        : p.cautions?.length > 0 && <p className="shop-caution">{p.cautions.join(" ")}</p>}
+      {p.ifu && <p className="shop-ifu"><a href={p.ifu} target="_blank" rel="noopener noreferrer" onClick={externalClick(p.ifu)}>Instructions for use (PDF)</a></p>}
+      {/* Mandatory statements, Therapeutic Goods Advertising Code. */}
+      {p.pharmacist && <p className="shop-statement">ASK YOUR PHARMACIST – THEY MUST DECIDE IF THIS PRODUCT IS RIGHT FOR YOU.</p>}
+      <p className="shop-statement">ALWAYS READ THE LABEL AND FOLLOW THE DIRECTIONS FOR USE.</p>
       {flavours && (
         <div className="flavours" role="radiogroup" aria-label={`${p.name} flavour`}>
           {flavours.map((f) => (
@@ -45,7 +51,7 @@ export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
     <div className="screen">
       <header className="hero"><h1 className="display">Shop</h1>
         <p className="lede">Products that help a dry or acidic mouth and protect your teeth.</p>
-        <p className="soft-note">GC products are made by GC Australasia, where the app's author works. Other brands are shown where they're the right choice.</p></header>
+        <p className="soft-note">GC products are made by GC Australasia, where the app's author works. Other brands are listed too.</p></header>
       {SHOP_URL ? (
         <p className="soft-note shop-soon">Available in Australia. Each button opens the seller's website.</p>
       ) : (

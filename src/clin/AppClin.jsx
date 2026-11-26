@@ -161,7 +161,7 @@ export default function AppClin() {
       <main className={`main${profile.onboarded && !showWelcome && !building && tab === "home" ? " with-help" : ""}`} id="main">
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
           routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card }} />}
-        {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel={signed ? `In your plan from ${signed.by.name}` : ""} />}
+        {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel="In your plan" />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} openSheet={setSheet} focus={focus} plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open}
           setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} clin={{ plan: signed, onOpen: () => setSheet("clinician") }} />}
         {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} />}

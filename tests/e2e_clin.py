@@ -106,7 +106,9 @@ async def main():
     assert "Your plan comes from your dentist" in await pg.locator("main").inner_text()
     sipnames = [w for w, t in seen if re.search(r"\bSIP\b|SIP-SCORE", t)]
     assert not sipnames, f"SIP named on: {sipnames}"
-    bad = [(w, m.group(0)) for w, t in seen for m in [ASSESS.search(t)] if m]
+    # A product's own label indication isn't an assessment of this patient.
+    LABEL = "Helps prevent tooth decay in people at high risk, as part of a routine your dentist or doctor recommends."
+    bad = [(w, m.group(0)) for w, t in seen for m in [ASSESS.search(t.replace(LABEL, ""))] if m]
     print("assessment on patient screens before signing:", bad or "none")
     assert not bad
     # Send my answers
