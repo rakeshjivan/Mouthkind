@@ -747,9 +747,12 @@ export function summary(m) {
  *  would remove are still listed, with the reason. `ticked` = the rules suggest it; the
  *  clinician view shows that as "Suggested" and starts with nothing ticked.
  *  { id, item, warn: [..], ticked } */
-// General "drink more water" advice is left out of the options altogether: it's low-value,
-// and for anyone on a fluid limit it's harmful. The professional can add their own.
+// Water: one "Keep hydrated" option for everyone, in place of the rules' separate water
+// items. On dialysis it's left out: the fluid-limit item takes its place.
 export const WATER_OPTIONS = ["water", "riseDrink", "risk.drink"];
+export const hydrateOption = (m) => ({ id: "water", pri: 45, title: "Keep hydrated",
+  body: `Sip water through the day, little and often, and with meals to help chewing and swallowing${m.has("conditions", "kidney") ? ". If your kidney team has set a fluid limit, keep within it" : ", unless your doctor has limited how much you drink"}.`,
+  because: [], refs: [], products: [] });
 export function buildOptions(m) {
   const notWater = (it) => !WATER_OPTIONS.includes(it.id);
   const safeItems = buildPlan(m).filter(notWater);
@@ -767,6 +770,11 @@ export function buildOptions(m) {
       : al.includes("milk") && /decay\.tm/.test(r.id) ? "Milk protein allergy: Tooth Mousse™ contains milk protein (CPP-ACP)."
       : "Left out by the app's safety rules for this patient.";
     out.push({ id: r.id, item: r, warn: [why], ticked: false, contra: true });
+  }
+  if (!fluidLimit(m)) {
+    const h = hydrateOption(m);
+    const at = out.findIndex((o) => (o.item.pri ?? 0) < h.pri);
+    out.splice(at < 0 ? out.length : at, 0, { id: h.id, item: h, warn: [], ticked: true });
   }
   return out;
 }

@@ -14,8 +14,10 @@ for (const p of PERSONAS) {
     const opts = buildOptions(m);
     // Everything the safe plan suggests is offered and pre-ticked; contraindicated options are offered unticked.
     for (const it of plan.filter((x) => !WATER_OPTIONS.includes(x.id))) assert.ok(opts.find((o) => o.id === it.id && o.ticked), it.id);
-    // General "drink more water" advice never reaches the options.
-    assert.ok(!opts.some((o) => WATER_OPTIONS.includes(o.id)));
+    // One "Keep hydrated" option for everyone, except on dialysis, where the fluid-limit item replaces it.
+    const water = opts.filter((o) => WATER_OPTIONS.includes(o.id));
+    if (m.has("conditions", "dialysis")) { assert.equal(water.length, 0); assert.ok(opts.some((o) => o.id === "kidneyFluid")); }
+    else { assert.equal(water.length, 1); assert.equal(water[0].item.title, "Keep hydrated"); assert.ok(water[0].ticked); }
     for (const o of opts.filter((x) => x.contra)) { assert.equal(o.ticked, false); assert.ok(o.warn.length, o.id); }
     const txt = findingsText(p.profile, entries);
     assert.match(txt, /DRY MOUTH RISK CHECK/);
