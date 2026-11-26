@@ -16,6 +16,7 @@ import { firstName } from "../data/person.js";
 import { fmtDate, fmtShort } from "../lib/store.js";
 import { CARE_TOPICS, topicSections } from "../data/care.js";
 import { ROUTINE_LIBRARY } from "./routineLib.js";
+import { IS_TESTING } from "../edition.js";
 
 const sipsOf = (entries) => entries.filter((e) => e.sip != null && e.kind === "sip").sort((a, b) => a.ts - b.ts);
 const phsOf = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -45,7 +46,7 @@ export function Today({ profile, entries, prefs, open, onMe, setup, routine, tic
   return (
     <div className="screen home5">
       <div className="brand-row">
-        <p className="brand"><BrandMark size={24} />Mouthkind <span className="test-badge">Testing</span></p>
+        <p className="brand"><BrandMark size={24} />Mouthkind {IS_TESTING && <span className="test-badge">Testing</span>}</p>
         <button type="button" className="me-avatar" onClick={onMe} aria-label="My details">{initial || <Icon name="user" size={20} />}</button>
       </div>
       <h1 className="display">{greeting}</h1>

@@ -9,3 +9,6 @@
 //                 signs the plan the patient follows.
 // VITE_EDITION=full (or compliant) builds another edition, for its own tests.
 export const EDITION = import.meta.env?.VITE_EDITION || "clinician";
+
+// True when served under /testing/: shows the Testing badge. The same build works in either place.
+export const IS_TESTING = !!import.meta.env?.BASE_URL?.includes("/testing/");

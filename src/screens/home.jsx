@@ -11,6 +11,7 @@ import { activeTreatment, inCancerCare, journey } from "../data/journey.js";
 import { sameDay, triageFor } from "../data/daily.js";
 import { SetupCard } from "./plan.jsx";
 import { RoutineCard } from "./routine.jsx";
+import { IS_TESTING } from "../edition.js";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const phReadings = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -165,7 +166,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
     <div className="screen home5">
       <header className="brand-head">
         <div className="brand-row">
-          <p className="brand"><BrandMark size={24} />Mouthkind <span className="test-badge">Testing</span></p>
+          <p className="brand"><BrandMark size={24} />Mouthkind {IS_TESTING && <span className="test-badge">Testing</span>}</p>
           {onMe && <button type="button" className="me-avatar" onClick={onMe} aria-label="My details">{initial || <Icon name="user" size={20} />}</button>}
         </div>
         <h1 className="display hello-line" style={{ "--chars": greeting.length }}>{greeting}</h1>

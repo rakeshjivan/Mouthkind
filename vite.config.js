@@ -16,8 +16,8 @@ export default defineConfig({
       registerType: "autoUpdate", // new versions install themselves on next open
       includeAssets: ["favicon.svg", "apple-touch-icon.png"],
       manifest: {
-        name: "Mouthkind: Dry Mouth Tracker (Testing)",
-        short_name: "MK Testing",
+        name: base.includes("/testing/") ? "Mouthkind: Dry Mouth Tracker (Testing)" : "Mouthkind: Dry Mouth Tracker",
+        short_name: base.includes("/testing/") ? "MK Testing" : "Mouthkind",
         description: "Check your dry mouth, track saliva pH and get a personal plan to protect your teeth.",
         theme_color: "#ffffff",
         background_color: "#ffffff",
