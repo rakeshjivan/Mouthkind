@@ -223,8 +223,9 @@ test("people see low, moderate or high — never 'Very high' or a number out of 
   const { DECAY_BANDS } = await import("../src/data/decay.js");
   const { sipLevel } = await import("../src/data/clinical.js");
   for (const b of [...RISK_BANDS, ...DECAY_BANDS]) assert.ok(["Low", "Moderate", "High"].includes(b.label), b.label);
-  assert.equal(sipLevel(7).label, "Low"); assert.equal(sipLevel(8).label, "Moderate");
-  assert.equal(sipLevel(10).label, "Moderate"); assert.equal(sipLevel(11).label, "High"); assert.equal(sipLevel(15).label, "High");
+  assert.equal(sipLevel(7).label, "Minimal"); assert.equal(sipLevel(8).label, "Mild to moderate");
+  assert.equal(sipLevel(10).label, "Mild to moderate"); assert.equal(sipLevel(11).label, "Moderate to severe"); assert.equal(sipLevel(13).id, "high");
+  assert.equal(sipLevel(14).full, "Severe xerostomia symptoms"); assert.equal(sipLevel(15).id, "high");
   const m = buildModel({ profile: {}, entries: [
     { id: "s1", kind: "sip", ts: Date.now() - 20 * 864e5, sip: 9 }, { id: "s2", kind: "sip", ts: Date.now(), sip: 13 },
     { id: "r1", kind: "risk", ts: Date.now(), answers: { cancer: ["rt_hn"] } }] });

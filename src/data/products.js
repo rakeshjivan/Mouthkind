@@ -151,7 +151,7 @@ export const PRODUCTS = [
   {
     id: "benzydamine", name: "Benzydamine mouthwash", job: "ask",
     form: "Pharmacy medicine", regions: { AU: "yes", NZ: "yes" },
-    why: "Recommended to help prevent mucositis during head and neck radiotherapy. Ask your team before starting — some versions also contain chlorhexidine, which isn't recommended for this.",
+    why: "The MASCC/ISOO mucositis guidelines suggest it during head and neck radiotherapy. Ask your team before starting — some versions also contain chlorhexidine, which isn't recommended for this.",
     use: "Only as your team directs.",
     cautions: [],
     refs: ["elad2020"],

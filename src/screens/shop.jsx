@@ -36,7 +36,8 @@ export function ShopItem({ p }) {
 
 /** Products to buy. Each button opens the seller's page for that product.
  *  Products in the person's plan come first, under "Recommended for you". */
-export function Shop({ forYou = [] }) {
+// `mineLabel`: the heading over the products in the person's plan.
+export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
   const items = SHOP_PRODUCTS.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
   const mine = items.filter((p) => forYou.includes(p.id));
   const rest = items.filter((p) => !forYou.includes(p.id));
@@ -50,7 +51,7 @@ export function Shop({ forYou = [] }) {
       ) : (
         <p className="soft-note shop-soon">Online ordering is coming soon. In the meantime, ask your pharmacy or dentist for these products.</p>
       )}
-      {mine.length > 0 && <h2 className="list-h first">Recommended for you</h2>}
+      {mine.length > 0 && <h2 className="list-h first">{mineLabel}</h2>}
       {mine.map((p) => <ShopItem key={p.id} p={p} />)}
       {mine.length > 0 && rest.length > 0 && <h2 className="list-h">Other products</h2>}
       {rest.map((p) => <ShopItem key={p.id} p={p} />)}

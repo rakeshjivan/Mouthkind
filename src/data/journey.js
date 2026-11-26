@@ -77,7 +77,7 @@ export function activeTreatment(p, now = Date.now()) {
 // `general`: the timeline by treatment type only, without the personal day count.
 export function journey(p, now = Date.now(), { general = false } = {}) {
   const out = { cards: [] };
-  if (hasTx(p, "rt_hn")) out.cards.push(rtCard(p, now));
+  if (hasTx(p, "rt_hn")) out.cards.push(...(general ? rtGeneral(p) : [rtCard(p, now)]));
   if (hasTx(p, "chemo") || hasTx(p, "transplant")) out.cards.push(chemoCard(p, now, general));
   // Radiotherapy away from the head and neck doesn't reach the salivary glands, so it
   // rarely affects the mouth directly; chemotherapy given with it, and tiredness, can.
@@ -108,8 +108,22 @@ export function journey(p, now = Date.now(), { general = false } = {}) {
   return out;
 }
 
-function rtCard(p, now) {
-  const s = rtStage(p, now);
+// The whole radiotherapy timeline by phase, the same for everyone having it, without the
+// week count worked out from the person's own dates.
+const RT_PHASES = [
+  [{ stage: "before" }, "Before radiotherapy"],
+  [{ stage: "during", week: 1 }, "Weeks 1 and 2"],
+  [{ stage: "during", week: 3 }, "From about week 3 to the end"],
+  [{ stage: "justAfter" }, "The first few weeks after"],
+  [{ stage: "after" }, "In the year after"],
+  [{ stage: "long" }, "For life"],
+];
+function rtGeneral(p) {
+  return RT_PHASES.map(([s, when], i) => ({ ...rtCard(p, 0, s), id: `rt${i}`, when }));
+}
+
+function rtCard(p, now, stage) {
+  const s = stage || rtStage(p, now);
   const base = { id: "rt", title: "Radiotherapy to the head or neck" };
   if (s.stage === "before") return { ...base, when: s.daysToGo ? `Starts in ${s.daysToGo} day${s.daysToGo === 1 ? "" : "s"}` : "Before you start", items: [
     { t: "See your dentist now for a full check-up: decay, broken teeth or fillings, gums and any infection. If a tooth does need to come out, it's done at least 2 weeks before radiotherapy so the gum can heal.", refs: ["peterson2024"] },

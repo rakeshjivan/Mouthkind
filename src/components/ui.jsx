@@ -53,7 +53,7 @@ export function Gauge({ score }) {
     return `M ${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1}`;
   };
   const lvl = score == null ? null : sipLevel(score);
-  const at = lvl ? SIP_LEVELS.indexOf(lvl) : 1;
+  const at = lvl ? SIP_LEVELS.findIndex((l) => l.id === lvl.id) : 1;
   // The needle points to the middle of the level, so the dial never reads as a number.
   const angle = 180 - ((at + 0.5) / 3) * 180;
   return (
@@ -62,10 +62,10 @@ export function Gauge({ score }) {
       {SIP_LEVELS.map((l, i) => (
         <path key={l.id} d={arc(R, i / 3 + (i ? 0.006 : 0), (i + 1) / 3 - (i < 2 ? 0.006 : 0))}
           stroke={lvl ? l.color : "var(--dim)"} strokeWidth={SW} fill="none"
-          opacity={!lvl || lvl === l ? 1 : 0.28} />
+          opacity={!lvl || lvl.id === l.id ? 1 : 0.28} />
       ))}
-      <text x="18" y="172" className="g-end">Low</text>
-      <text x="282" y="172" className="g-end" textAnchor="end">High</text>
+      <text x="18" y="172" className="g-end">Minimal</text>
+      <text x="282" y="172" className="g-end" textAnchor="end">Severe</text>
       <g className="needle" style={{ transform: `rotate(${90 - angle}deg)` }}>
         <path d="M 150 152 L 145 148 L 150 48 L 155 148 Z" fill="var(--ink)" />
       </g>

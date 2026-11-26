@@ -83,7 +83,7 @@ export function Welcome({ profile, onDone }) {
 
         {at === "tx" && (<>
           <h2 className="q">Which treatments{p.carer ? ` is ${p.carerFor || "the person you care for"} having` : ""}?</h2>
-          <p className="lede tight">Tick all that apply. This tailors what to expect and when.</p>
+          <p className="lede tight">Tick all that apply. This sets which treatments "What to expect" covers.</p>
           <TickRows options={TREATMENTS} value={p.treatments || []} onChange={(v) => set({ treatments: v })} />
         </>)}
 

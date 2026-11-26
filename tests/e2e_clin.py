@@ -125,7 +125,11 @@ async def main():
     body = await dlg.inner_text()
     assert "does not replace your clinical judgement" in body and "Dry mouth risk:" in body and "Plan options" in body
     assert await dlg.locator(".clin-table").count() >= 1
-    ticked = await dlg.locator(".clin-opt .pick-row.on").count(); print("options pre-ticked:", ticked, "of", await dlg.locator(".clin-opt").count())
+    assert await dlg.locator(".clin-opt .pick-row.on").count() == 0, "options must start unticked"
+    assert await dlg.get_by_role("button", name="Sign plan").is_disabled()
+    print("suggested:", await dlg.locator(".clin-sugg").count(), "of", await dlg.locator(".clin-opt").count())
+    for k in range(await dlg.locator(".clin-opt").count()):
+      if await dlg.locator(".clin-opt").nth(k).locator(".clin-sugg").count(): await dlg.locator(".clin-opt").nth(k).locator(".pick-row").click()
     await dlg.get_by_label("Note for the patient").fill("Use the gel at night and come back in three months.")
     await dlg.get_by_role("button", name="Sign plan").click(); await pg.wait_for_timeout(400)
     assert "Plan saved" in await dlg.inner_text()

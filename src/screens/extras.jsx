@@ -14,7 +14,7 @@ export function FrequencyPicker({ value, onPick, onClose, first }) {
       footer={<button className="btn primary big" onClick={() => onPick(v)}>{first ? "Continue" : "Save"}</button>}>
       <h2 className="q">How often would you like to check your mouth?</h2>
       <p className="lede tight">Each time: a pH test and the five dry mouth questions. You can change this whenever you like.</p>
-      <Pick options={FREQUENCIES.map((f) => ({ v: f.days, label: f.label, hint: f.recommended ? "Recommended — most people's dryness changes slowly" : f.days === 1 ? "Useful when things are changing quickly, like during treatment" : "Useful when you're trying a new product or medicine" }))}
+      <Pick options={FREQUENCIES.map((f) => ({ v: f.days, label: f.label, hint: f.recommended ? "Suits most people: dryness usually changes slowly" : f.days === 1 ? "Useful when things are changing quickly, like during treatment" : "Useful when you're trying a new product or medicine" }))}
         value={v} onPick={setV} />
     </Sheet>
   );
@@ -80,7 +80,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
       <Sheet title="Dry mouth score" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className="sip-result">
           <Gauge score={done.sip} />
-          <p className="sip-num">{b.label}</p>
+          <p className="sip-num">{plain ? `${done.sip} out of 15` : b.label}</p>
           <p className="sip-band" style={{ color: b.color }}>{b.full}</p>
           {diff != null && <p className="soft-note center">{diff === 0 ? "The same as last time." : diff > 0 ? "Drier than last time." : "Less dry than last time."}</p>}
         </div>
@@ -89,7 +89,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
           : done.sip >= 8 ? "Dryness is affecting you. Sip water often, use a saliva gel such as GC Dry Mouth Gel before meals and bed, and protect your teeth with fluoride."
             : "Your mouth isn't very dry right now. Keep protecting your teeth every day with fluoride toothpaste and GC Tooth Mousse™."}</p>}
         {followUp}
-        <Sources refs={["thomson2011", "mercadante2021"]} />
+        <Sources refs={["thomson2011", "gcSipScore", "mercadante2021"]} />
       </Sheet>
     );
   }

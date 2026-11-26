@@ -604,7 +604,7 @@ function checkAdvice(m) {
         : (a.id === "tmp" || a.id === "tm") && r.band.id === "low" && dryOrCancer
           ? (dryingTx(m) ? "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`)
         : a.id === "tmp" && r.band.id === "low" && acidic(m) ? "Your saliva has been acidic, so your teeth need help repairing."
-        : a.id === "tmp" && r.band.id === "low" ? "Optional daily prevention: calcium, phosphate and fluoride for your teeth."
+        : a.id === "tmp" && r.band.id === "low" ? "Optional, for extra protection: calcium, phosphate and fluoride for your teeth."
         : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
   }
   else if (atRisk(m) || dryingTx(m)) {
@@ -744,7 +744,8 @@ export function summary(m) {
 
 /** For the clinician view: every plan item the rules suggest, as options. Items the
  *  allergy and dialysis safeguards change carry those changes as warnings; items they
- *  would remove are still listed, with the reason, but not pre-ticked.
+ *  would remove are still listed, with the reason. `ticked` = the rules suggest it; the
+ *  clinician view shows that as "Suggested" and starts with nothing ticked.
  *  { id, item, warn: [..], ticked } */
 export function buildOptions(m) {
   const safeItems = buildPlan(m);

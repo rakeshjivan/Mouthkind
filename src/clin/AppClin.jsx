@@ -51,7 +51,7 @@ const ABOUT = (
   <details className="panel about">
     <summary><h2 className="panel-title">About Mouthkind</h2><Icon name="chev" size={18} /></summary>
     <p><strong>What it's for.</strong> {PURPOSE}</p>
-    <p><strong>How the questions work.</strong> Your answers go to your dentist or care team, who use them to choose your plan. The dry mouth score is the SIP-SCORE: the five questions of the Summated Xerostomia Inventory, a published measure of dry mouth, added up by its fixed rules.</p>
+    <p><strong>How the questions work.</strong> Your answers go to your dentist or care team, who use them to choose your plan. The dry mouth score is the GC SIP-SCORE: the five questions of the Summated Xerostomia Inventory, a validated measure of dry mouth symptoms (Thomson et al. 2011), added up by its fixed rules to a score from 5 to 15, with the SIP-SCORE's own symptom bands.</p>
     <p><strong>Who made it.</strong> Dr Rakesh Jivan, a dentist. He is Scientific Affairs Manager at GC Australasia, which makes GC Tooth Mousse™, GC Tooth Mousse™ Plus, GC Dry Mouth Gel and GC Saliva-Check BUFFER. Products appear in your plan only when your professional chooses them.</p>
     <p><strong>Where the information comes from.</strong> Guidelines and studies are listed under "Sources" on each topic.</p>
     <p><strong>Your privacy.</strong> Everything stays on this device. Nothing is sent anywhere unless you choose to share or back it up.</p>
@@ -161,7 +161,7 @@ export default function AppClin() {
       <main className={`main${profile.onboarded && !showWelcome && !building && tab === "home" ? " with-help" : ""}`} id="main">
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
           routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card }} />}
-        {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} />}
+        {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel={signed ? `In your plan from ${signed.by.name}` : ""} />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} openSheet={setSheet} focus={focus} plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open}
           setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} clin={{ plan: signed, onOpen: () => setSheet("clinician") }} />}
         {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} />}

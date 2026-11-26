@@ -1668,3 +1668,4 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .clin-hint { display: block; margin-top: 6px; font-style: normal; font-size: calc(13.5px * var(--s)); color: var(--ink2); }
 .clin-hint.bad { color: var(--red); }
 [data-theme="dark"] .chips .chip.on { color: var(--paper); }
+.clin-sugg { display: inline-block; align-self: flex-start; margin: 4px 0 2px; padding: 1px 8px; border-radius: 999px; background: var(--tint); color: var(--ink); font-size: calc(12.5px * var(--s)); font-weight: 700; vertical-align: 2px; }

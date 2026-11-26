@@ -43,7 +43,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
   const [by, setBy] = useState({ name: last.name || "", profession: last.profession || PROFESSIONS[0], ahpra: last.ahpra || "" });
   const [ok, setOk] = useState(false);
   const [touched, setTouched] = useState(false);
-  const [picked, setPicked] = useState(() => (signed ? signed.items.map((i) => i.id).filter((id) => options.some((o) => o.id === id)) : options.filter((o) => o.ticked).map((o) => o.id)));
+  const [picked, setPicked] = useState(() => (signed ? signed.items.map((i) => i.id).filter((id) => options.some((o) => o.id === id)) : []));
   const [own, setOwn] = useState(() => (signed?.items || []).filter((i) => i.own).map((i) => i.title).join("\n"));
   const [topics, setTopics] = useState(() => signed?.topics || CARE_TOPICS.filter((t) => t.forYou(ctx)).map((t) => t.id));
   const [note, setNote] = useState(signed?.note || "");
@@ -141,7 +141,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
 
       <section className="clin-sec">
         <h3>Plan options</h3>
-        <p className="soft-note">Pre-ticked where the rules suggest them. Tick what you want the patient to follow.</p>
+        <p className="soft-note">Nothing is ticked for you. Tick what you want the patient to follow; "Suggested" marks the options the rules point to.</p>
         <div className="pick">
           {options.map((o) => {
             const on = picked.includes(o.id);
@@ -150,7 +150,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
               <div key={o.id} className={`clin-opt${o.contra ? " contra" : ""}`}>
                 <button type="button" className={`pick-row tick${on ? " on" : ""}`} aria-pressed={on} onClick={() => toggle(picked, setPicked, o.id)}>
                   <span className="tick-box" aria-hidden="true">{on && <Icon name="check" size={18} stroke={3} />}</span>
-                  <span><strong>{o.item.title}</strong><em>{(o.item.because || [])[0] || o.item.body}</em></span>
+                  <span><strong>{o.item.title}</strong>{o.ticked && <span className="clin-sugg">Suggested</span>}<em>{(o.item.because || [])[0] || o.item.body}</em></span>
                 </button>
                 {o.warn.map((w) => <p key={w} className="clin-optwarn"><Icon name="alert" size={15} /> {w}</p>)}
                 {(prods.length > 0 || o.item.refs?.length > 0) && (
