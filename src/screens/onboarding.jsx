@@ -32,7 +32,7 @@ export function Welcome({ profile, onDone }) {
   // The patient's details. For a carer, firstName is the person they care for.
   const setName = (v) => set({ firstName: v, name: v, ...(p.carer ? { carerFor: v } : {}) });
   return (
-    <div className="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Mouthkind: Dry Mouth Care">
+    <div className="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Mouthkind: Dry Mouth Tracker">
       <div className="welcome-in">
         <div className="welcome-top">
           {step > 0 ? <button className="icon-btn" onClick={() => setStep(step - 1)} aria-label="Back"><Icon name="back" /></button> : <span />}
@@ -41,10 +41,10 @@ export function Welcome({ profile, onDone }) {
         </div>
 
         {at === "who" && (<>
-          <p className="brand"><BrandMark size={30} />Mouthkind <span className="brand-sub">Dry Mouth Care</span></p>
-          <h1 className="display">Looking after a dry or sore mouth, together.</h1>
-          <p className="lede">A few taps so the app shows what matters to you. Everything stays on this phone.</p>
-          <h2 className="q">Who are you using Mouthkind for?</h2>
+          <p className="brand welcome-brand"><BrandMark size={22} />Mouthkind</p>
+          <h1 className="display">Keep track of a dry mouth.</h1>
+          <p className="lede">Record how your mouth feels, keep your results in one place, and share them with a health professional. Everything stays on this phone.</p>
+          <h2 className="q welcome-q">Who are you using Mouthkind for?</h2>
           <Pick options={[{ v: false, label: "Myself" }, { v: true, label: "Someone I care for" }]} value={p.carer}
             onPick={(v) => set({ carer: v, ...(v ? { carerFor: p.firstName || p.carerFor || "" } : {}) })} />
         </>)}

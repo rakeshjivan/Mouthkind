@@ -1682,3 +1682,9 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .teeth-note { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; margin: 14px 0; padding: 14px 16px; border-radius: 16px; background: var(--tint); }
 .teeth-note > svg { color: var(--accent); margin-top: 2px; }
 .teeth-note p { margin: 4px 0 6px; color: var(--ink2); line-height: 1.45; }
+
+/* Welcome: one clear headline; the brand and the question sit below it in size. */
+.welcome .welcome-brand { font-size: calc(17px * var(--s)); margin: 8px 0 18px; display: flex; align-items: center; gap: 2px; }
+.welcome .display { font-size: calc(30px * var(--s)); line-height: 1.12; margin: 0 0 10px; }
+.welcome .lede { font-size: calc(16px * var(--s)); line-height: 1.5; }
+.welcome .welcome-q { font-size: calc(19px * var(--s)); font-weight: 650; margin: 32px 0 12px; }
