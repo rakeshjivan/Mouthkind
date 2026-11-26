@@ -3,7 +3,7 @@
 // phone in the chair. It shows what the patient reported, the app's referenced
 // assessment and the plan options; the professional chooses, adds a note and a review
 // date, and signs. Only a signed plan reaches the patient's screens.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { REFS } from "../data/references.js";
 import { PRODUCTS } from "../data/products.js";
@@ -11,9 +11,43 @@ import { CARE_TOPICS } from "../data/care.js";
 import { sipLevel } from "../data/clinical.js";
 import { phZone } from "../data/ph.js";
 import { fmtDate, fmtShort } from "../lib/store.js";
-import { AHPRA, findings, findingsText, fullName, sendFindings } from "./findings.js";
+import { findings, findingsText, fullName, sendFindings } from "./findings.js";
+import { verifyCode } from "./codes.js";
 
-export const PROFESSIONS = ["Dentist", "Dental specialist", "Oral health therapist, dental hygienist or therapist", "Medical practitioner", "Nurse practitioner or registered nurse", "Pharmacist", "Other registered health professional"];
+/** Reads a clinician code's QR with the camera. Nothing is recorded or sent. */
+function QrScan({ onCode, onClose }) {
+  const video = useRef(null);
+  const [err, setErr] = useState(null);
+  useEffect(() => {
+    let stream, raf, alive = true;
+    (async () => {
+      try {
+        const jsQR = (await import("jsqr")).default;
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+        if (!alive) return;
+        video.current.srcObject = stream; await video.current.play();
+        const c = document.createElement("canvas"), g = c.getContext("2d", { willReadFrequently: true });
+        const tick = () => {
+          const v = video.current;
+          if (v && v.videoWidth) {
+            c.width = v.videoWidth; c.height = v.videoHeight; g.drawImage(v, 0, 0);
+            const r = jsQR(g.getImageData(0, 0, c.width, c.height).data, c.width, c.height);
+            if (r?.data?.startsWith("MK1.")) { onCode(r.data); return; }
+          }
+          raf = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch { setErr("The camera isn't available. Paste the code instead."); }
+    })();
+    return () => { alive = false; cancelAnimationFrame(raf); stream?.getTracks().forEach((t) => t.stop()); };
+  }, [onCode]);
+  return (
+    <div className="clin-scan">
+      {err ? <p className="clin-hint bad">{err}</p> : <video ref={video} playsInline muted aria-label="Camera view for the clinician code" />}
+      <button type="button" className="link-btn" onClick={onClose}>Stop scanning</button>
+    </div>
+  );
+}
 const MONTHS = [1, 3, 6, 12];
 const addMonths = (ts, n) => { const d = new Date(ts); d.setMonth(d.getMonth() + n); return d.getTime(); };
 
@@ -38,11 +72,11 @@ function FactorTable({ rows }) {
 /** `options` from buildOptions(model); `ctx` from careContext, for the Learn topics. */
 export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onClose }) {
   const signed = profile.clinPlan;
-  const last = profile.clinBy || signed?.by || {};
   const [step, setStep] = useState("confirm");
-  const [by, setBy] = useState({ name: last.name || "", profession: last.profession || PROFESSIONS[0], ahpra: last.ahpra || "" });
-  const [ok, setOk] = useState(false);
-  const [touched, setTouched] = useState(false);
+  const [by, setBy] = useState(null);
+  const [code, setCode] = useState("");
+  const [check, setCheck] = useState(null);
+  const [scan, setScan] = useState(false);
   const [picked, setPicked] = useState(() => (signed ? signed.items.map((i) => i.id).filter((id) => options.some((o) => o.id === id)) : []));
   const [own, setOwn] = useState(() => (signed?.items || []).filter((i) => i.own).map((i) => i.title).join("\n"));
   const [topics, setTopics] = useState(() => signed?.topics || CARE_TOPICS.filter((t) => t.forYou(ctx)).map((t) => t.id));
@@ -51,8 +85,15 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
   const [sent, setSent] = useState(null);
   const f = useMemo(() => findings(profile, entries), [profile, entries]);
   const name = fullName(profile);
-  const ahpraOk = AHPRA.test(by.ahpra.trim().toUpperCase());
-  const canGo = by.name.trim() && ahpraOk && ok;
+  const canGo = !!by;
+  // Each visit needs the code again: it is checked, never stored.
+  const latest = useRef("");
+  const tryCode = async (c) => {
+    setCode(c); setScan(false); latest.current = c;
+    const r = c.trim() ? await verifyCode(c) : null;
+    if (latest.current !== c) return; // a newer edit is being checked
+    setCheck(r); setBy(r?.ok ? r.by : null);
+  };
   const toggle = (arr, set, v) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const al = [].concat(profile.fu?.allergy?.v || []).filter((x) => x !== "none");
   const dialysis = f.r?.factors.some((x) => x.v === "dialysis");
@@ -64,7 +105,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
       return { ...rest, because: [] };
     });
     own.split("\n").map((s) => s.trim()).filter(Boolean).forEach((t, i) => items.push({ id: `own.${i}`, own: true, title: t, body: t, because: [], refs: [], products: [] }));
-    const who = { name: by.name.trim(), profession: by.profession, ahpra: by.ahpra.trim().toUpperCase() };
+    const who = { ...by, verified: "code" };
     setProfile({ ...profile, clinBy: who, planDone: {}, clinPlan: { by: who, ts, review: addMonths(ts, months), note: note.trim(), items, topics } });
     setStep("done");
   };
@@ -75,16 +116,15 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
       footer={<button className="btn primary big" disabled={!canGo} onClick={() => setStep("review")}>Continue</button>}>
       <h2 className="q">This part is for a health professional</h2>
       <p className="lede tight">It shows the app's assessment and plan options for the professional to review and choose from. If you're the patient, hand your phone to your dentist, doctor or nurse.</p>
-      <label className="field"><span>Your name</span><input value={by.name} onChange={(e) => setBy({ ...by, name: e.target.value })} autoComplete="name" /></label>
-      <label className="field"><span>Profession</span>
-        <select className="clin-select" value={by.profession} onChange={(e) => setBy({ ...by, profession: e.target.value })}>{PROFESSIONS.map((p) => <option key={p}>{p}</option>)}</select></label>
-      <label className="field"><span>AHPRA registration number</span>
-        <input value={by.ahpra} onChange={(e) => setBy({ ...by, ahpra: e.target.value.toUpperCase() })} onBlur={() => setTouched(true)} placeholder="e.g. DEN0001234567" autoCapitalize="characters" aria-invalid={touched && !ahpraOk} aria-describedby="ahpra-hint" />
-        <em id="ahpra-hint" className={`clin-hint${touched && !ahpraOk ? " bad" : ""}`}>{touched && !ahpraOk ? "Three letters, then ten digits." : "Checked for format only."}</em></label>
-      <button type="button" className={`pick-row tick${ok ? " on" : ""}`} aria-pressed={ok} onClick={() => setOk(!ok)}>
-        <span className="tick-box" aria-hidden="true">{ok && <Icon name="check" size={18} stroke={3} />}</span>
-        <span><strong>I'm a registered health professional reviewing this with the patient</strong></span>
-      </button>
+      <label className="field"><span>Clinician code</span>
+        <textarea className="clin-text clin-code" rows={3} value={code} onChange={(e) => tryCode(e.target.value)} placeholder="Paste your code, or scan its QR" autoCapitalize="off" autoCorrect="off" spellCheck={false} aria-describedby="code-hint" /></label>
+      {scan ? <QrScan onCode={tryCode} onClose={() => setScan(false)} />
+        : <button type="button" className="btn ghost" onClick={() => setScan(true)}><Icon name="camera" size={18} /> Scan the QR code</button>}
+      <p id="code-hint" className={`clin-hint${check && !check.ok ? " bad" : ""}`} role="status">
+        {check?.ok ? <><Icon name="check" size={16} stroke={3} /> Code checked: {check.by.name}, {check.by.profession}, {check.by.ahpra}. Valid until {check.expires}.</>
+          : check ? check.reason
+          : "Codes are issued to registered health professionals after a check on the AHPRA register. The code is checked on this phone and isn't saved."}</p>
+      <p className="soft-note">No code? Ask the patient to use "Send my answers" on their Today screen, and review them on your own device.</p>
     </Sheet>
   );
 
@@ -93,7 +133,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
       footer={<><button className="btn ghost" onClick={send}><Icon name="send" size={18} /> Send findings</button><button className="btn primary big" onClick={onClose}>Hand back</button></>}>
       <div className="lite-saved"><span className="lite-saved-mark" aria-hidden="true"><Icon name="check" size={28} stroke={3} /></span>
         <h2 className="q">Plan saved</h2>
-        <p className="lede">The patient's Today screen now shows your plan, signed {by.name.trim()}, {fmtDate(Date.now())}. Review by {fmtDate(profile.clinPlan?.review || addMonths(Date.now(), months))}.</p></div>
+        <p className="lede">The patient's Today screen now shows your plan, signed by {by?.name}, {fmtDate(Date.now())}. Review by {fmtDate(profile.clinPlan?.review || addMonths(Date.now(), months))}.</p></div>
       {sent === "mail" && <p className="soft-note">Your mail app should open with the findings. Add the address to send them.</p>}
     </Sheet>
   );
@@ -183,7 +223,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
         <div className="dseg" role="radiogroup" aria-label="Review in">
           {MONTHS.map((n) => <button key={n} type="button" role="radio" aria-checked={months === n} className={`dseg-btn${months === n ? " on" : ""}`} onClick={() => setMonths(n)}>{n} month{n === 1 ? "" : "s"}</button>)}
         </div>
-        <p className="soft-note">Signing as {by.name.trim()}, {by.profession}, {by.ahpra.trim().toUpperCase()}.</p>
+        <p className="soft-note">Signing as {by.name}, {by.profession}, {by.ahpra} (clinician code checked).</p>
       </section>
       {sent === "mail" && <p className="soft-note">Your mail app should open with the findings. Add the address to send them.</p>}
     </Sheet>

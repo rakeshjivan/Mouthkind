@@ -1669,3 +1669,7 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .clin-hint.bad { color: var(--red); }
 [data-theme="dark"] .chips .chip.on { color: var(--paper); }
 .clin-sugg { display: inline-block; align-self: flex-start; margin: 4px 0 2px; padding: 1px 8px; border-radius: 999px; background: var(--tint); color: var(--ink); font-size: calc(12.5px * var(--s)); font-weight: 700; vertical-align: 2px; }
+.clin-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; word-break: break-all; }
+.clin-scan { margin: 4px 0 8px; display: grid; gap: 8px; justify-items: start; }
+.clin-scan video { width: 100%; max-width: 360px; aspect-ratio: 1; object-fit: cover; border-radius: 14px; background: var(--ink); }
+#code-hint svg { vertical-align: -3px; color: var(--accent); }

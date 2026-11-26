@@ -747,9 +747,13 @@ export function summary(m) {
  *  would remove are still listed, with the reason. `ticked` = the rules suggest it; the
  *  clinician view shows that as "Suggested" and starts with nothing ticked.
  *  { id, item, warn: [..], ticked } */
+// General "drink more water" advice is left out of the options altogether: it's low-value,
+// and for anyone on a fluid limit it's harmful. The professional can add their own.
+export const WATER_OPTIONS = ["water", "riseDrink", "risk.drink"];
 export function buildOptions(m) {
-  const safeItems = buildPlan(m);
-  const rawItems = buildPlan(m, { raw: true });
+  const notWater = (it) => !WATER_OPTIONS.includes(it.id);
+  const safeItems = buildPlan(m).filter(notWater);
+  const rawItems = buildPlan(m, { raw: true }).filter(notWater);
   const al = [].concat(answered(m, "allergy") || []);
   const out = safeItems.map((it) => {
     const r = rawItems.find((x) => x.id === it.id);

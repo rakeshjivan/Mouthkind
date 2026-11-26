@@ -27,8 +27,6 @@ export function findings(profile = {}, entries = []) {
   const recent = diary.filter((e) => Date.now() - e.ts < 28 * 864e5);
   const avg = (k) => { const xs = recent.map((e) => e[k]).filter((x) => x != null); return xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 10) / 10 : null; };
   const flags = recent.flatMap((e) => [
-    e.urgent && e.urgent !== "none" && `${fmtDate(e.ts)}: ${e.urgent === "breath" ? "trouble breathing or swallowing saliva" : "face or neck swelling"}`,
-    e.fever === "yes" && `${fmtDate(e.ts)}: temperature 38°C or more`,
     e.bone === "yes" && `${fmtDate(e.ts)}: bone showing in the mouth`,
     e.sores === "bleed" && `${fmtDate(e.ts)}: bleeding that won't stop`,
     e.eat === "none" && `${fmtDate(e.ts)}: can't eat or drink`,

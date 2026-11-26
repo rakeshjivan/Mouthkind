@@ -23,13 +23,17 @@ export function PainScale({ value, onPick, label = "Mouth pain, 0 to 10", kind =
 }
 
 /** The symptom log: one screen of taps, then what to do. Logging again the same day updates the entry. */
-export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, decayRisk, fluidLimit, onShop, onRemind, onSaved }) {
+// `mouthOnly`: only the mouth questions. Emergencies that aren't mouth symptoms (fever,
+// breathing, swelling) are left to When to worry and Call my team, which are the same for
+// everyone, so an unwatched diary never collects them.
+export const NOT_MOUTH = ["fever", "urgent"];
+export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, decayRisk, fluidLimit, onShop, onRemind, onSaved, mouthOnly }) {
   const [a, setA] = useState(() => {
     if (!initial) return {};
     const { id, ts, kind, grade, full, ...rest } = initial;
     return rest;
   });
-  const qs = dailyQuestions(profile, a);
+  const qs = dailyQuestions(profile, a).filter((q) => !mouthOnly || !NOT_MOUTH.includes(q.id));
   const [done, setDone] = useState(null);
   const ready = qs.every((q) => a[q.id] != null && (!q.many || a[q.id].length));
   const left = qs.filter((q) => a[q.id] == null || (q.many && !a[q.id].length)).length;

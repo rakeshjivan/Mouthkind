@@ -3,7 +3,8 @@
 # diary → the clinician view (confirm, review, sign) → Today with the signed plan.
 # Checks that no risk band, factor or plan reaches a patient screen before a plan is signed,
 # that the diary's note doesn't depend on what was logged, and that findings can be sent.
-# Run against `npx vite preview --port 4173`.
+# Run against `npx vite preview --port 4173`, with CLIN_CODE set to a code issued by
+# tools/clinician-code.mjs for "Dr Test Smith" with the key in src/clin/clinKeys.js.
 import asyncio, os, re
 from playwright.async_api import async_playwright
 S = os.path.join(os.environ.get("SHOTS", "shots"), "clin-")
@@ -80,11 +81,12 @@ async def main():
     await text("today unsigned"); await pg.screenshot(path=S + "6-today-unsigned.png", full_page=True)
     assert await pg.locator(".planfrom.wait").count() == 1 and await pg.locator(".routine").count() == 0
     assert await pg.locator(".helpbar").count() == 1
-    # Diary: the same note whatever is logged, and the fixed safety line beside the red-flag question
+    # Diary: mouth questions only, and the same note whatever is logged
     notes = []
     for pain in ["9", "0"]:
       await pg.locator(".log5").click(); await pg.wait_for_timeout(300)
-      assert await dlg.locator(".q-safety").count() >= 1
+      body = await dlg.inner_text()
+      assert "38°C" not in body and "breathing" not in body.lower(), "the diary asks about the mouth only"
       for k in range(await dlg.locator(".painscale").count()): await dlg.locator(".painscale").nth(k).get_by_role("radio", name=pain, exact=True).click()
       for k in range(await dlg.get_by_role("radiogroup").count()):
         g = dlg.get_by_role("radiogroup").nth(k)
@@ -116,11 +118,16 @@ async def main():
     await pg.locator(".planfrom").get_by_role("button", name="For my dentist").click(); await pg.wait_for_timeout(300)
     await pg.screenshot(path=S + "8-confirm.png")
     go = dlg.locator(".sheet-foot .btn.primary")
-    await dlg.get_by_label("Your name").fill("Dr Test Smith")
-    await dlg.get_by_label("AHPRA registration number").fill("DEN12345"); await dlg.get_by_label("Your name").click()
-    await dlg.get_by_role("button", name="I'm a registered health professional reviewing this with the patient").click()
-    assert await go.is_disabled(), "a malformed AHPRA number must not get through"
-    await dlg.get_by_label("AHPRA registration number").fill("DEN0001234567")
+    # A clinician code: made up or edited codes fail; the issued one passes.
+    code = os.environ["CLIN_CODE"]
+    box = dlg.get_by_label("Clinician code")
+    await box.fill("MK1.abc.def"); await pg.wait_for_timeout(200)
+    assert await go.is_disabled(), "a made-up code must not get through"
+    head, payload, sig = code.split(".")
+    await box.fill(f"{head}.{payload}.{sig[:-4]}AAAA"); await pg.wait_for_timeout(300)
+    assert await go.is_disabled(), "an edited code must not get through"
+    await box.fill(code); await pg.wait_for_timeout(400)
+    assert "Code checked: Dr Test Smith" in await dlg.inner_text()
     assert not await go.is_disabled()
     await go.click(); await pg.wait_for_timeout(400)
     await pg.screenshot(path=S + "9-clinician.png", full_page=True)

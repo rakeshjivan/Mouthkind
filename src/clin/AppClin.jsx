@@ -195,7 +195,7 @@ export default function AppClin() {
         onSkip={building ? () => { setProfile({ ...profile, phSkip: true }); close(); } : null} />}
       {sheet === "report" && <LiteSummary entries={view} profile={profile} onClose={close} />}
       {sheet === "backup" && <Backup payload={{ profile, entries, prefs }} onRestore={restore} onClose={close} />}
-      {sheet === "daily" && <DailyCheck profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onSaved={() => setSheet("saved")} />}
+      {sheet === "daily" && <DailyCheck mouthOnly profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onSaved={() => setSheet("saved")} />}
       {sheet === "saved" && <DiarySaved onClose={close} open={open} />}
       {(sheet === "setupq" || sheet === "refineq") && <SetupQuestions clin q={q} m={model} left={qs.length} refining={sheet === "refineq"} profile={profile} setProfile={setProfile} onClose={close} onPlan={() => go("home")} />}
       {sheet === "journey" && <Journey general profile={profile} onClose={close} openTool={setSheet} onEdit={() => setSheet("situation")} />}
