@@ -88,9 +88,10 @@ async def main():
     await pg.evaluate("document.documentElement.setAttribute('data-theme','dark')"); await pg.wait_for_timeout(150)
     await pg.screenshot(path=S + "6b-today-dark.png", full_page=True)
     await pg.evaluate(f"document.documentElement.setAttribute('data-theme','{t0 or 'light'}')")
-    assert await pg.locator(".planfrom.wait").count() == 1 and await pg.locator(".routine").count() == 0
+    assert await pg.locator(".planfrom").count() == 0 and await pg.locator(".routine").count() == 0
+    assert await pg.locator(".today-tiles .tt").count() == 6
     assert await pg.locator(".helpbar").count() == 1
-    assert "A dry mouth puts teeth at risk" in await pg.locator(".teeth-note").inner_text()
+    assert "Protect my teeth" in await pg.locator(".tt.t-teeth").inner_text()
     # Diary: mouth questions only, and the same note whatever is logged
     notes = []
     for pain in ["9", "0"]:
@@ -135,12 +136,14 @@ async def main():
     assert not bad
     # Send my answers
     await pg.click('nav >> text="Today"'); await pg.wait_for_timeout(200)
-    await pg.locator(".planfrom").get_by_role("button", name="Send my answers").click(); await pg.wait_for_timeout(300)
+    await pg.locator(".tt.t-team").click(); await pg.wait_for_timeout(300)
+    await pg.screenshot(path=S + "6c-forteam.png")
+    await dlg.get_by_role("button", name=re.compile("^Send my answers")).click(); await pg.wait_for_timeout(300)
     shared = await pg.evaluate("window.__shared")
     assert shared and "WHAT CAN AFFECT MY DRY MOUTH" in shared[-1]["text"], shared
     assert not re.search(r"/100|\bpts\b|RISK CHECK|TOOTH DECAY", shared[-1]["text"]), shared[-1]["text"]
     # The clinician view
-    await pg.locator(".planfrom").get_by_role("button", name="For a health professional").click(); await pg.wait_for_timeout(300)
+    await dlg.get_by_role("button", name="Hand my phone to a health professional").click(); await pg.wait_for_timeout(300)
     await pg.screenshot(path=S + "8-confirm.png")
     go = dlg.locator(".sheet-foot .btn.primary")
     await dlg.get_by_label("Your name").fill("Dr Test Smith")

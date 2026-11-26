@@ -115,18 +115,6 @@ function DryFactors({ x }) {
   );
 }
 
-/** For everyone, whatever they answered: why a dry mouth puts teeth at risk. */
-function TeethNote({ onRead }) {
-  return (
-    <section className="teeth-note" aria-label="Your teeth">
-      <Icon name="tooth" size={22} />
-      <div><strong>A dry mouth puts teeth at risk</strong>
-        <p>Saliva protects teeth. With less of it, tooth decay and acid wear (erosion) can happen quickly. Fluoride toothpaste twice a day, less sugar between meals and regular check-ups help.</p>
-        <button type="button" className="link-btn" onClick={onRead}>Read more <Icon name="chev" size={14} /></button></div>
-    </section>
-  );
-}
-
 export default function AppClin() {
   const [profile, setProfileState] = useState(() => ({ ...DEFAULT_PROFILE, ...load("profile", {}) }));
   const [entries, setEntries] = useState(() => { const e = load("entries", []); return Array.isArray(e) ? e : []; });
@@ -204,7 +192,7 @@ export default function AppClin() {
   const whyItem = whyId && plan.find((i) => i.id === whyId);
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
   const send = () => sendFindings(findingsText(profile, view, signed, { patient: true }), "My Mouthkind answers");
-  // Today's tiles: the four things people come back for.
+  // Today's tiles: the six things people come back for.
   const lastPh = [...entries].filter((e) => e.ph != null).sort((a, b) => b.ts - a.ts)[0];
   const every = prefs.sipEvery || 7;
   const sipDue = nextCheck(lastSip?.ts, every), phDue = nextCheck(lastPh?.ts, every);
@@ -213,10 +201,12 @@ export default function AppClin() {
       <button type="button" className="tt t-ph" onClick={() => open("ph")}><Icon name="drop" size={24} /><strong>Check my saliva pH</strong><em>{lastPh ? (phDue.due ? "Due now" : dueWords(phDue)) : "2 minutes with a test strip"}</em></button>
       <button type="button" className="tt t-sip" onClick={() => open("sip")}><Icon name="chart" size={24} /><strong>My {freqFor(every).short} mouth check</strong><em>{lastSip ? (sipDue.due ? "Due now" : dueWords(sipDue)) : "5 quick questions"}</em></button>
       <button type="button" className="tt t-learn" onClick={() => go("advice", "learn")}><Icon name="book" size={24} /><strong>Learn about dry mouth</strong><em>Start with 3 short guides</em></button>
+      <button type="button" className="tt t-teeth" onClick={() => go("advice", "teeth")}><Icon name="tooth" size={24} /><strong>Protect my teeth</strong><em>Why a dry mouth puts teeth at risk</em></button>
+      <button type="button" className="tt t-team" onClick={() => setSheet("forteam")}><Icon name="user" size={24} /><strong>For my care team</strong><em>Hand your phone to a health professional</em></button>
       <button type="button" className="tt t-send" onClick={send}><Icon name="send" size={24} /><strong>Send my results</strong><em>To your dentist, doctor or pharmacist</em></button>
     </div>
   );
-  const card = <><PlanFrom plan={signed} onOpen={() => setSheet("clinician")} onSee={() => go("advice", "plan")} onSend={send} /><TeethNote onRead={() => go("advice", "teeth")} /></>;
+  const card = <><PlanFrom plan={signed} onOpen={() => setSheet("clinician")} onSee={() => go("advice", "plan")} /></>;
 
   return (
     <div className="app">
@@ -275,6 +265,16 @@ export default function AppClin() {
       {sheet === "journey" && <Journey general profile={profile} onClose={close} openTool={setSheet} onEdit={() => setSheet("situation")} />}
       {sheet === "jaw" && <JawTool plain entries={entries} onClose={close} onSave={addEntry} />}
       {sheet === "rtcard" && <RtCard profile={profile} onClose={close} />}
+      {sheet === "forteam" && (
+        <Sheet title="For my care team" onClose={close} footer={<button className="btn primary big" onClick={() => setSheet("clinician")}>Hand my phone to a health professional</button>}>
+          <h2 className="q">Your plan comes from a health professional</h2>
+          <p className="lede">When you see a dentist or another health professional, such as your doctor, nurse or pharmacist, hand them your phone. They'll go through your answers and choose your plan.</p>
+          <div className="forteam-acts">
+            <button type="button" className="help-link" onClick={() => setSheet("careteam")}><Icon name="phone" size={20} /><span><strong>My care team's details</strong><em>Names and numbers, find a dentist or pharmacy</em></span><Icon name="chev" size={16} /></button>
+            <button type="button" className="help-link" onClick={send}><Icon name="send" size={20} /><span><strong>Send my answers</strong><em>By email or message, before you go</em></span><Icon name="chev" size={16} /></button>
+          </div>
+        </Sheet>
+      )}
       {sheet === "careteam" && <CareTeamEdit profile={profile} setProfile={setProfile} onClose={close}
         setup={building && setup.next?.id === "team" ? {
           done: (p) => { setProfile({ ...p, teamAsked: true }); setSheet(qs.length ? "setupq" : null); if (!qs.length) go("home"); },

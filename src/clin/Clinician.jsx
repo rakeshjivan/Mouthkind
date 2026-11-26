@@ -195,14 +195,8 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
 }
 
 /** On the patient's Today: the signed plan's header, or how to get one. */
-export function PlanFrom({ plan, onOpen, onSee, onSend }) {
-  if (!plan) return (
-    <section className="planfrom wait" aria-label="Your plan">
-      <h2>Your plan comes from a health professional</h2>
-      <p>When you see a dentist or another health professional, such as your doctor, nurse or pharmacist, hand them your phone. They'll go through your answers and choose your plan.</p>
-      <div className="planfrom-acts"><button className="btn primary" onClick={onOpen}>For a health professional</button><button className="btn ghost" onClick={onSend}><Icon name="send" size={18} /> Send my answers</button></div>
-    </section>
-  );
+export function PlanFrom({ plan, onOpen, onSee }) {
+  if (!plan) return null; // before a plan, the "For my care team" tile on Today does this job
   const due = Date.now() >= plan.review;
   return (
     <section className="planfrom" aria-label="Your plan">
