@@ -84,6 +84,10 @@ async def main():
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(500)
     # Today before a plan: no routine, no plan-driven alert, the dentist card
     await text("today unsigned"); await pg.screenshot(path=S + "6-today-unsigned.png", full_page=True)
+    t0 = await pg.evaluate("document.documentElement.getAttribute('data-theme')")
+    await pg.evaluate("document.documentElement.setAttribute('data-theme','dark')"); await pg.wait_for_timeout(150)
+    await pg.screenshot(path=S + "6b-today-dark.png", full_page=True)
+    await pg.evaluate(f"document.documentElement.setAttribute('data-theme','{t0 or 'light'}')")
     assert await pg.locator(".planfrom.wait").count() == 1 and await pg.locator(".routine").count() == 0
     assert await pg.locator(".helpbar").count() == 1
     assert "A dry mouth puts teeth at risk" in await pg.locator(".teeth-note").inner_text()

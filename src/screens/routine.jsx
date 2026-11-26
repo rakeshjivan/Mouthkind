@@ -15,7 +15,7 @@ export function RoutineCard({ routine, done, onTick, onWhy }) {
         const on = openIds.includes(s.id);
         const status = s.all ? "Done" : s.past || s.current ? `${s.n} of ${s.total} done` : `${s.total} thing${s.total === 1 ? "" : "s"}`;
         if (!on) return (
-          <button key={s.id} type="button" className={`rt-fold${s.all ? " all" : ""}`} onClick={() => toggle(s.id)} aria-expanded="false">
+          <button key={s.id} type="button" className={`rt-fold rs-${s.id}${s.all ? " all" : ""}`} onClick={() => toggle(s.id)} aria-expanded="false">
             <span className="rt-dot" aria-hidden="true">{s.all && <Icon name="check" size={15} stroke={3.2} />}</span>
             <strong>{s.current ? s.now : s.label}</strong>
             <span className="rt-status">{status}</span>
@@ -23,7 +23,7 @@ export function RoutineCard({ routine, done, onTick, onWhy }) {
           </button>
         );
         return (
-          <div key={s.id} className={`rt-slot${s.current ? " now" : ""}`}>
+          <div key={s.id} className={`rt-slot rs-${s.id}${s.current ? " now" : ""}`}>
             <button type="button" className="rt-head" onClick={() => toggle(s.id)} aria-expanded="true">
               <strong>{s.current ? s.now : s.label}</strong>
               <span className="rt-status">{s.next ? "Next" : s.current ? "Now" : status}</span>

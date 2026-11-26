@@ -1764,3 +1764,18 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .infopop p { margin: 0 0 10px; line-height: 1.5; }
 .infopop .infopop-note { color: var(--ink2); font-size: calc(14px * var(--s)); }
 .infopop .btn { width: 100%; margin-top: 6px; }
+
+/* Today: every box is a soft pastel, like the four tiles, so the screen reads as one set. */
+:root { --lilac: #6a4fa3; --lilac-bg: #f4f0fb; --rose: #a8385f; --rose-bg: #fdf0f4; --peach-bg: #fdf3ea; --sky-bg: #edf5fc; }
+[data-theme="dark"] { --lilac: #c5b2ef; --lilac-bg: #241e33; --rose: #f0a1bb; --rose-bg: #33202a; --peach-bg: #33251a; --sky-bg: #16263a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --lilac: #c5b2ef; --lilac-bg: #241e33; --rose: #f0a1bb; --rose-bg: #33202a; --peach-bg: #33251a; --sky-bg: #16263a; } }
+.main .planfrom { background: var(--lilac-bg); border: 0; border-radius: 20px; }
+.main .teeth-note { background: var(--peach-bg); border-radius: 20px; padding: 16px; }
+.main .teeth-note > svg { color: var(--orange); }
+.main .log5 { background: var(--rose-bg); border-radius: 20px; min-height: 72px; }
+.main .log5-icon { background: var(--rose); color: var(--paper); }
+.main .rt-fold, .main .rt-slot { border: 0; border-radius: 18px; }
+.main .rs-morning { background: var(--amberbg); }
+.main .rs-day { background: var(--sky-bg); }
+.main .rs-evening, .main .rs-night { background: var(--lilac-bg); }
+.main .rt-slot.now { outline: 2px solid var(--accent); outline-offset: -2px; }
