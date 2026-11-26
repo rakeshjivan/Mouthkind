@@ -39,11 +39,11 @@ export const SHOP_FLAVOURS = {
 export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "neutrafluor-plus", "oranurse", "sensodyne-brush", "colgate-slimsoft", "colgate-gentle"];
 // What each product has from Learn's "What to look for" lists, in the same words, so the
 // general information and the Shop line up without Learn naming a brand. Keep these to what
-// the product's own label or IFU states.
+// the product's own label or IFU states (Tooth Mousse and Tooth Mousse Plus: IFUs Rev. 08/2026 and 07/2026).
 export const SHOP_MEETS = {
   "gc-dmg": ["Gel", "Close to neutral pH", "Sugar-free", "Range of flavours", "Immediate relief for up to 4 hours"],
-  "gc-tmp": ["Calcium and phosphate", "Fluoride (900 ppm)", "Neutralises plaque acids", "Supports growth of beneficial oral bacteria"],
-  "gc-tm": ["Calcium and phosphate", "Neutralises plaque acids", "Supports growth of beneficial oral bacteria", "No added fluoride"],
+  "gc-tmp": ["Calcium and phosphate", "Fluoride (900 ppm)", "Remineralises teeth", "Neutralises plaque acids", "Reduces tooth sensitivity", "Supports growth of beneficial oral bacteria", "Inhibits harmful bacteria"],
+  "gc-tm": ["Calcium and phosphate", "Remineralises teeth", "Neutralises plaque acids", "Reduces tooth sensitivity", "Supports growth of beneficial oral bacteria", "Inhibits harmful bacteria", "No added fluoride"],
   "neutrafluor": ["High fluoride (5,000 ppm)"],
   "neutrafluor-plus": ["High fluoride (5,000 ppm)"],
   "oranurse": ["Unflavoured", "SLS-free", "Fluoride"],

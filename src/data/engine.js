@@ -130,7 +130,7 @@ export const FOLLOWUPS = [
   {
     id: "allergy", pri: () => 59, many: true,
     text: (m) => T(m, "Do you have either of these allergies?", "Does $ have either of these allergies?"),
-    why: "GC Tooth Mousse™ contains milk protein (casein), and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
+    why: "GC Tooth Mousse™ and Tooth Mousse™ Plus contain milk protein (casein) and parabens, and GC Dry Mouth Gel contains hydroxybenzoates (parabens). We'll suggest something else if either applies.",
     refs: [],
     options: [{ v: "milk", label: "Milk protein (casein)" }, { v: "hb", label: "Hydroxybenzoates (parabens)" }, { v: "none", label: "Neither" }],
     // Tooth Mousse is recommended to everyone with natural teeth, so everyone with teeth is asked;
@@ -624,7 +624,8 @@ function checkAdvice(m) {
 }
 
 // Allergies: never suggest what someone can't use.
-const MILK = ["gc-tmp", "gc-tm", "recaldent"], HB = ["gc-dmg"];
+// Parabens: GC Dry Mouth Gel, and GC Tooth Mousse and Tooth Mousse Plus (IFUs Rev. 07/2026 and 08/2026).
+const MILK = ["gc-tmp", "gc-tm", "recaldent"], HB = ["gc-dmg", "gc-tmp", "gc-tm"];
 const WATER = /[^.]*\b(sip water|sipping water|keep water by the bed|water bottle|drink more water)[^.]*\.\s*/gi;
 function safe(it, m) {
   const al = [].concat(answered(m, "allergy") || []);
@@ -635,19 +636,22 @@ function safe(it, m) {
     if (WATER.test(it.body)) it = { ...it, body: `${it.body.replace(WATER, "").trim()} Keep any sips within your fluid limit.`.trim() };
     WATER.lastIndex = 0;
   }
-  if (milk && it.id === "decay.tm") return null; // Tooth Mousse through the day, and nothing else
-  if (milk && it.id === "decay.tmp") return { ...it, products: [], title: "Ask your dentist about fluoride varnish or a fluoride gel",
-    body: "GC Tooth Mousse™ and Tooth Mousse™ Plus contain milk protein, so they're not for you. Fluoride varnish at your check-ups, or a fluoride gel your dentist suggests, gives your teeth extra protection instead.",
-    because: [...(it.because || []), "You're allergic to milk protein, so Tooth Mousse™ is left out."] };
+  // Tooth Mousse is out for a milk protein or a paraben allergy.
+  const noTm = milk || hb;
+  const tmWhy = milk ? "milk protein" : "parabens";
+  if (noTm && it.id === "decay.tm") return null; // Tooth Mousse through the day, and nothing else
+  if (noTm && it.id === "decay.tmp") return { ...it, products: [], title: "Ask your dentist about fluoride varnish or a fluoride gel",
+    body: `GC Tooth Mousse™ and Tooth Mousse™ Plus contain ${tmWhy}, so they're not for you. Fluoride varnish at your check-ups, or a fluoride gel your dentist suggests, gives your teeth extra protection instead.`,
+    because: [...(it.because || []), `You're allergic to ${tmWhy}, so Tooth Mousse™ is left out.`] };
   if (!milk && !hb) return it;
   let { body, title, products = [], because = [] } = it;
   if (milk) body = milkFree(body);
   const drop = (re) => body.split(/(?<=\.)\s+/).filter((x) => !re.test(x)).join(" ");
-  if (milk && (products.some((p) => MILK.includes(p)) || /Tooth Mousse/.test(body + title))) {
+  if (noTm && (products.some((p) => MILK.includes(p)) || /Tooth Mousse/.test(body + title))) {
     products = products.filter((p) => !MILK.includes(p));
     body = drop(/Tooth Mousse/); title = title.replace(/GC Tooth Mousse™?( Plus)?/, "extra fluoride");
-    if (/Tooth Mousse/.test(it.title) || !body) body = `${body} Tooth Mousse™ contains milk protein, so ask your dentist about fluoride varnish or a fluoride gel instead.`.trim();
-    because = [...because, "You're allergic to milk protein, so Tooth Mousse™ is left out."];
+    if (/Tooth Mousse/.test(it.title) || !body) body = `${body} Tooth Mousse™ contains ${tmWhy}, so ask your dentist about fluoride varnish or a fluoride gel instead.`.trim();
+    because = [...because, `You're allergic to ${tmWhy}, so Tooth Mousse™ is left out.`];
   }
   if (hb && (products.includes("gc-dmg") || /Dry Mouth Gel/.test(body + title))) {
     products = products.filter((p) => !HB.includes(p));

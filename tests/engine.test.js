@@ -372,3 +372,9 @@ test("Call my team lists only people with a number: blank, name-only and empty a
   p = setContact(addExtraContact(p, "x2"), "x2", { role: "Dietitian" }); // a role but no number
   assert.deepEqual(careContacts(p).map((c) => c.id), ["line24"]);
 });
+
+test("a paraben allergy leaves out Tooth Mousse and Tooth Mousse Plus too (both contain paraben, per the 2026 IFUs)", () => {
+  const e = [{ id: "d1", ts: Date.now(), kind: "decay", v: 2, answers: { dTeeth: "natural" } }];
+  const plan = buildPlan(buildModel({ profile: { fu: { allergy: { v: ["hb"] } } }, entries: e }));
+  for (const it of plan) assert.ok(!(it.products || []).some((p) => ["gc-tm", "gc-tmp", "gc-dmg"].includes(p)), it.id);
+});

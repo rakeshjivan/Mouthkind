@@ -113,7 +113,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
           <h3><Icon name="alert" size={18} /> Safety notes</h3>
           <ul>
             {al.includes("milk") && <li>Milk protein allergy: CPP-ACP products (Tooth Mousse™) are contraindicated.</li>}
-            {al.includes("hb") && <li>Hydroxybenzoate (paraben) allergy: GC Dry Mouth Gel is contraindicated.</li>}
+            {al.includes("hb") && <li>Hydroxybenzoate (paraben) allergy: GC Dry Mouth Gel, GC Tooth Mousse™ and Tooth Mousse™ Plus are contraindicated.</li>}
             {dialysis && <li>On dialysis: fluid limit. Water advice is limited to "within your fluid limit".</li>}
           </ul>
         </section>
