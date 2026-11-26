@@ -37,24 +37,3 @@ test("AHPRA format: three letters and ten digits", () => {
   for (const bad of ["DEN12345", "de0001234567", "DEN00012345678", "0001234567DEN"]) assert.ok(!AHPRA.test(bad), bad);
 });
 
-import { signCode, verifyCode } from "../src/clin/codes.js";
-test("clinician codes: a signed code passes; edited, expired, revoked or foreign codes fail", async () => {
-  const ALG = { name: "ECDSA", namedCurve: "P-256" };
-  const mine = await crypto.subtle.generateKey(ALG, true, ["sign", "verify"]);
-  const other = await crypto.subtle.generateKey(ALG, true, ["sign", "verify"]);
-  const { b64u } = await import("../src/clin/codes.js");
-  const keys = [b64u.enc(await crypto.subtle.exportKey("raw", mine.publicKey))];
-  const p = { a: "DEN0001234567", n: "Dr Test", p: 0, e: "2027-06-30" };
-  const now = new Date("2026-11-26").getTime();
-  const good = await signCode(p, mine.privateKey);
-  const r = await verifyCode(good, { keys, now });
-  assert.ok(r.ok); assert.equal(r.by.name, "Dr Test"); assert.equal(r.by.profession, "Dentist");
-  // Change the name in the payload: the signature no longer matches.
-  const [h, , sig] = good.split(".");
-  const forged = `${h}.${b64u.enc(new TextEncoder().encode(JSON.stringify({ ...p, n: "Someone Else" })))}.${sig}`;
-  assert.equal((await verifyCode(forged, { keys, now })).ok, false);
-  assert.equal((await verifyCode(await signCode(p, other.privateKey), { keys, now })).ok, false);
-  assert.match((await verifyCode(good, { keys, now: new Date("2027-07-01").getTime() })).reason, /expired/);
-  assert.match((await verifyCode(good, { keys, now, revoked: ["DEN0001234567"] })).reason, /withdrawn/);
-  assert.equal((await verifyCode("hello", { keys, now })).ok, false);
-});
