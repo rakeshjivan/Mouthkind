@@ -310,7 +310,7 @@ export const CARE_TOPICS = [
   },
   {
     id: "clean", icon: "check", title: "Clean gently, twice a day", shop: true,
-    look: ["Unflavoured", "SLS-free", "Fluoride"],
+    look: ["Soft bristles", "Small head", "Unflavoured", "SLS-free", "Fluoride"],
     short: "A soft brush and fluoride toothpaste, morning and night.",
     forYou: (c) => c.risk === "high" || c.risk === "veryhigh" || c.ph === "flag" || c.decay === "high" || c.decay === "veryhigh",
     steps: [

@@ -7,6 +7,9 @@ export const SHOP_URL = "https://www.chemistwarehouse.com.au/search?query=tooth%
 export const SHOP_LINKS = {
   "oranurse": "https://oranurseaustralia.com.au/product/unflavoured-toothpaste/",
   "neutrafluor": "https://www.chemistwarehouse.com.au/buy/69127/colgate-toothpaste-neutrafluor-5000-sensitive-115g-fluoride-potassium-s3",
+  "colgate-slimsoft": "https://www.chemistwarehouse.com.au/buy/71431/colgate-slimsoft-charcoal-toothbrush-soft-with-charcoal-infused-bristles",
+  "colgate-gentle": "https://www.chemistwarehouse.com.au/buy/122609/colgate-toothbrush-gentle-gum-care-2-pack",
+  "sensodyne-brush": "https://www.chemistwarehouse.com.au/buy/86545/sensodyne-sensitive-teeth-daily-care-soft-toothbrush-3-pack",
   "neutrafluor-plus": "https://www.chemistwarehouse.com.au/buy/39917/colgate-toothpaste-neutrafluor-5000-plus-56g-fluoride-s3",
 };
 
@@ -33,7 +36,7 @@ export const SHOP_FLAVOURS = {
 };
 
 // The products shown on the Shop screen, in this order (ids from products.js).
-export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "neutrafluor-plus", "oranurse"];
+export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "neutrafluor-plus", "oranurse", "sensodyne-brush", "colgate-slimsoft", "colgate-gentle"];
 // What each product has from Learn's "What to look for" lists, in the same words, so the
 // general information and the Shop line up without Learn naming a brand. Keep these to what
 // the product's own label or IFU states.
@@ -44,6 +47,9 @@ export const SHOP_MEETS = {
   "neutrafluor": ["High fluoride (5,000 ppm)"],
   "neutrafluor-plus": ["High fluoride (5,000 ppm)"],
   "oranurse": ["Unflavoured", "SLS-free", "Fluoride"],
+  "sensodyne-brush": ["Soft bristles", "Small head"],
+  "colgate-slimsoft": ["Soft bristles"],
+  "colgate-gentle": ["Soft bristles"],
 };
 // Who sells each product, for the button label.
 export const SHOP_SELLER = { oranurse: "OraNurse" };
@@ -53,6 +59,9 @@ export const SHOP_SELLER = { oranurse: "OraNurse" };
 export const SHOP_IMAGES = {
   "neutrafluor": "products/neutrafluor.webp",
   "neutrafluor-plus": "products/neutrafluor-plus.webp",
+  "sensodyne-brush": "products/sensodyne-brush.webp",
+  "colgate-slimsoft": "products/colgate-slimsoft.webp",
+  "colgate-gentle": "products/colgate-gentle.webp",
   "oranurse": "products/oranurse.webp",
 };
 
