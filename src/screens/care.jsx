@@ -96,8 +96,12 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
           <h2 className="list-h">{clin ? "Suggested in your plan" : "For you"}</h2>
           {mine.map((t) => <Topic key={t.id} t={t} mineFlag={false} />)}
         </>)}
+        {rest.some((t) => t.cancer) && (<>
+          <h2 className="list-h">During cancer treatment</h2>
+          {rest.filter((t) => t.cancer).map((t) => <Topic key={t.id} t={t} />)}
+        </>)}
         <h2 className="list-h">{mine.length ? "Everything else" : "More topics"}</h2>
-        {rest.map((t) => <Topic key={t.id} t={t} />)}
+        {rest.filter((t) => !t.cancer).map((t) => <Topic key={t.id} t={t} />)}
         <p className="foot-note">General information — a dentist, doctor or pharmacist can tailor it to you.</p>
       </>)}
     </div>

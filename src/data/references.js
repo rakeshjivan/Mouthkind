@@ -232,4 +232,9 @@ export const REFS = {
   lysik2019: { short: "Łysik 2019", title: "Artificial saliva: challenges and future perspectives for the treatment of xerostomia", where: "Int J Mol Sci 2019;20:3199", url: "https://doi.org/10.3390/ijms20133199" },
   nieuwamerongen2003: { short: "Nieuw Amerongen 2003", title: "Current therapies for xerostomia and salivary gland hypofunction associated with cancer therapies", where: "Support Care Cancer 2003;11:226–31", url: "https://doi.org/10.1007/s00520-002-0409-5" },
   watanabe1988: { short: "Watanabe 1988", title: "The effects of different foods and concentrations of citric acid on the flow rate of whole saliva in man", where: "Arch Oral Biol 1988;33:1–5", url: "https://doi.org/10.1016/0003-9969(88)90089-1" },
+  hovan2010: { short: "Hovan 2010", title: "A systematic review of dysgeusia induced by cancer therapies (MASCC/ISOO)", where: "Support Care Cancer 2010;18:1081–7", url: "https://doi.org/10.1007/s00520-010-0902-1" },
+  yang2021: { short: "Yang 2021", title: "Review of prophylactic swallowing interventions for head and neck cancer", where: "Int J Nurs Stud 2021;123:104074", url: "https://doi.org/10.1016/j.ijnurstu.2021.104074" },
+  charters2024: { short: "Charters 2024", title: "Systematic review of adherence to swallow and trismus exercises during radiation therapy for head and neck cancer", where: "Head Neck 2024;46:2348–62", url: "https://doi.org/10.1002/hed.27849" },
+  oksenberg2006: { short: "Oksenberg 2006", title: "Dry mouth upon awakening in obstructive sleep apnea", where: "J Sleep Res 2006;15:317–20", url: "https://doi.org/10.1111/j.1365-2869.2006.00527.x" },
+  ma2024: { short: "Ma 2024", title: "Correlation of morning dry mouth with clinical features of OSA in a community population: a cross-sectional study", where: "Postgrad Med 2024;136:30–5", url: "https://doi.org/10.1080/00325481.2024.2303972" },
 };
