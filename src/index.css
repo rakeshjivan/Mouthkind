@@ -1788,3 +1788,4 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .tt.t-qs { background: var(--sky-bg); } .tt.t-qs > svg { color: var(--blue); }
 .learn .lg::before { content: none; } /* .lg is also the chart legend class */
 .learn .list-h.first { margin-top: 4px; }
+.plan-ready { margin: 12px 0; } .plan-wait .btn + .btn { margin-top: 10px; }

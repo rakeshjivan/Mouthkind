@@ -58,3 +58,51 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
     </div>
   );
 }
+
+/** Learn, on its own tab: "Start here" first. `focus` opens one topic. */
+export function LearnPage({ ctx, focus, profile, setProfile, onShop, clin }) {
+  const mine = CARE_TOPICS.filter((t) => !t.general && (clin ? (clin.plan?.topics || []).includes(t.id) : t.forYou(ctx)));
+  return (
+    <div className="screen">
+      <header className="hero"><h1 className="display">Learn</h1></header>
+      <Learn ctx={ctx} profile={profile} setProfile={setProfile} focus={focus} onShop={onShop}
+        suggested={mine.map((t) => t.id)} suggestedLabel={clin ? "Suggested in your plan" : "For you"} />
+    </div>
+  );
+}
+
+/** My plan, on its own tab. Before a professional signs one, it says how the plan comes about
+ *  and what's left to get ready; after, it is the plan itself. */
+export function PlanPage({ ctx, plan = [], profile, setProfile, open, setup, onSetup, onShop, onSend, clin }) {
+  const signed = clin.plan;
+  return (
+    <div className="screen">
+      <header className="hero"><h1 className="display">My plan</h1></header>
+      {ctx.cancer && (
+        <div className="help-links">
+          <button type="button" className="help-link" onClick={() => open("journey")}><Icon name="info" size={20} /><span><strong>What to expect</strong><em>Your treatment, week by week, and tools</em></span><Icon name="chev" size={16} /></button>
+        </div>
+      )}
+      {signed ? (<>
+        <p className="planfrom-k inline">Your plan from {signed.by.name}, {signed.by.profession}, {fmtDate(signed.ts)}</p>
+        <p className="planfrom-sub">{Date.now() >= signed.review ? "Review due now" : `Review by ${fmtDate(signed.review)}`}</p>
+        {signed.note && <p className="planfrom-note">"{signed.note}"</p>}
+        <PlanBlock plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open} onShop={onShop} clin />
+        <button type="button" className="link-btn" onClick={clin.onOpen}>For a health professional</button>
+      </>) : (
+        <section className="plan-wait" id="my-plan">
+          <h2>Your plan comes from a health professional</h2>
+          <p>When you see a dentist or another health professional, such as your doctor, nurse or pharmacist, hand them your phone. They'll go through your answers and choose your plan.</p>
+          {setup?.next ? (<>
+            <p className="plan-ready"><strong>Getting ready: {setup.at} of {setup.total} done.</strong> Next: {setup.next.label}.</p>
+            <button className="btn primary big" onClick={onSetup}>Continue</button>
+          </>) : (<>
+            <p className="plan-ready"><strong>You're ready.</strong> Your answers are saved for when you see them.</p>
+            <button className="btn primary big" onClick={clin.onOpen}>Hand my phone to a health professional</button>
+            <button className="btn ghost" onClick={onSend}><Icon name="send" size={18} /> Send my answers</button>
+          </>)}
+        </section>
+      )}
+    </div>
+  );
+}

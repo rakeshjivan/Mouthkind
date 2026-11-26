@@ -109,13 +109,12 @@ async def main():
       notes.append(await dlg.inner_text()); await text(f"diary saved {pain}")
       await btn("Done").click(); await pg.wait_for_timeout(250)
     assert notes[0] == notes[1], "the saved note must not depend on what was logged"
-    for t in ["Records", "Help", "Shop"]:
+    for t in ["Records", "Learn", "My plan", "Shop"]:
       await pg.click(f'nav >> text="{t}"'); await pg.wait_for_timeout(300); await text(t)
       if t == "Records":
         assert "What can affect a dry mouth" in await pg.locator("main").inner_text()
         await pg.screenshot(path=S + "4-records.png", full_page=True)
-    await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(200)
-    await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200); await text("learn unsigned")
+    await pg.click('nav >> text="Learn"'); await pg.wait_for_timeout(200); await text("learn unsigned")
     main = await pg.locator("main").inner_text()
     assert all(x in main for x in ["Start here", "What a dry mouth does", "Protecting your teeth", "Easing the dryness", "What's bothering you?", "Your situation"])
     assert "During cancer treatment" not in main, "cancer topics only in cancer care"
@@ -125,7 +124,8 @@ async def main():
     await pg.screenshot(path=S + "4b-learn-products.png", full_page=True)
     await dlg.get_by_role("button", name="Close", exact=True).last.click(); await pg.wait_for_timeout(200)
     await pg.screenshot(path=S + "4c-learn.png", full_page=True)
-    await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200); await text("plan unsigned")
+    await pg.click('nav >> text="My plan"'); await pg.wait_for_timeout(200); await text("plan unsigned")
+    await pg.screenshot(path=S + "4d-plan-unsigned.png", full_page=True)
     assert "Your plan comes from a health professional" in await pg.locator("main").inner_text()
     sipnames = [w for w, t in seen if re.search(r"\bSIP\b|SIP-SCORE", t)]
     assert not sipnames, f"SIP named on: {sipnames}"
@@ -171,18 +171,19 @@ async def main():
     pf = await pg.locator(".planfrom").inner_text()
     assert "Your plan from Dr Test Smith" in pf, pf
     assert await pg.locator(".routine").count() == 1
-    await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(300)
-    await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200)
+    await pg.click('nav >> text="My plan"'); await pg.wait_for_timeout(300)
+    await pg.screenshot(path=S + "10b-plan-signed.png", full_page=True)
     assert await pg.locator(".pitem").count() >= 1
-    await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200)
+    await pg.click('nav >> text="Learn"'); await pg.wait_for_timeout(200)
     await pg.screenshot(path=S + "11-learn.png", full_page=True)
     print("learn heading:", "Suggested in your plan" in await pg.locator("main").inner_text())
     assert await pg.locator(".help-links").count() == 0, "Learn starts at Start here, without the help links"
-    await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200)
     nav = await pg.locator("nav.tabbar").inner_text()
-    assert "Shop" in nav
+    assert all(x in nav for x in ["Today", "Records", "Learn", "My plan", "Shop"]) and "Help" not in nav and "Diary" not in nav, nav
     # Care team: dentist and pharmacy can each be searched for near a postcode
-    await pg.get_by_role("button", name=re.compile("My care team")).first.click(); await pg.wait_for_timeout(300)
+    await pg.click('nav >> text="Today"'); await pg.wait_for_timeout(200)
+    await pg.locator(".tt.t-team").click(); await pg.wait_for_timeout(300)
+    await dlg.get_by_role("button", name=re.compile("^My care team's details")).click(); await pg.wait_for_timeout(300)
     for w in ["dentist", "pharmacy"]: assert await dlg.get_by_role("button", name=f"Find a {w} near me").count() == 1, w
     await dlg.get_by_role("button", name="Find a pharmacy near me").click(); await pg.wait_for_timeout(150)
     await dlg.get_by_label("Your postcode").last.fill("4558")

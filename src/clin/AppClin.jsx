@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { Home, latestOf, phReadings, sipReadings } from "../screens/home.jsx";
-import { Care } from "../screens/care.jsx";
+import { LearnPage, PlanPage } from "../screens/care.jsx";
 import { Shop } from "../screens/shop.jsx";
 import { careContext } from "../data/care.js";
 import { phPattern } from "../data/ph.js";
@@ -42,7 +42,8 @@ import { infoFor } from "../data/optionInfo.js";
 const TABS = [
   { id: "home", label: "Today", icon: "home" },
   { id: "tracker", label: "Records", icon: "chart" },
-  { id: "advice", label: "Help", icon: "book" },
+  { id: "learn", label: "Learn", icon: "book" },
+  { id: "plan", label: "My plan", icon: "leaf" },
   { id: "shop", label: "Shop", icon: "cart" },
 ];
 
@@ -153,7 +154,11 @@ export default function AppClin() {
     setSheet(s);
   }, [prefs.sipEvery]);
   const close = () => setSheet(null);
-  const go = (t, f = null) => { setSheet(null); setTab(t); setFocus(f); window.scrollTo(0, 0); };
+  // "advice" was the old Help tab: its plan view is now My plan, its reading is Learn.
+  const go = (t, f = null) => {
+    if (t === "advice") { if (!f || f === "plan") { t = "plan"; f = null; } else { t = "learn"; if (f === "learn") f = null; } }
+    setSheet(null); setTab(t); setFocus(f); window.scrollTo(0, 0);
+  };
 
   // The engine, as in the full app: it feeds the clinician view only.
   const risk = latestOf(entries, "risk");
@@ -214,8 +219,9 @@ export default function AppClin() {
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
           routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card, tiles }} />}
         {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel="In your plan" />}
-        {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} openSheet={setSheet} focus={focus} plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open}
-          setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} clin={{ plan: signed, onOpen: () => setSheet("clinician") }} />}
+        {tab === "learn" && <LearnPage key={focus || "l"} ctx={careCtx} focus={focus} profile={profile} setProfile={setProfile} onShop={() => go("shop")} clin={{ plan: signed }} />}
+        {tab === "plan" && <PlanPage ctx={careCtx} plan={plan} profile={profile} setProfile={setProfile} open={open} setup={building ? setup : null} onSetup={continueSetup}
+          onShop={() => go("shop")} onSend={send} clin={{ plan: signed, onOpen: () => setSheet("clinician") }} />}
         {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} extra={<>
           <section className="panel">
             <div className="panel-h"><h2>What can affect a dry mouth</h2><button className="link-btn" onClick={() => open(risk ? "riskresult" : "risk")}>{risk ? "See" : "Start"}</button></div>
@@ -230,14 +236,11 @@ export default function AppClin() {
 
       {profile.onboarded && !showWelcome && tab === "home" && <HelpBar profile={profile} open={open} />}
       <nav className="tabbar" aria-label="Main">
-        {TABS.flatMap((t, i) => [
-          ...(i === 2 && profile.onboarded ? [<button key="log" type="button" className="tab tab-log" onClick={() => open("daily")} aria-label="Write in your mouth diary">
-            <span className="tab-log-btn" aria-hidden="true"><Icon name="plus" size={26} stroke={2.6} /></span><span>Diary</span>
-          </button>] : []),
+        {TABS.map((t) => (
           <button key={t.id} className={`tab${tab === t.id ? " on" : ""}`} onClick={() => go(t.id)} aria-current={tab === t.id ? "page" : undefined}>
             <Icon name={t.icon} stroke={tab === t.id ? 2.4 : 1.8} /><span>{t.label}</span>
-          </button>,
-        ])}
+          </button>
+        ))}
       </nav>
 
       {sheet === "risk" && <RiskFlow last={risk} model={{ ...dryModel(fromProfile), Result: (p) => <SavedForDentist {...p} what="Dry mouth risk questions" /> }} next={next} onClose={close} onSave={addEntry} />}
