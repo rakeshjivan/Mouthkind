@@ -41,7 +41,7 @@ export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "neutr
 // general information and the Shop line up without Learn naming a brand. Keep these to what
 // the product's own label or IFU states.
 export const SHOP_MEETS = {
-  "gc-dmg": ["Gel", "Close to neutral pH", "Sugar-free", "Range of flavours"],
+  "gc-dmg": ["Gel", "Close to neutral pH", "Sugar-free", "Range of flavours", "Immediate relief for up to 4 hours"],
   "gc-tmp": ["Calcium and phosphate", "Fluoride (900 ppm)", "Buffers plaque acid"],
   "gc-tm": ["Calcium and phosphate", "Buffers plaque acid", "No added fluoride"],
   "neutrafluor": ["High fluoride (5,000 ppm)"],
