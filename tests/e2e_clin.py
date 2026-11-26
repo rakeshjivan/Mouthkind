@@ -40,7 +40,7 @@ async def main():
     await dlg.get_by_role("button", name="Woman or female").click(); await pg.wait_for_timeout(600)
     await text("risk saved"); await pg.screenshot(path=S + "2-risk-saved.png", full_page=True)
     body = await dlg.inner_text()
-    assert "Saved for your dentist" in body and "What can affect a dry mouth" in body, body
+    assert "Saved" in body and "for your dentist" not in body and "What can affect a dry mouth" in body, body
     assert "Bladder tablets for urgency or leaking" in body and not re.search(r"\d+ ?pts|/100", body)
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(400)
     # Dry mouth assessment: score and the instrument's band, never called SIP

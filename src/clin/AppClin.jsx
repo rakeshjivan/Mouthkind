@@ -70,8 +70,8 @@ function SavedForDentist({ entry, onClose, onRedo, next, what }) {
         {next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}
       </>}>
       <div className="lite-saved"><span className="lite-saved-mark" aria-hidden="true"><Icon name="check" size={28} stroke={3} /></span>
-        <h2 className="q">Saved for your dentist</h2>
-        <p className="lede">Your answers from {fmtDate(entry.ts)} are saved on this phone. Your dentist or care team will go through them with you and choose your plan.</p></div>
+        <h2 className="q">Saved</h2>
+        <p className="lede">Your answers from {fmtDate(entry.ts)} are saved on this phone. You can show them to a dentist, doctor, nurse or pharmacist, or send them from Today with "Send my answers".</p></div>
       {x && <DryFactors x={x} />}
     </Sheet>
   );
@@ -82,7 +82,7 @@ function DryFactors({ x }) {
   return (
     <section className="dryrec" aria-label="What can affect a dry mouth">
       <h3 className="list-h first">What can affect a dry mouth</h3>
-      <p className="soft-note">{x.none ? "Nothing you told us is known to dry the mouth." : "You told us about these. Each is known to affect saliva or to make a dry mouth more likely. This is general information, not a result: your dentist will look at it with you."}</p>
+      <p className="soft-note">{x.none ? "Nothing you told us is known to dry the mouth." : "You told us about these. Each is known to affect saliva or to make a dry mouth more likely. This is general information, not a result. A dentist, doctor or pharmacist can go through it with you."}</p>
       {x.groups.map((g) => (
         <div key={g.id} className="dryrec-g">
           <h4>{g.label}</h4>
@@ -200,7 +200,7 @@ export default function AppClin() {
         {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} extra={
           <section className="panel">
             <div className="panel-h"><h2>What can affect a dry mouth</h2><button className="link-btn" onClick={() => open(risk ? "riskresult" : "risk")}>{risk ? "See" : "Start"}</button></div>
-            <p className="soft-note">{risk ? `Your medicines, health and habits, from ${fmtDate(risk.ts)}. Saved for your dentist.` : "Your medicines, health and habits. About 2 minutes."}</p>
+            <p className="soft-note">{risk ? `Your medicines, health and habits, from ${fmtDate(risk.ts)}. Saved on this phone.` : "Your medicines, health and habits. About 2 minutes."}</p>
           </section>} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} about={ABOUT} />}
       </main>
