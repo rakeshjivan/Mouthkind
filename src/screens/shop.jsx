@@ -47,9 +47,9 @@ export function ShopItem({ p }) {
         <a className="shop-sec shop-ifu-btn" href={p.ifu} target="_blank" rel="noopener noreferrer" onClick={externalClick(p.ifu)}>
           <span><Icon name="doc" size={18} /> Instructions for use (PDF)</span><Icon name="chev" size={16} /></a>
       )}
-      {/* Mandatory statements, Therapeutic Goods Advertising Code: always shown, never folded. */}
+      {/* Mandatory statement, Therapeutic Goods Advertising Code: shown on each Pharmacist Only product.
+          "Always read the label" is shown once, at the top of the Shop, for every product. */}
       {p.pharmacist && <p className="shop-statement">ASK YOUR PHARMACIST – THEY MUST DECIDE IF THIS PRODUCT IS RIGHT FOR YOU.</p>}
-      <p className="shop-statement">ALWAYS READ THE LABEL AND FOLLOW THE DIRECTIONS FOR USE.</p>
 
       <div className="shop-buy">
         {flavours && (
@@ -82,7 +82,8 @@ export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
         <p className="lede">Products that help a dry or acidic mouth and protect your teeth.</p>
 </header>
       {SHOP_URL ? (
-        <p className="soft-note shop-soon">Available in Australia. Each button opens the seller's website.</p>
+        <div className="soft-note shop-soon"><p>Available in Australia. Each button opens the seller's website.</p>
+          <p className="shop-statement">ALWAYS READ THE LABEL AND FOLLOW THE DIRECTIONS FOR USE.</p></div>
       ) : (
         <p className="soft-note shop-soon">Online ordering is coming soon. In the meantime, ask your pharmacy or dentist for these products.</p>
       )}
