@@ -117,6 +117,8 @@ async def main():
       if t == "Records":
         assert "What can affect a dry mouth" in await pg.locator("main").inner_text()
         await pg.screenshot(path=S + "4-records.png", full_page=True)
+      if t == "Shop":
+        await pg.screenshot(path=S + "4e-shop.png", full_page=True)
     await pg.click('nav >> text="Learn"'); await pg.wait_for_timeout(200); await text("learn unsigned")
     main = await pg.locator("main").inner_text()
     assert all(x in main for x in ["Start here", "What a dry mouth does", "Protecting your teeth", "Easing the dryness", "What's bothering you?", "Your situation"])

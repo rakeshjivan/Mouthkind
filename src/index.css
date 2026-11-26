@@ -1842,3 +1842,25 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .me-screen > .panel:nth-of-type(6n+5) { background: var(--lilac-bg); }
 .me-screen > .panel:nth-of-type(6n+6) { background: var(--rose-bg); }
 .me-screen > .panel input, .me-screen > .panel select, .me-screen > .panel textarea { background: var(--card); }
+/* Shop: each product a pastel card; buy near the top; warnings always open; the rest folds. */
+.shop-item[class*="tone-"] { background: var(--tbg); box-shadow: none; }
+.shop-img { flex: none; width: 92px; height: 112px; border-radius: 16px; background: var(--card); display: grid; place-items: center; overflow: hidden; }
+.shop-img img { max-height: 104px; width: auto; }
+.shop-item .meets li { background: var(--card); }
+.shop-buy { background: var(--card); border-radius: 16px; padding: 12px; margin: 12px 0; }
+.shop-buy .flavours { margin: 0 0 10px; }
+.shop-buy .btn { margin-top: 0; }
+.shop-sec { background: var(--card); border-radius: 14px; padding: 0 14px; margin: 8px 0; }
+.shop-sec > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font-weight: 700; cursor: pointer; }
+.shop-sec > summary::-webkit-details-marker { display: none; }
+.shop-sec > summary svg { transition: transform .15s; color: var(--ink3); }
+.shop-sec[open] > summary svg { transform: rotate(90deg); }
+.shop-sec > p, .shop-sec > ul { margin: 0 0 12px; }
+.shop-list { list-style: none; padding: 0; display: grid; gap: 8px; }
+.shop-list li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; line-height: 1.45; }
+.shop-list li svg { color: var(--tfg, var(--accent)); margin-top: 3px; }
+.shop-warn { display: grid; grid-template-columns: 20px 1fr; gap: 10px; align-items: start; background: var(--amberbg); border: 1.5px solid color-mix(in srgb, var(--amber) 40%, transparent); border-radius: 14px; padding: 12px 14px; margin: 8px 0; }
+.shop-warn svg { color: var(--amber); margin-top: 2px; }
+.shop-warn p { margin: 0; line-height: 1.45; }
+.shop-warn b { display: block; margin-bottom: 2px; }
+.shop-item .shop-statement { margin: 10px 2px 0; }
