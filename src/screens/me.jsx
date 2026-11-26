@@ -12,7 +12,7 @@ export function Me({ profile, setProfile, prefs, setPrefs, open, onErase, about,
   const [sure, setSure] = useState(false);
   const set = (p) => setProfile({ ...profile, ...p });
   return (
-    <div className="screen">
+    <div className="screen me-screen">
       <header className="hero"><h1 className="display">Me</h1>
         <p className="lede">Everything stays on this device. Nothing is sent anywhere.</p></header>
 

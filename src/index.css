@@ -1817,3 +1817,28 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .dryrec-g li:nth-child(6n+5) { background: var(--lilac-bg); }
 .dryrec-g li:nth-child(6n+6) { background: var(--rose-bg); }
 .dryrec-g li { padding: 12px 14px; border-radius: 16px; }
+/* Tones: one pastel per subject (see src/data/tones.js). */
+.tone-blue { --tbg: var(--dry-bg); --tfg: var(--dry); }
+.tone-green { --tbg: var(--good-bg); --tfg: var(--good); }
+.tone-amber { --tbg: var(--amberbg); --tfg: var(--amber); }
+.tone-peach { --tbg: var(--peach-bg); --tfg: var(--orange); }
+.tone-lilac { --tbg: var(--lilac-bg); --tfg: var(--lilac); }
+.tone-rose { --tbg: var(--rose-bg); --tfg: var(--rose); }
+.tone-red { --tbg: var(--redbg); --tfg: var(--red); }
+.lt-tile[class*="tone-"], .lg-steps button[class*="tone-"], .pitem[class*="tone-"] { background: var(--tbg); border-color: transparent; }
+.lt-tile[class*="tone-"] > svg, .lg-steps button[class*="tone-"] > svg { color: var(--tfg); }
+.lg-steps button[class*="tone-"] b { background: var(--card); color: var(--tfg); }
+.lg-steps button.done[class*="tone-"] b { background: var(--tfg); color: var(--card); }
+.pitem[class*="tone-"] .ptick::after { background: var(--card); }
+.lp-box[class*="tone-"]:not(.k-call) { background: var(--tbg); border-color: transparent; }
+/* Setup answers stay white; a ticked one gets a coloured edge. */
+.pick-row.on { box-shadow: inset 6px 0 0 var(--accent); }
+.lt-chip[class*="tone-"] { background: var(--tbg); border-color: transparent; }
+/* Me: each section in its own pastel, in turn. */
+.me-screen > .panel { border-color: transparent; background: var(--dry-bg); }
+.me-screen > .panel:nth-of-type(6n+2) { background: var(--good-bg); }
+.me-screen > .panel:nth-of-type(6n+3) { background: var(--amberbg); }
+.me-screen > .panel:nth-of-type(6n+4) { background: var(--peach-bg); }
+.me-screen > .panel:nth-of-type(6n+5) { background: var(--lilac-bg); }
+.me-screen > .panel:nth-of-type(6n+6) { background: var(--rose-bg); }
+.me-screen > .panel input, .me-screen > .panel select, .me-screen > .panel textarea { background: var(--card); }

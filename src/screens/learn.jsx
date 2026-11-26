@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { CARE_TOPICS, topicSections } from "../data/care.js";
 import { milkAllergic, milkFree } from "../data/allergy.js";
+import { topicTone } from "../data/tones.js";
 
 const byId = (id) => CARE_TOPICS.find((t) => t.id === id);
 const GUIDE = ["saliva", "teeth", "products"];
@@ -70,7 +71,7 @@ function TopicPage({ t, ctx, profile, onClose, onShop, next, onNext }) {
         // Untitled lists, the first section and reasons to call are open; the rest open on tap.
         if (!x.h) return <section key={i} className={`lp-sec k-${k}`}>{items}</section>;
         return (
-          <details key={x.h} className={`lp-sec lp-box k-${k}`} open={i === 0 || k === "call" || /^What to look for/.test(x.h)}>
+          <details key={x.h} className={`lp-sec lp-box k-${k} tone-${topicTone(t.id)}`} open={i === 0 || k === "call" || /^What to look for/.test(x.h)}>
             <summary><span>{k === "call" && <Icon name="alert" size={18} />}{x.h}</span><em>{x.steps.length}</em><Icon name="chev" size={16} /></summary>
             {items}
           </details>
@@ -101,7 +102,7 @@ export function Learn({ ctx, profile, setProfile, suggested = [], suggestedLabel
   const doneN = GUIDE.filter((id) => read.includes(id)).length;
   const sugg = suggested.map(byId).filter((x) => x && !GUIDE.includes(x.id));
   const Tile = ({ x }) => byId(x.id) && (
-    <button type="button" className={`lt-tile${x.urgent ? " urgent" : ""}`} onClick={() => openTopic(x.id)}>
+    <button type="button" className={`lt-tile${x.urgent ? " urgent" : ` tone-${topicTone(x.id)}`}`} onClick={() => openTopic(x.id)}>
       <Icon name={x.icon} size={22} /><span>{x.label}</span>
     </button>
   );
@@ -112,7 +113,7 @@ export function Learn({ ctx, profile, setProfile, suggested = [], suggestedLabel
         <ol className="lg-steps">
           {GUIDE.map((id, i) => (
             <li key={id}>
-              <button type="button" className={read.includes(id) ? "done" : ""} onClick={() => openTopic(id)}>
+              <button type="button" className={`${read.includes(id) ? "done " : ""}tone-${topicTone(id)}`} onClick={() => openTopic(id)}>
                 <b aria-hidden="true">{read.includes(id) ? <Icon name="check" size={16} stroke={3} /> : i + 1}</b>
                 <span><strong>{GUIDE_LABEL[id]}</strong><em>{byId(id).short}</em></span>
                 <Icon name="chev" size={16} />
@@ -124,7 +125,7 @@ export function Learn({ ctx, profile, setProfile, suggested = [], suggestedLabel
 
       {sugg.length > 0 && (<>
         <h2 className="list-h">{suggestedLabel}</h2>
-        <div className="lt-grid">{sugg.map((x) => <button key={x.id} type="button" className="lt-tile mine" onClick={() => openTopic(x.id)}><Icon name={x.icon} size={22} /><span>{x.title}</span></button>)}</div>
+        <div className="lt-grid">{sugg.map((x, i) => <button key={x.id} type="button" className={`lt-tile mine tone-${topicTone(x.id, i)}`} onClick={() => openTopic(x.id)}><Icon name={x.icon} size={22} /><span>{x.title}</span></button>)}</div>
       </>)}
 
       {ctx.cancer && (<>
@@ -136,7 +137,7 @@ export function Learn({ ctx, profile, setProfile, suggested = [], suggestedLabel
       <div className="lt-grid">{TILES.map((x) => <Tile key={x.id} x={x} />)}</div>
 
       <h2 className="list-h">Your situation</h2>
-      <div className="lt-chips">{SITUATIONS.map((x) => byId(x.id) && <button key={x.id} type="button" className="chip" onClick={() => openTopic(x.id)}>{x.label}</button>)}</div>
+      <div className="lt-chips">{SITUATIONS.map((x) => byId(x.id) && <button key={x.id} type="button" className={`chip lt-chip tone-${topicTone(x.id)}`} onClick={() => openTopic(x.id)}>{x.label}</button>)}</div>
 
       {t && <TopicPage t={t} ctx={ctx} profile={profile} onClose={() => setOpenId(null)} onShop={onShop && (() => { setOpenId(null); onShop(); })}
         next={next} onNext={() => openTopic(next)} />}

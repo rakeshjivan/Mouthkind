@@ -192,6 +192,9 @@ async def main():
     await dlg.get_by_label("Your postcode").last.fill("4558")
     assert "Show pharmacies near 4558" in await dlg.inner_text()
     await pg.screenshot(path=S + "12-careteam.png", full_page=True)
+    await dlg.get_by_role("button", name="Close").first.click(); await pg.wait_for_timeout(200)
+    await pg.locator(".me-avatar").click(); await pg.wait_for_timeout(300)
+    await pg.screenshot(path=S + "13-me.png", full_page=True)
     print("errors:", errs)
     assert not errs
     await b.close()

@@ -5,6 +5,7 @@ import { ProductImage } from "../components/productImage.jsx";
 import { FOLLOWUPS, answerQuestion, optionsFor } from "../data/engine.js";
 import { CallTeam } from "./daily.jsx";
 import { ShopItem } from "./shop.jsx";
+import { itemTone } from "../data/tones.js";
 
 /** One question at a time, asked only when the answer changes the advice. */
 export function AskCard({ q, m, profile, setProfile, onPlan, compact, left = 0, flow }) {
@@ -54,12 +55,12 @@ export function AskCard({ q, m, profile, setProfile, onPlan, compact, left = 0, 
 
 /** The plan as a checklist. Each item is one row: tick it when you're doing it,
  *  tap it for the detail. Products are small chips that open their full details. */
-export function PlanItem({ it, profile, open, done, onTick, onProduct, startOpen, onAddQ }) {
+export function PlanItem({ it, profile, open, done, onTick, onProduct, startOpen, onAddQ, tone }) {
   const [on, setOn] = useState(!!startOpen);
   const [why, setWhy] = useState(false);
   const prods = it.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
   return (
-    <article className={`pitem${done ? " done" : ""}${it.kept ? " kept" : ""}${on ? " open" : ""}`}>
+    <article className={`pitem${done ? " done" : ""}${it.kept ? " kept" : ""}${on ? " open" : ""} tone-${tone || itemTone(it)}`}>
       <div className="pitem-row">
         <button type="button" className="ptick" aria-pressed={done} onClick={onTick}
           aria-label={done ? `Mark not doing: ${it.title}` : `I'm doing this: ${it.title}`}>
@@ -128,7 +129,7 @@ export function PlanBlock({ plan, sum, profile, setProfile, open, refine, onShop
     if (d[it.id]) delete d[it.id]; else d[it.id] = Date.now();
     setProfile({ ...profile, planDone: d });
   };
-  const row = (it, i) => <PlanItem key={it.id} it={it} profile={profile} open={open} done={isDone(it)} startOpen={i === 0 && !isDone(it)}
+  const row = (it, i) => <PlanItem key={it.id} it={it} tone={itemTone(it, i)} profile={profile} open={open} done={isDone(it)} startOpen={i === 0 && !isDone(it)}
     onTick={() => tick(it)} onProduct={setProd}
     onAddQ={(q) => { const qs = profile.ownQuestions || []; if (!qs.includes(q)) setProfile({ ...profile, ownQuestions: [...qs, q] }); }} />;
   return (
