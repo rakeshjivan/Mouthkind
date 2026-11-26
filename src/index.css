@@ -1873,3 +1873,4 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .shop-ifu-btn > svg { color: var(--ink3); }
 .shop-item .shop-buy { margin: 12px 0 0; }
 .shop-soon p { margin: 0; } .shop-soon .shop-statement { margin-top: 8px; }
+.shop-soon .shop-intro { color: var(--ink); font-weight: 600; margin-bottom: 6px; }

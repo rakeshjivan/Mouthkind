@@ -78,11 +78,10 @@ export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
   const rest = items.filter((p) => !forYou.includes(p.id));
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Shop</h1>
-        <p className="lede">Products that help a dry or acidic mouth and protect your teeth.</p>
-</header>
+      <header className="hero"><h1 className="display">Shop</h1></header>
       {SHOP_URL ? (
-        <div className="soft-note shop-soon"><p>Available in Australia. Each button opens the seller's website.</p>
+        <div className="soft-note shop-soon"><p className="shop-intro">Products that help a dry or acidic mouth and protect your teeth.</p>
+          <p>Available in Australia. Each button opens the seller's website.</p>
           <p className="shop-statement">ALWAYS READ THE LABEL AND FOLLOW THE DIRECTIONS FOR USE.</p></div>
       ) : (
         <p className="soft-note shop-soon">Online ordering is coming soon. In the meantime, ask your pharmacy or dentist for these products.</p>
