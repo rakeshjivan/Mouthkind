@@ -26,7 +26,7 @@ export const CARE_TOPICS = [
       "You can't eat or drink.",
       "Bleeding in your mouth that won't stop.",
       "You can't open your mouth, your face is swelling, or it's hard to breathe.",
-      "Add your team's 24-hour number under Call my team on Today, so it's one tap away.",
+      "Add your team's 24-hour number to Contact my care team on Home, so it's one tap away.",
     ],
     refs: ["healthdirectFN", "ccaMouth2025"],
   },
@@ -42,7 +42,7 @@ export const CARE_TOPICS = [
         { t: "After chemotherapy it usually starts a few days after treatment, is worst in the second week, then settles.", for: ["chemo", "transplant"] },
         { t: "With head and neck radiotherapy it builds from about week 2, can be worst at the end, and heals over the weeks after.", for: ["rt_hn"] },
         "It does heal. But it can make eating, drinking and swallowing hard, so tell your team early rather than waiting.",
-        "Write in your mouth diary each day. It shows you and your team how it's changing.",
+        "Log your mouth pain each day on Home. It shows you and your team how it's changing.",
       ] },
       { h: "Every day", steps: [
         "Brush gently with a soft brush and mild fluoride toothpaste, after meals and at bedtime. A clean mouth heals better.",
@@ -89,46 +89,6 @@ export const CARE_TOPICS = [
     refs: ["ccaMouth2025"],
   },
   {
-    id: "taste", icon: "leaf", title: "Taste changes during treatment", cancer: true,
-    short: "Common, frustrating and usually temporary. A few things help.",
-    forYou: (c) => !!c.cancer && (c.active || tx(c, "rt_hn", "chemo")),
-    steps: [
-      "More than half of people having chemotherapy or radiotherapy notice taste changes: food can taste bland, bitter, salty, sweet or metallic.",
-      "Taste usually comes back gradually over the months after treatment, though after head and neck radiotherapy it can take longer.",
-      "A dry mouth makes it worse, because flavours need saliva to reach the taste buds. Moisten your mouth before meals.",
-      "Clean your teeth and rinse before eating to freshen your mouth.",
-      "Metallic taste? Try plastic cutlery, and cold or room-temperature food.",
-      "If your mouth isn't sore, try stronger flavours: herbs, marinades, a squeeze of lemon. Rinse with water afterwards to protect your teeth.",
-      "Eating less, or losing weight? Ask your team to see a dietitian.",
-    ],
-    refs: ["hovan2010", "pedersen2018", "ccaMouth2025"],
-  },
-  {
-    id: "swallow", icon: "alert", title: "Trouble swallowing", cancer: true,
-    short: "Tell your team early. Some swallowing problems need checking the same day.",
-    forYou: (c) => !!c.cancer && (c.active || tx(c, "rt_hn")),
-    sections: [
-      { h: "Why it happens", steps: [
-        "Sores, swelling, a dry mouth and thick saliva can all make swallowing hard during treatment.",
-        "Radiotherapy to the head or neck can also stiffen the muscles used to swallow, during treatment and for a long time after.",
-      ] },
-      { h: "What helps", steps: [
-        "Sit upright to eat and drink, and stay upright for 30 minutes afterwards.",
-        "Take small mouthfuls, and choose soft, moist food with sauce or gravy.",
-        "Moisten your mouth before meals, and sip water between mouthfuls.",
-        "Take pain relief before meals if your team has given you some.",
-        { t: "Ask your team for a speech pathologist. Swallowing exercises started before or during radiotherapy can help keep your swallow working.", for: ["rt_hn"] },
-      ] },
-      { h: "Call your team the same day if", steps: [
-        "You cough or choke when you eat or drink, or your voice sounds wet or gurgly afterwards.",
-        "You can't swallow your medicines, or can't drink enough.",
-        "Food feels stuck, or you're losing weight.",
-        "You have a temperature of 38°C or more, or feel short of breath: food or drink may have gone into your lungs.",
-      ] },
-    ],
-    refs: ["yang2021", "charters2024", "pedersen2018", "ccaMouth2025"],
-  },
-  {
     id: "thrush", icon: "info", title: "White patches (thrush)", cancer: true,
     short: "Common during treatment, and easy to treat.",
     forYou: (c) => !!c.cancer,
@@ -147,113 +107,19 @@ export const CARE_TOPICS = [
     forYou: (c) => !!c.cancer && tx(c, "rt_hn"),
     steps: [
       "Use fluoride every day for life: a high-fluoride toothpaste, or fluoride trays if your dentist made you some.",
-      "Ask your dentist about a calcium and phosphate crème with fluoride after brushing, morning and night. A dry mouth can decay very fast.",
+      "Add GC Tooth Mousse™ Plus after brushing, morning and night. A dry mouth can decay very fast.",
       "See your dentist every 3 to 6 months.",
       "Tell every dentist you've had radiotherapy before any tooth is taken out. The jaw can heal poorly there. Show them your dental alert card.",
       "Check how wide you can open once a month. If it's getting harder, tell your team early.",
     ],
-    refs: ["peterson2024", "nciPdqHp", "featherstone2021", "reynolds2008"],
+    products: ["neutrafluor", "gc-tmp", "gc-tm"], refs: ["peterson2024", "nciPdqHp", "featherstone2021"],
   },
 
   // ── Everyone ──
-  // Start here: general information, the same for everyone, with no product names. It sets
-  // out the properties to look for; the Shop shows which products have them.
-  {
-    id: "saliva", icon: "drop", title: "What saliva does, and what a dry mouth changes", general: true,
-    short: "Saliva does far more than keep your mouth wet.",
-    forYou: () => false,
-    sections: [
-      { h: "What saliva does", steps: [
-        "It wets and lubricates the mouth, so you can talk, chew and swallow comfortably, and dentures stay in place.",
-        "It helps you taste. Flavours dissolve in saliva before your tongue can sense them.",
-        "It neutralises acid. Natural buffers in saliva, mainly bicarbonate, bring the mouth back towards neutral after you eat or drink.",
-        "It carries calcium and phosphate, the minerals teeth are made of, and keeps the mouth topped up with them, so early acid damage is repaired all day.",
-        "It coats the teeth and the lining of the mouth with a thin protective film.",
-        "It contains natural antibacterial, antifungal and antiviral proteins, such as lysozyme, lactoferrin, peroxidase and histatins, that keep the mix of germs in the mouth in balance.",
-      ] },
-      { h: "What changes when there's less of it", steps: [
-        "The mouth feels dry, sticky or burning, and its lining can become sore, cracked or ulcerated.",
-        "Chewing, swallowing and talking get harder. Dry food sticks, and dentures can rub or lose their grip.",
-        "Taste changes: food can seem bland, bitter or metallic.",
-        "The balance of germs shifts. Thrush (candida), gum problems and bad breath become more common.",
-        "Acid lingers and minerals aren't replaced, so tooth decay and acid wear speed up. See \"Protecting your teeth when your mouth is dry\".",
-        "A dry mouth at night can break your sleep.",
-      ] },
-      { h: "Why it happens", steps: [
-        "Medicines are the most common cause, especially when you take several.",
-        "Conditions such as Sjögren's, diabetes and kidney disease, cancer treatment, mouth breathing, smoking and not drinking enough can all add to it.",
-        "Your own list, under Records, shows the ones you told us about.",
-      ] },
-    ],
-    refs: ["dawes2008", "pedersen2018", "vanthof2014", "buranarom2020", "babu2022", "villa2015", "wolff2017"],
-  },
-  {
-    id: "teeth", icon: "tooth", title: "Protecting your teeth when your mouth is dry", general: true, shop: true,
-    look: ["Calcium and phosphate", "Fluoride", "Buffers plaque acid"],
-    short: "Less saliva means less acid neutralising and less mineral. Put both back.",
-    forYou: () => false,
-    sections: [
-      { h: "Why teeth are at risk", steps: [
-        "Every time you have sugar, plaque bacteria make acid that dissolves mineral from your teeth. Saliva normally neutralises that acid and puts the mineral back.",
-        "With less saliva, acid stays longer and mineral isn't replaced, so decay can start and spread quickly. It often starts at the gum line and on exposed roots, where it's hard to see.",
-        "Acid from food, drink, reflux or vomiting softens enamel. Without saliva to repair the surface, teeth wear away faster. This is called erosion.",
-        "Saliva almost stops while you sleep, so the night is when teeth are least protected.",
-        "After radiotherapy to the head or neck, decay can appear within the first three months and move fast.",
-      ] },
-      { h: "Neutralise acid quickly", steps: [
-        "After eating or drinking, rinse with water, chew sugar-free gum, or finish with cheese or milk.",
-        "After vomiting or reflux, rinse with water, or a teaspoon of bicarbonate of soda in a cup of water. Wait about an hour before brushing.",
-        "A product that buffers plaque acid on the teeth helps between meals and overnight, when your own saliva can't.",
-      ] },
-      { h: "Put mineral back", steps: [
-        "Teeth are made of calcium and phosphate. When saliva is low, a product that delivers calcium and phosphate to the teeth replaces what acid removes and keeps the mouth topped up with mineral.",
-        "Fluoride works with calcium and phosphate. Together they rebuild the enamel surface as fluorapatite, which resists acid better than the original enamel.",
-        "The best-studied products hold calcium and phosphate in a form that stays available on the tooth, and some add fluoride as well. Ask your dentist which suits you: some aren't for children 6 or under, and some contain milk protein.",
-      ] },
-      { h: "Every day", steps: [
-        "Brush twice a day with a fluoride toothpaste, last thing at night most of all. Spit, don't rinse.",
-        "Use a soft brush, and clean between your teeth once a day.",
-        "Keep sugary food and drinks to mealtimes, and choose water between meals. Don't suck sweets to ease dryness.",
-        "Ask your dentist whether you need a high-fluoride toothpaste (5,000 ppm) or fluoride varnish.",
-        "Tell your dentist your mouth is dry, and keep up check-ups, often every 3 to 6 months, so early decay is found while it can still be repaired.",
-      ] },
-    ],
-    refs: ["featherstone2004", "featherstone2008", "reynolds2008", "cochrane2010", "dawes2008", "buzalaf2012", "chapple2017", "hong2010", "gupta2015", "walsh2019", "moynihan2014"],
-  },
-  {
-    id: "products", icon: "drop", title: "Choosing a dry mouth product", general: true, shop: true,
-    look: ["Gel", "Close to neutral pH", "Sugar-free", "Range of flavours"],
-    short: "Look for a gel, close to neutral pH, sugar-free, in a flavour you like.",
-    forYou: () => false,
-    sections: [
-      { h: "What they do", steps: [
-        "Dry mouth gels, sprays and rinses moisten and lubricate the mouth. They relieve dryness for a while; they don't make the glands work again or treat the cause.",
-        "International cancer care guidelines (MASCC/ISOO and ASCO) support mouth lubricants, saliva substitutes and sugar-free lozenges or gum for a dry mouth.",
-      ] },
-      { h: "What to look for", steps: [
-        "A gel for longer relief. Thicker, more lubricating gels coat and cling to the lining of the mouth for longer than sprays or rinses. That matters most at night, before meals and on long days out.",
-        "Close to neutral pH. Researchers recommend a pH of about 6.7 or higher, because below that, exposed roots start to soften, and below about 5.5, enamel does too.",
-        "Many dry mouth products are acidic. In independent tests, three in four sprays and gels were below pH 6.7 when opened, some were below 5.5, and the pH fell further the longer an opened product was kept. Check the label for the pH, ask your pharmacist, and use it within the time the label gives.",
-        "Products with added enzymes usually have to be kept acidic for the enzymes to work, and there's little good evidence that the enzymes help a dry mouth or protect teeth.",
-        "Read the fine print on claims. An asterisk on \"relief for hours\" can mean the result was measured only after weeks of daily use, not from the first dose.",
-        "Sugar-free, so it doesn't feed decay.",
-        "Flavour. Taste is one of the strongest triggers for saliva, so if your glands still work, a flavoured product, citrus especially, can help your own saliva flow as well as moistening. Choose one that stays close to neutral pH: acidic sweets and drinks also bring up saliva, but they wear teeth.",
-        "A range of flavours you like, so you keep using it.",
-        "Gentle ingredients: alcohol-free, and check them if you have allergies.",
-      ] },
-      { h: "Using them", steps: [
-        "Use one as often as you need, especially before meals, before talking for a long time, and at bedtime.",
-        "Spread a gel over your tongue, cheeks and gums with a clean finger.",
-        "Different people prefer different products. If one doesn't suit you, try another.",
-        "Always read the label and follow the directions for use.",
-      ] },
-    ],
-    refs: ["mercadante2021", "furness2011", "lysik2019", "nieuwamerongen2003", "watanabe1988", "delgado2016", "delgado2017", "murakami2025", "teixeira2023"],
-  },
   {
     id: "water", icon: "drop", title: "Drink enough water",
     short: "Small sips through the day keep your mouth moist.",
-    forYou: (c) => !has(c, "conditions.dialysis") && (has(c, "water.low", "caffeine.high", "alcohol.high") || (c.sip ?? 0) >= 8),
+    forYou: (c) => !has(c, "conditions.dialysis") && (has(c, "water.low", "habits.caffeine", "habits.alcohol") || (c.sip ?? 0) >= 8),
     steps: [
       "On dialysis, or told to limit fluids? Keep within your limit. Sugar-free gum, sugar-free sweets and a saliva gel moisten your mouth without adding fluid.",
       "Carry a water bottle and take small sips often.",
@@ -280,37 +146,19 @@ export const CARE_TOPICS = [
   {
     id: "habits", icon: "user", title: "Change a few habits",
     short: "Small changes that stop your mouth drying out.",
-    forYou: (c) => has(c, "habits.smoke", "habits.vape", "habits.cannabis", "alcohol.high", "caffeine.high", "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
+    forYou: (c) => has(c, "habits.smoke", "habits.vape", "habits.cannabis", "habits.alcohol", "habits.caffeine", "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
     steps: [
       "If you smoke or vape, quitting helps. Quitline is free: 13 78 48 (Australia), 0800 778 778 (New Zealand).",
       "Have less alcohol, especially in the evening. Cut back on caffeine too if you notice it dries your mouth.",
       "Use an alcohol-free mouthwash.",
       "Breathe through your mouth? Ask your GP to check for a blocked nose, allergies or sleep apnoea.",
-      "Snore, or use CPAP or a splint? See \"A dry mouth at night, snoring and CPAP\".",
+      "On CPAP? Ask your sleep clinic about a heated humidifier, and about stopping air leaking from your mouth (a chin strap or a better-fitting mask).",
       "A humidifier in the bedroom can help at night.",
     ],
     refs: ["mador2005", "kennedy2019", "wolff2017"],
   },
   {
-    id: "sleep", icon: "moon", title: "A dry mouth at night, snoring and CPAP", shop: true,
-    look: ["Gel", "Close to neutral pH", "Sugar-free"],
-    short: "Dry mouth on waking is very common. A few changes help.",
-    forYou: (c) => has(c, "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
-    steps: [
-      "Sleeping with your mouth open dries it, and saliva almost stops at night anyway.",
-      "A dry mouth is one of the commonest symptoms of sleep apnoea. In one study of 385 people, 6 in 10 had a dry mouth daily or almost daily before starting CPAP, and about half had a dry throat.",
-      "CPAP usually helps, but dry mouth remains one of its most common side effects: in the same study, over a third still had a dry mouth most days on CPAP, especially when air leaks from the mouth. It's also one of the side effects that makes people give up CPAP. Snoring or sleep apnoea splints can leave the mouth dry too, though this usually eases with time.",
-      "Ask your sleep clinic about a heated humidifier, and about stopping mouth leaks with a chin strap or a full-face mask. Don't stop using CPAP because of dryness: talk to them first.",
-      "Use a dry mouth gel before bed so your mouth is coated for the night, and keep water by the bed.",
-      "If your mouth stays dry or your throat is sore during the day too, use a dry mouth product through the day as well.",
-      "Brush with fluoride toothpaste last thing at night, because teeth are least protected while you sleep. Ask your dentist whether you need extra protection overnight.",
-      "Tell your dentist you use CPAP or a splint.",
-    ],
-    refs: ["kreivi2010", "ulander2014", "vidal2024", "oksenberg2006", "raoof2023", "mador2005", "kennedy2019", "dawes2008"],
-  },
-  {
-    id: "clean", icon: "check", title: "Clean gently, twice a day", shop: true,
-    look: ["Unflavoured", "SLS-free", "Fluoride"],
+    id: "clean", icon: "check", title: "Clean gently, twice a day",
     short: "A soft brush and fluoride toothpaste, morning and night.",
     forYou: (c) => c.risk === "high" || c.risk === "veryhigh" || c.ph === "flag" || c.decay === "high" || c.decay === "veryhigh",
     steps: [
@@ -318,25 +166,49 @@ export const CARE_TOPICS = [
       "Brush for 2 minutes, morning and night, with fluoride toothpaste.",
       "Spit, don't rinse. The fluoride keeps working.",
       "Clean between your teeth once a day.",
-      "Mouth sore, or sensitive to strong flavours? Try a mild, unflavoured, low-foam toothpaste (no SLS).",
+      "Mouth sore or sensitive? Try a mild, low-foam toothpaste (no SLS).",
       "Clean dentures every day and leave them out at night.",
     ],
-    refs: ["walsh2019", "felton2011", "nieuwamerongen2003"],
+    products: ["oranurse"], refs: ["walsh2019", "felton2011"],
   },
-
-
+  {
+    id: "protect", icon: "shield", title: "Protect your teeth",
+    short: "Fluoride, calcium and phosphate — what saliva would normally give.",
+    forYou: (c) => c.ph === "flag" || c.ph === "watch" || (c.sip ?? 0) >= 8 || c.risk === "high" || c.risk === "veryhigh" || ["moderate", "high", "veryhigh"].includes(c.decay),
+    steps: [
+      "Ask your dentist if you need a high-fluoride toothpaste (5,000 ppm).",
+      "After brushing in the morning and at night, smear a pea-sized amount of GC Tooth Mousse™ Plus over your teeth. Don't rinse, eat or drink for 30 minutes. It provides additional protection, fortified with 900 ppm fluoride.",
+      "GC Tooth Mousse™ has calcium and phosphate without fluoride. It suits daytime use, or children.",
+      "Not if you're allergic to milk protein. Tooth Mousse™ Plus isn't for children 6 or under.",
+      "Ask for fluoride varnish at your check-ups.",
+    ],
+    products: ["gc-tmp", "gc-tm", "neutrafluor"], refs: ["sim2019", "agarwal2022"],
+  },
+  {
+    id: "moisten", icon: "drop", title: "Moisten your mouth",
+    short: "A saliva gel lasts longer than water, especially at night.",
+    forYou: (c) => (c.sip ?? 0) >= 8 || has(c, "cancer.rt_hn", "conditions.sjogren") || tx(c, "rt_hn"),
+    steps: [
+      "Spread a pea-sized amount of GC Dry Mouth Gel over your tongue, cheeks and gums with a clean finger.",
+      "Use it before meals and at bedtime, when dryness is often worst.",
+      "Use it as often as you need. It's sugar-free and close to neutral pH.",
+      "Sugar-free gum can help your own saliva flow, if your glands still work.",
+      "Not if you're allergic to hydroxybenzoates.",
+    ],
+    products: ["gc-dmg"], refs: ["nuchit2020", "mercadante2021"],
+  },
   {
     id: "acid", icon: "shield", title: "After vomiting or reflux",
     short: "Acid softens enamel — rinse first, brush later.",
     forYou: (c) => has(c, "conditions.reflux", "conditions.eating", "conditions.pregnantSick", "medTypes.glp1"),
     steps: [
       "Rinse straight away with water, or with 1 teaspoon of bicarbonate of soda in a cup of water to neutralise the acid.",
-      "Wait about an hour before brushing. Brushing softened enamel wears it away.",
-      "Meanwhile, smear a little fluoride toothpaste, or a calcium and phosphate crème, on your teeth with a clean finger.",
+      "Wait at least 30 minutes, ideally an hour, before brushing. Brushing softened enamel wears it away.",
+      "Meanwhile, smear fluoride toothpaste, GC Tooth Mousse™ or GC Tooth Mousse™ Plus (fortified with 900 ppm fluoride) on your teeth with a clean finger.",
       "Chew sugar-free gum to wash the acid away.",
       "If it keeps happening, see your GP, and tell your dentist.",
     ],
-    refs: ["buzalaf2012", "adaPregnancy", "pbbTeeth"],
+    products: ["gc-tm", "gc-tmp"], refs: ["adaPregnancy", "pbbTeeth"],
   },
   {
     id: "pregnancy", icon: "user", title: "Your mouth in pregnancy",
@@ -348,7 +220,7 @@ export const CARE_TOPICS = [
       "Keep sweet treats to mealtimes. Choose cheese, plain yoghurt or crackers between meals.",
       "Brushing makes you gag? Try a smaller brush head, an unflavoured toothpaste, or a different time of day.",
     ],
-    refs: ["adaPregnancy", "adaAusGums", "pbbTeeth"],
+    products: ["oranurse"], refs: ["adaPregnancy", "adaAusGums", "pbbTeeth"],
   },
   {
     id: "menopause", icon: "user", title: "Menopause and your mouth",
@@ -388,8 +260,8 @@ export const CARE_TOPICS = [
 ];
 
 /** Build the context `forYou` needs from saved results and the person's situation. */
-export function careContext({ factors = [], recorded = [], sip = null, ph = "none", risk = null, decay = null, cancer = false, tx = [], active = false }) {
-  return { f: new Set([...factors, ...recorded].map((x) => `${x.q}.${x.v}`)), sip, ph, risk, decay, cancer, tx, active };
+export function careContext({ factors = [], sip = null, ph = "none", risk = null, decay = null, cancer = false, tx = [], active = false }) {
+  return { f: new Set(factors.map((x) => `${x.q}.${x.v}`)), sip, ph, risk, decay, cancer, tx, active };
 }
 
 for (const t of CARE_TOPICS) if (t.sections && !t.steps) t.steps = t.sections.flatMap((x) => x.steps.map((y) => (typeof y === "string" ? y : y.t)));

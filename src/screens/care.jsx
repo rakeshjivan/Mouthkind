@@ -1,19 +1,52 @@
 import { useEffect, useState } from "react";
-import { Icon } from "../components/ui.jsx";
-import { CARE_TOPICS } from "../data/care.js";
+import { Icon, Sources } from "../components/ui.jsx";
+import { CARE_TOPICS, topicSections } from "../data/care.js";
+import { PRODUCTS } from "../data/products.js";
+import { ProductImage } from "../components/productImage.jsx";
 import { PlanBlock } from "./plan.jsx";
-import { Learn } from "./learn.jsx";
-import { fmtDate } from "../lib/store.js";
+import { milkAllergic, milkFree } from "../data/allergy.js";
 
 /** Support strategies. Topics that match the person's results come first. */
-// `clin`: the clinician-in-the-loop build. "My plan" is the plan the patient's professional
-// signed, and Learn highlights the topics they suggested instead of matching results.
-export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile, open, setup, onSetup, refine, onShop, openSheet, clin }) {
-  const mine = CARE_TOPICS.filter((t) => !t.general && (clin ? (clin.plan?.topics || []).includes(t.id) : t.forYou(ctx)));
+export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile, open, setup, onSetup, refine, onShop, openSheet }) {
+  const mine = CARE_TOPICS.filter((t) => t.forYou(ctx));
+  const rest = CARE_TOPICS.filter((t) => !t.forYou(ctx));
   // Two views: the personal plan, and a library of topics to read ("Learn").
   const topicFocus = focus && focus !== "plan";
   const [view, setView] = useState(topicFocus ? "learn" : "plan");
+  const [openId, setOpenId] = useState(topicFocus ? focus : null);
   useEffect(() => { if (focus) document.getElementById(focus === "plan" ? "my-plan" : `care-${focus}`)?.scrollIntoView({ block: "start" }); }, [focus]);
+
+  const Topic = ({ t, mineFlag }) => {
+    const on = openId === t.id;
+    return (
+      <section id={`care-${t.id}`} className={`ctopic${on ? " open" : ""}`}>
+        <button className="ctopic-head" onClick={() => setOpenId(on ? null : t.id)} aria-expanded={on}>
+          <span className={`ct-icon ${t.id}`}><Icon name={t.icon} size={20} /></span>
+          <span className="ct-text"><strong>{t.title}</strong><em>{t.short}</em>{mineFlag && <b className="for-you">For you</b>}</span>
+          <Icon name="chev" className={on ? "rot" : ""} />
+        </button>
+        {on && (
+          <div className="ctopic-body">
+            {t.sections ? topicSections(t, ctx).map((x) => (
+              <div key={x.h} className="ct-sec"><h3>{x.h}</h3><ul>{x.steps.map((s) => <li key={s}>{s}</li>)}</ul></div>
+            )) : <ul>{t.steps.map((s) => milkAllergic(profile) ? milkFree(s) : s).map((s) => <li key={s}>{s}</li>)}</ul>}
+            {t.products && (
+              <div className="prod-cards">
+                {t.products.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean).map((p) => (
+                  <div key={p.id} className="prod-card">
+                    <div className="prod-top"><ProductImage product={p} size="sm" /><strong>{p.name}</strong></div>
+                    {p.benefits ? <ul className="pcard-list">{p.benefits.map((b) => <li key={b}>{b}</li>)}</ul> : <span>{p.why}</span>}
+                    <span className="prod-use"><b>How to use:</b> {p.use}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {t.refs?.length > 0 && <details className="srcs"><summary>Sources</summary><Sources refs={t.refs} /></details>}
+          </div>
+        )}
+      </section>
+    );
+  };
 
   return (
     <div className="screen">
@@ -30,18 +63,7 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
         <button role="tab" aria-selected={view === "learn"} className={`dseg-btn${view === "learn" ? " on" : ""}`} onClick={() => setView("learn")}>Learn</button>
       </div>
       {view === "plan" ? (
-        clin ? (clin.plan ? (<>
-          <p className="planfrom-k inline">Your plan from {clin.plan.by.name}, {clin.plan.by.profession}, {fmtDate(clin.plan.ts)}</p>
-          {clin.plan.note && <p className="planfrom-note">"{clin.plan.note}"</p>}
-          <PlanBlock plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open} onShop={onShop} clin />
-        </>) : (
-          <section className="plan-wait" id="my-plan">
-            <h2>Your plan comes from a health professional</h2>
-            <p>{setup?.next ? `First, finish getting ready: next is ${setup.next.label}. ` : ""}When you see a dentist or another health professional, hand them your phone. They'll go through your answers and choose your plan.</p>
-            {setup?.next ? <button className="btn primary big" onClick={onSetup}>Continue</button> : <button className="btn primary big" onClick={clin.onOpen}>For a health professional</button>}
-          </section>
-        ))
-        : setup?.next ? (
+        setup?.next ? (
           <section className="plan-wait" id="my-plan">
             <h2>Your plan is on its way</h2>
             <p>{setup.total - setup.at === 1 ? "One more step" : `${setup.total - setup.at} more steps`} and your personal plan appears here. Next: {setup.next.label}.</p>
@@ -49,10 +71,16 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
           </section>
         ) : plan.length ? <PlanBlock plan={plan} sum={sum} profile={profile} setProfile={setProfile} open={open} refine={refine} onShop={onShop} />
           : <section className="plan-wait"><h2>No plan yet</h2><p>Do your checks and your plan appears here.</p></section>
-      ) : (
-        <Learn ctx={ctx} profile={profile} setProfile={setProfile} focus={topicFocus ? focus : null} onShop={onShop}
-          suggested={mine.map((t) => t.id)} suggestedLabel={clin ? "Suggested in your plan" : "For you"} />
-      )}
+      ) : (<>
+        <p className="lede tight">What helps a dry or acidic mouth, and protects your teeth.</p>
+        {mine.length > 0 && (<>
+          <h2 className="list-h first">For you</h2>
+          {mine.map((t) => <Topic key={t.id} t={t} mineFlag={false} />)}
+        </>)}
+        <h2 className={`list-h${mine.length ? "" : " first"}`}>{mine.length ? "Everything else" : "All topics"}</h2>
+        {rest.map((t) => <Topic key={t.id} t={t} />)}
+        <p className="foot-note">General information — your dentist can tailor it to you.</p>
+      </>)}
     </div>
   );
 }

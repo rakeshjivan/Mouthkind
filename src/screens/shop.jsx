@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Icon } from "../components/ui.jsx";
 import { PRODUCTS } from "../data/products.js";
-import { SHOP_FLAVOURS, SHOP_MEETS, SHOP_PRODUCTS, SHOP_SELLER, SHOP_URL, shopItem } from "../data/shop.js";
+import { SHOP_FLAVOURS, SHOP_PRODUCTS, SHOP_SELLER, SHOP_URL, shopItem } from "../data/shop.js";
 import { externalClick } from "../lib/external.js";
 import { ProductImage } from "../components/productImage.jsx";
 
@@ -15,16 +15,9 @@ export function ShopItem({ p }) {
         <ProductImage product={p} flavour={fl} />
         <div><h2>{p.name}</h2><p className="shop-form">{p.form}</p></div>
       </div>
-      {SHOP_MEETS[p.id] && <ul className="meets" aria-label="What to look for">{SHOP_MEETS[p.id].map((m) => <li key={m}><Icon name="check" size={14} stroke={3} />{m}</li>)}</ul>}
       {p.benefits ? <ul className="pcard-list">{p.benefits.map((b) => <li key={b}>{b}</li>)}</ul> : <p>{p.why}</p>}
       <p className="prod-use"><b>How to use:</b> {p.use}</p>
-      {p.details && <p className="shop-details"><b>Product details:</b> {p.details}</p>}
-      {p.warnings?.length > 0 ? <p className="shop-caution"><b>Warnings:</b> {p.warnings.join(" ")}</p>
-        : p.cautions?.length > 0 && <p className="shop-caution">{p.cautions.join(" ")}</p>}
-      {p.ifu && <p className="shop-ifu"><a href={p.ifu} target="_blank" rel="noopener noreferrer" onClick={externalClick(p.ifu)}>Instructions for use (PDF)</a></p>}
-      {/* Mandatory statements, Therapeutic Goods Advertising Code. */}
-      {p.pharmacist && <p className="shop-statement">ASK YOUR PHARMACIST – THEY MUST DECIDE IF THIS PRODUCT IS RIGHT FOR YOU.</p>}
-      <p className="shop-statement">ALWAYS READ THE LABEL AND FOLLOW THE DIRECTIONS FOR USE.</p>
+      {p.cautions?.length > 0 && <p className="shop-caution">{p.cautions.join(" ")}</p>}
       {flavours && (
         <div className="flavours" role="radiogroup" aria-label={`${p.name} flavour`}>
           {flavours.map((f) => (
@@ -43,8 +36,7 @@ export function ShopItem({ p }) {
 
 /** Products to buy. Each button opens the seller's page for that product.
  *  Products in the person's plan come first, under "Recommended for you". */
-// `mineLabel`: the heading over the products in the person's plan.
-export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
+export function Shop({ forYou = [] }) {
   const items = SHOP_PRODUCTS.map((id) => PRODUCTS.find((p) => p.id === id)).filter(Boolean);
   const mine = items.filter((p) => forYou.includes(p.id));
   const rest = items.filter((p) => !forYou.includes(p.id));
@@ -52,13 +44,13 @@ export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
     <div className="screen">
       <header className="hero"><h1 className="display">Shop</h1>
         <p className="lede">Products that help a dry or acidic mouth and protect your teeth.</p>
-        <p className="soft-note">GC products are made by GC Australasia, where the app's author works. Other brands are listed too.</p></header>
+        <p className="soft-note">GC products are made by GC Australasia, where the app's author works. Other brands are shown where they're the right choice.</p></header>
       {SHOP_URL ? (
         <p className="soft-note shop-soon">Available in Australia. Each button opens the seller's website.</p>
       ) : (
         <p className="soft-note shop-soon">Online ordering is coming soon. In the meantime, ask your pharmacy or dentist for these products.</p>
       )}
-      {mine.length > 0 && <h2 className="list-h first">{mineLabel}</h2>}
+      {mine.length > 0 && <h2 className="list-h first">Recommended for you</h2>}
       {mine.map((p) => <ShopItem key={p.id} p={p} />)}
       {mine.length > 0 && rest.length > 0 && <h2 className="list-h">Other products</h2>}
       {rest.map((p) => <ShopItem key={p.id} p={p} />)}

@@ -7,4 +7,3 @@ src-tauri/gen
 src-tauri/icons
 .DS_Store
 *.log
-dist-full

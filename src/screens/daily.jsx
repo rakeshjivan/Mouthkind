@@ -23,17 +23,13 @@ export function PainScale({ value, onPick, label = "Mouth pain, 0 to 10", kind =
 }
 
 /** The symptom log: one screen of taps, then what to do. Logging again the same day updates the entry. */
-// `mouthOnly`: only the mouth questions. Emergencies that aren't mouth symptoms (fever,
-// breathing, swelling) are left to When to worry and Call my team, which are the same for
-// everyone, so an unwatched diary never collects them.
-export const NOT_MOUTH = ["fever", "urgent"];
-export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, decayRisk, fluidLimit, onShop, onRemind, onSaved, mouthOnly }) {
+export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial, onLearn, noTeeth, decayRisk, fluidLimit, onShop, onRemind }) {
   const [a, setA] = useState(() => {
     if (!initial) return {};
     const { id, ts, kind, grade, full, ...rest } = initial;
     return rest;
   });
-  const qs = dailyQuestions(profile, a).filter((q) => !mouthOnly || !NOT_MOUTH.includes(q.id));
+  const qs = dailyQuestions(profile, a);
   const [done, setDone] = useState(null);
   const ready = qs.every((q) => a[q.id] != null && (!q.many || a[q.id].length));
   const left = qs.filter((q) => a[q.id] == null || (q.many && !a[q.id].length)).length;
@@ -50,7 +46,7 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
       footer={<button className="btn primary big" disabled={!ready} onClick={() => {
         const e = { id: initial?.id || `dl_${Date.now()}`, ts: initial?.ts && new Date(initial.ts).toDateString() === new Date().toDateString() ? initial.ts : Date.now(),
           kind: "daily", ...a, dry: dryWord(a.dryness), grade: mucositisGrade(a), full: true };
-        onSave(e); if (onSaved) onSaved(e); else setDone(e);
+        onSave(e); setDone(e);
       }}>{ready ? "Save" : `${left} to go`}</button>}>
       <h2 className="q">How's {who} mouth today?</h2>
       <p className="lede tight">One tap on each line. It takes under a minute.</p>
@@ -73,8 +69,6 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
                   className={`dseg-btn${a[q.id] === o.v ? " on" : ""}`} onClick={() => setA({ ...a, [q.id]: o.v })}>{o.label}</button>
               ))}
             </div>)}
-            {/* The same line for everyone, whatever is answered. */}
-            {q.safety && <p className="q-safety"><Icon name="alert" size={16} /> {q.safety}</p>}
           </fieldset>
         ))}
       </div>
@@ -157,7 +151,7 @@ export function UsedLog({ onClose, onSave, last }) {
     <Sheet title="What I used today" onClose={onClose}
       footer={<button className="btn primary big" disabled={!v.length} onClick={() => { onSave({ id: `u_${Date.now()}`, ts: Date.now(), kind: "used", items: v }); onClose(); }}>Save</button>}>
       <h2 className="q">What did you use today?</h2>
-      <p className="lede tight">Over time, the Tracker shows whether your dry mouth assessment changed after you started something.</p>
+      <p className="lede tight">Over time, the Tracker shows whether your dry mouth score changed after you started something.</p>
       <div className="chips">
         {USED.map((u) => {
           const on = v.includes(u.v);

@@ -3,10 +3,14 @@
 // localStorage is fine for the web build; the native builds should swap
 // `driver` for Capacitor Preferences or SQLite without touching callers.
 
-// The testing release keeps its own data, so it can never change a live user's results.
-// The compliant edition keeps its own again, so the two testing apps don't mix.
-import { EDITION } from "../edition.js";
-const PREFIX = EDITION === "compliant" ? "mkc:" : EDITION === "clinician" ? "mkd:" : "mkt:";
+// Live data key. Changed at each reset (mc: until 4.5.0, mk: in 4.5.0–4.6.0) so every
+// tester starts fresh; old keys are removed below. Testing uses its own key ("mkt:").
+// 4.12.0 (the redesign): a full reset for everyone, so mk8: is removed too.
+const PREFIX = "mk9:";
+const OLD_PREFIXES = ["mc:", "mk:", "mk2:", "mk3:", "mk4:", "mk5:", "mk6:", "mk7:", "mk8:"];
+try {
+  for (const k of Object.keys(localStorage)) if (OLD_PREFIXES.some((p) => k.startsWith(p))) localStorage.removeItem(k);
+} catch { /* storage unavailable */ }
 const driver = {
   get(k) {
     try { const v = localStorage.getItem(PREFIX + k); return v == null ? null : JSON.parse(v); } catch { return null; }

@@ -8,11 +8,11 @@ export function contactRoles(profile = {}) {
   const cancer = inCancerCare(profile);
   return [
     cancer && { id: "line24", role: "24-hour treatment line", hint: "The number your cancer team gave you for urgent problems", urgent: true },
-    { id: "gp", role: "My GP" },
     { id: "specialist", role: "My specialist", hint: cancer ? "Your oncologist, radiation oncologist or haematologist" : "e.g. rheumatologist, ENT or oral medicine" },
-    { id: "nurse", role: "My care nurse", hint: cancer ? "Your cancer care nurse or clinic nurse" : "e.g. practice, community or diabetes nurse" },
+    cancer && { id: "nurse", role: "Cancer care nurse", hint: "Your nurse coordinator or clinic nurse" },
     { id: "dentist", role: "My dentist", find: "dentist" },
     { id: "pharmacy", role: "My pharmacy", find: "pharmacy", hint: "For high-fluoride toothpaste, saliva gels, thrush treatment and medicine reviews" },
+    { id: "gp", role: "My GP" },
     // Anyone else the person adds (a dietitian, speech pathologist, social worker…).
     ...(profile.extraContacts || []).map((x) => ({ id: x.id, role: x.role?.trim() || "Other contact", extra: true })),
   ].filter(Boolean);
