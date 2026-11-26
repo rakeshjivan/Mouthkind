@@ -230,7 +230,10 @@ export const CARE_TOPICS = [
       ] },
       { h: "What to look for", steps: [
         "A gel for longer relief. Thicker, more lubricating gels coat and cling to the lining of the mouth for longer than sprays or rinses. That matters most at night, before meals and on long days out.",
-        "Close to neutral pH. Some dry mouth products are acidic enough to soften enamel and exposed roots. Researchers recommend a pH of about 6.7 or higher, so check the label or ask your pharmacist.",
+        "Close to neutral pH. Researchers recommend a pH of about 6.7 or higher, because below that, exposed roots start to soften, and below about 5.5, enamel does too.",
+        "Many dry mouth products are acidic. In independent tests, three in four sprays and gels were below pH 6.7 when opened, some were below 5.5, and the pH fell further the longer an opened product was kept. Check the label for the pH, ask your pharmacist, and use it within the time the label gives.",
+        "Products with added enzymes usually have to be kept acidic for the enzymes to work, and there's little good evidence that the enzymes help a dry mouth or protect teeth.",
+        "Read the fine print on claims. An asterisk on \"relief for hours\" can mean the result was measured only after weeks of daily use, not from the first dose.",
         "Sugar-free, so it doesn't feed decay.",
         "Flavour. Taste is one of the strongest triggers for saliva, so if your glands still work, a flavoured product, citrus especially, can help your own saliva flow as well as moistening. Choose one that stays close to neutral pH: acidic sweets and drinks also bring up saliva, but they wear teeth.",
         "A range of flavours you like, so you keep using it.",
@@ -243,7 +246,7 @@ export const CARE_TOPICS = [
         "Always read the label and follow the directions for use.",
       ] },
     ],
-    refs: ["mercadante2021", "furness2011", "lysik2019", "nieuwamerongen2003", "watanabe1988", "delgado2016", "delgado2017"],
+    refs: ["mercadante2021", "furness2011", "lysik2019", "nieuwamerongen2003", "watanabe1988", "delgado2016", "delgado2017", "murakami2025", "teixeira2023"],
   },
   {
     id: "water", icon: "drop", title: "Drink enough water",

@@ -239,4 +239,6 @@ export const REFS = {
   kreivi2010: { short: "Kreivi 2010", title: "Frequency of upper airway symptoms before and during continuous positive airway pressure treatment in patients with obstructive sleep apnea syndrome", where: "Respiration 2010;80:488–94", url: "https://doi.org/10.1159/000321371" },
   ulander2014: { short: "Ulander 2014", title: "Side effects to continuous positive airway pressure treatment for obstructive sleep apnoea: changes over time and association to adherence", where: "Sleep Breath 2014;18:799–807", url: "https://doi.org/10.1007/s11325-014-0945-5" },
   vidal2024: { short: "Vidal 2024", title: "Mask side-effects are related to gender in long-term CPAP: results from the InterfaceVent real-life study", where: "Respir Res 2024;25:331", url: "https://doi.org/10.1186/s12931-024-02965-1" },
+  murakami2025: { short: "Murakami 2025", title: "Effect of storage temperature and storage time on the pH and oxidation–reduction potential of commercial oral moisturizers", where: "Dent J 2025;13:344", url: "https://doi.org/10.3390/dj13080344" },
+  teixeira2023: { short: "Teixeira 2023", title: "Prevention of caries in cancer patients: a systematic review on the effectiveness of dental materials", where: "Eur J Prosthodont Restor Dent 2023;31:224–33", url: "https://doi.org/10.1922/EJPRD_2445Teixeira10" },
 };
