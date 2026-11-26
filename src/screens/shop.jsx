@@ -27,12 +27,6 @@ export function ShopItem({ p }) {
         <summary>What it does<Icon name="chev" size={16} /></summary>
         {p.benefits ? <ul className="shop-list">{p.benefits.map((x) => <li key={x}><Icon name="check" size={16} stroke={3} /><span>{x}</span></li>)}</ul> : <p>{p.why}</p>}
       </details>
-      {warn && (
-        <details className="shop-sec shop-warn-sec">
-          <summary><span><Icon name="alert" size={18} /> Warnings</span><Icon name="chev" size={16} /></summary>
-          <p>{warn}</p>
-        </details>
-      )}
       <details className="shop-sec">
         <summary>How to use<Icon name="chev" size={16} /></summary>
         <p>{p.use}</p>
@@ -46,6 +40,12 @@ export function ShopItem({ p }) {
       {p.ifu && (
         <a className="shop-sec shop-ifu-btn" href={p.ifu} target="_blank" rel="noopener noreferrer" onClick={externalClick(p.ifu)}>
           <span><Icon name="doc" size={18} /> Instructions for use (PDF)</span><Icon name="chev" size={16} /></a>
+      )}
+      {warn && (
+        <details className="shop-sec shop-warn-sec">
+          <summary><span><Icon name="alert" size={18} /> Warnings</span><Icon name="chev" size={16} /></summary>
+          <p>{warn}</p>
+        </details>
       )}
       {/* Mandatory statement, Therapeutic Goods Advertising Code: shown on each Pharmacist Only product.
           "Always read the label" is shown once, at the top of the Shop, for every product. */}
