@@ -153,7 +153,7 @@ export function UsedLog({ onClose, onSave, last }) {
     <Sheet title="What I used today" onClose={onClose}
       footer={<button className="btn primary big" disabled={!v.length} onClick={() => { onSave({ id: `u_${Date.now()}`, ts: Date.now(), kind: "used", items: v }); onClose(); }}>Save</button>}>
       <h2 className="q">What did you use today?</h2>
-      <p className="lede tight">Over time, the Tracker shows whether your dry mouth score changed after you started something.</p>
+      <p className="lede tight">Over time, the Tracker shows whether your dry mouth assessment changed after you started something.</p>
       <div className="chips">
         {USED.map((u) => {
           const on = v.includes(u.v);

@@ -41,7 +41,7 @@ async def main():
     await text("risk saved"); await pg.screenshot(path=S + "2-risk-saved.png")
     assert "Saved for your dentist" in await dlg.inner_text()
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(400)
-    # SIP-SCORE: number and the instrument's band
+    # Dry mouth assessment: score and the instrument's band, never called SIP
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(300)
     await btn("Start").click(); await pg.wait_for_timeout(250)
     for v in ["Often", "Often", "Sometimes", "Often", "Often"]:
@@ -102,6 +102,8 @@ async def main():
     await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200); await text("learn unsigned")
     await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200); await text("plan unsigned")
     assert "Your plan comes from your dentist" in await pg.locator("main").inner_text()
+    sipnames = [w for w, t in seen if re.search(r"\bSIP\b|SIP-SCORE", t)]
+    assert not sipnames, f"SIP named on: {sipnames}"
     bad = [(w, m.group(0)) for w, t in seen for m in [ASSESS.search(t)] if m]
     print("assessment on patient screens before signing:", bad or "none")
     assert not bad

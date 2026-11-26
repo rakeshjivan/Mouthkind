@@ -119,7 +119,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
 
       <section className="clin-sec">
         <h3>Patient-reported</h3>
-        <p><b>SIP-SCORE:</b> {f.sips.length ? f.sips.slice(-6).map((s) => `${s.sip} (${sipLevel(s.sip).label.toLowerCase()}, ${fmtShort(s.ts)})`).join(", ") : "none recorded"}.</p>
+        <p><b>Dry mouth assessment (Summated Xerostomia Inventory, 5–15):</b> {f.sips.length ? f.sips.slice(-6).map((s) => `${s.sip} (${sipLevel(s.sip).label.toLowerCase()}, ${fmtShort(s.ts)})`).join(", ") : "none recorded"}.</p>
         <p><b>Saliva pH:</b> {f.phs.length ? f.phs.slice(-6).map((p) => `${p.ph.toFixed(1)} (${fmtShort(p.ts)})`).join(", ") : "none recorded"}.{f.phs.length > 0 && ` Latest zone: ${phZone(f.phs.at(-1).ph).label.toLowerCase()}.`}</p>
         <p><b>Mouth diary, last 4 weeks:</b> {f.recent.length ? `${f.recent.length} ${f.recent.length === 1 ? "entry" : "entries"}; average dryness ${f.dryAvg ?? "–"}/10, pain ${f.painAvg ?? "–"}/10.` : "no entries."}</p>
         {f.flags.length > 0 && <ul className="clin-flags">{f.flags.map((x) => <li key={x}>{x}</li>)}</ul>}

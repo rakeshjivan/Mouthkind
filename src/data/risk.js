@@ -352,7 +352,7 @@ export function riskAdvice(result, answers = {}) {
   const medPts = result.factors.filter((f) => f.q === "meds" || f.q === "medTypes").reduce((s, f) => s + f.pts, 0);
   const out = [];
   if (result.band.lo >= 10)
-    out.push({ id: "track", title: "Check how dry your mouth actually is", body: "Risk factors don't always mean symptoms. The five-question dry mouth score (SIP) shows how much dryness is affecting you, and tracking it shows whether it's changing." });
+    out.push({ id: "track", title: "Check how dry your mouth actually is", body: "Risk factors don't always mean symptoms. The five-question dry mouth assessment shows how much dryness is affecting you, and tracking it shows whether it's changing." });
   if (has("conditions", "menopause") || has("medTypes", "hrt"))
     out.push({ id: "menopause", title: "Menopause and your mouth",
       body: has("medTypes", "hrt")

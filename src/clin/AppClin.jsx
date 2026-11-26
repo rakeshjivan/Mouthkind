@@ -1,6 +1,6 @@
 // ─── Mouthkind, clinician-in-the-loop (TGA option 3) ───────────────────────
 // The full app's engine, unchanged, with its output moved to a clinician view:
-//  • Patient side: questionnaires, the SIP-SCORE (number and the instrument's band), a mouth
+//  • Patient side: questionnaires, the dry mouth assessment (score and band), a mouth
 //    diary with fixed safety lines on the red-flag questions, pH and jaw records, the care
 //    team, When to worry, Learn and Shop. No risk band, factor or advice of the app's own.
 //  • Clinician view: patient-reported data, the referenced assessment and the plan options,
@@ -51,7 +51,7 @@ const ABOUT = (
   <details className="panel about">
     <summary><h2 className="panel-title">About Mouthkind</h2><Icon name="chev" size={18} /></summary>
     <p><strong>What it's for.</strong> {PURPOSE}</p>
-    <p><strong>How the questions work.</strong> Your answers go to your dentist or care team, who use them to choose your plan. The dry mouth score is the GC SIP-SCORE: the five questions of the Summated Xerostomia Inventory, a validated measure of dry mouth symptoms (Thomson et al. 2011), added up by its fixed rules to a score from 5 to 15, with the SIP-SCORE's own symptom bands.</p>
+    <p><strong>How the questions work.</strong> Your answers go to your dentist or care team, who use them to choose your plan. The dry mouth assessment is five questions from the Summated Xerostomia Inventory, a validated measure of dry mouth symptoms (Thomson et al. 2011), added up by its fixed rules to a score from 5 to 15. Your first one is your baseline, and later ones are compared with it.</p>
     <p><strong>Who made it.</strong> Dr Rakesh Jivan, a dentist. He is Scientific Affairs Manager at GC Australasia, which makes GC Tooth Mousse™, GC Tooth Mousse™ Plus, GC Dry Mouth Gel and GC Saliva-Check BUFFER. Products appear in your plan only when your professional chooses them.</p>
     <p><strong>Where the information comes from.</strong> Guidelines and studies are listed under "Sources" on each topic.</p>
     <p><strong>Your privacy.</strong> Everything stays on this device. Nothing is sent anywhere unless you choose to share or back it up.</p>
@@ -180,8 +180,8 @@ export default function AppClin() {
         ])}
       </nav>
 
-      {sheet === "risk" && <RiskFlow last={risk} model={{ ...dryModel(fromProfile), Result: (p) => <SavedForDentist {...p} what="Dry mouth questions" /> }} next={next} onClose={close} onSave={addEntry} />}
-      {sheet === "riskresult" && risk && <SavedForDentist entry={risk} what="Dry mouth questions" onClose={close} onRedo={() => setSheet("risk")} />}
+      {sheet === "risk" && <RiskFlow last={risk} model={{ ...dryModel(fromProfile), Result: (p) => <SavedForDentist {...p} what="Dry mouth risk questions" /> }} next={next} onClose={close} onSave={addEntry} />}
+      {sheet === "riskresult" && risk && <SavedForDentist entry={risk} what="Dry mouth risk questions" onClose={close} onRedo={() => setSheet("risk")} />}
       {sheet === "decay" && <DecayFlow last={decay} ctx={decayCtx} next={next} onClose={close} onSave={addEntry} Result={(p) => <SavedForDentist {...p} what="Tooth decay questions" />} />}
       {sheet === "decayresult" && decay && <SavedForDentist entry={decay} what="Tooth decay questions" onClose={close} onRedo={() => setSheet("decay")} />}
       {sheet === "freq" && (

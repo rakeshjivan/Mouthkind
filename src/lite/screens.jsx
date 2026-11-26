@@ -24,7 +24,7 @@ const diaryOf = (entries) => entries.filter((e) => e.kind === "daily").sort((a, 
 /** Setting up: three steps, the last two optional. */
 export function liteSetup(profile = {}, entries = []) {
   const steps = [
-    { id: "sip", label: "Your first dry mouth score", sheet: "sip", done: sipsOf(entries).length > 0 },
+    { id: "sip", label: "Your first dry mouth assessment (your baseline)", sheet: "sip", done: sipsOf(entries).length > 0 },
     { id: "team", label: "Your care team's numbers", sheet: "careteam", done: !!profile.teamAsked },
     { id: "routine", label: "Your daily routine", sheet: "routine", done: !!profile.routineAsked },
   ];
@@ -73,7 +73,7 @@ export function Today({ profile, entries, prefs, open, onMe, setup, routine, tic
         </button>
         {sipNext?.due && (
           <button type="button" className="lite-due" onClick={() => open("sip")}>
-            <strong>Dry mouth score</strong><span>Due today</span><Icon name="chev" size={16} />
+            <strong>Dry mouth assessment</strong><span>Due today</span><Icon name="chev" size={16} />
           </button>
         )}
         {routine.length ? (<>
@@ -164,11 +164,11 @@ export function Records({ entries, open, onDelete }) {
       </section>
 
       <section className="panel">
-        <div className="panel-h"><h2>Dry mouth score</h2><button className="link-btn" onClick={() => open("sip")}>Score now</button></div>
+        <div className="panel-h"><h2>Dry mouth assessment</h2><button className="link-btn" onClick={() => open("sip")}>Start</button></div>
         {sips.length ? (<>
           <p className="big-read"><strong>{sips.at(-1).sip}</strong> out of 15 · {sipLevel(sips.at(-1).sip).label.toLowerCase()}</p>
           {sips.length > 1 && <p className="panel-foot">{sips.slice(-8).map((s) => `${fmtShort(s.ts)}: ${s.sip}`).join(" · ")}</p>}
-          <p className="panel-foot">SIP-SCORE, from the five questions of the Summated Xerostomia Inventory: 5 (no dryness) to 15.</p>
+          <p className="panel-foot">Dry mouth assessment: five questions from the Summated Xerostomia Inventory, 5 (no dryness) to 15.</p>
         </>) : <p className="soft-note">No scores yet.</p>}
       </section>
 
@@ -188,8 +188,8 @@ export function Records({ entries, open, onDelete }) {
       {(sips.length > 0 || phs.length > 0) && (<>
         <h2 className="list-h">Delete a result</h2>
         <ul className="lite-del">{[...sips, ...phs].sort((a, b) => b.ts - a.ts).slice(0, 30).map((e) => (
-          <li key={e.id}><span>{fmtDate(e.ts)} · {e.sip != null ? `Dry mouth score ${e.sip}` : `pH ${e.ph.toFixed(1)}`}</span>
-            <button className="link-btn danger-text" onClick={() => onDelete([e.id])} aria-label={`Delete ${e.sip != null ? "dry mouth score" : "pH result"} from ${fmtDate(e.ts)}`}><Icon name="trash" size={16} /></button></li>))}</ul>
+          <li key={e.id}><span>{fmtDate(e.ts)} · {e.sip != null ? `Dry mouth assessment ${e.sip}/15` : `pH ${e.ph.toFixed(1)}`}</span>
+            <button className="link-btn danger-text" onClick={() => onDelete([e.id])} aria-label={`Delete ${e.sip != null ? "dry mouth assessment" : "pH result"} from ${fmtDate(e.ts)}`}><Icon name="trash" size={16} /></button></li>))}</ul>
       </>)}
     </div>
   );
@@ -213,7 +213,7 @@ export function LiteSummary({ entries, profile, onClose }) {
             <tbody>{diary.map((d) => <tr key={d.id}><td>{fmtDate(d.ts)}</td><td>{yn(d.dryness)}</td><td>{yn(d.pain)}</td><td>{yn(d.eat)}</td><td>{yn(d.sores)}</td>
               <td>{teethFlags(d).map((v) => TEETH_FLAGS.find((f) => f.v === v)?.label).join(", ") || "—"}</td></tr>)}</tbody></table></div> : <p>None recorded.</p>}
         </section>
-        <section><h2>SIP-SCORE (5–15)</h2>
+        <section><h2>Dry mouth assessment (5–15)</h2>
           {sips.length ? <table><thead><tr><th>Date</th><th>Score</th><th>Recall</th></tr></thead>
             <tbody>{sips.map((s) => <tr key={s.id}><td>{fmtDate(s.ts)}</td><td>{s.sip}</td><td>{s.recall ? freqFor(s.recall).recall : "Last two weeks"}</td></tr>)}</tbody></table> : <p>None recorded.</p>}
           {sips[0]?.items && <p className="rep-foot">Latest answers: {SIP_QUESTIONS.map((q, i) => `${q} ${SIP_OPTIONS.find((o) => o.v === sips[0].items[i])?.label}`).join("; ")}.</p>}

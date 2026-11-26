@@ -58,7 +58,7 @@ export function Gauge({ score }) {
   const angle = 180 - ((at + 0.5) / 3) * 180;
   return (
     <svg viewBox="0 0 300 178" className="gauge" role="img"
-      aria-label={lvl ? `Dry mouth score: ${lvl.label.toLowerCase()}` : "No dry mouth score yet"}>
+      aria-label={lvl ? `Dry mouth assessment: ${lvl.full.toLowerCase()}` : "No dry mouth assessment yet"}>
       {SIP_LEVELS.map((l, i) => (
         <path key={l.id} d={arc(R, i / 3 + (i ? 0.006 : 0), (i + 1) / 3 - (i < 2 ? 0.006 : 0))}
           stroke={lvl ? l.color : "var(--dim)"} strokeWidth={SW} fill="none"

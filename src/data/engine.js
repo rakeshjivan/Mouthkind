@@ -388,7 +388,7 @@ const RULES = [
     title: T(m, "Ask your dentist for a saliva test", "Ask the dentist for a saliva test"),
     body: "A pH strip shows how acidic your saliva is at rest. Your dentist can also test how much saliva you make when you chew, and how well it fights acid, for example with GC Saliva-Check BUFFER. The results show how much extra protection your teeth need.",
     because: [
-      sipNow(m) >= 8 ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`
+      sipNow(m) >= 8 ? `Your dry mouth assessment shows ${sipLevel(sipNow(m)).full.toLowerCase()}.`
         : ["flag", "watch"].includes(m.phPat.level) ? "Some of your saliva results are acidic."
         : m.rtHN ? "Radiotherapy to the head or neck reduces saliva."
         : m.sjogren ? "Sjögren's reduces saliva."
@@ -502,7 +502,7 @@ const RULES = [
   (m) => sipNow(m) >= 11 && (m.rtHN || m.sjogren) && answered(m, "gelTried") === "meh" && {
     id: "sialogogue", pri: 64, title: "Ask your doctor about a saliva-stimulating medicine",
     body: "Pilocarpine can help when the salivary glands still work a little. It needs a prescription and isn't suitable for everyone — your doctor will check.",
-    because: [`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`, "A saliva gel hasn't helped enough.", m.rtHN ? "You've had radiotherapy to the head or neck." : "You have Sjögren's."],
+    because: [`Your dry mouth assessment shows ${sipLevel(sipNow(m)).full.toLowerCase()}.`, "A saliva gel hasn't helped enough.", m.rtHN ? "You've had radiotherapy to the head or neck." : "You have Sjögren's."],
     refs: m.rtHN ? ["mercadante2021"] : ["ramosCasals2020"],
   },
   // Saliva gel: try one, or use it better.
@@ -512,7 +512,7 @@ const RULES = [
     const dry = sipNow(m) >= 8;
     if (!(dry || dryingTx(m)) || m.usedNow.has("gc-dmg") || a === "helps") return;
     const night = answered(m, "dryTime") === "night";
-    const because = [dry ? `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`
+    const because = [dry ? `Your dry mouth assessment shows ${sipLevel(sipNow(m)).full.toLowerCase()}.`
       : "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth, and a moist mouth is more comfortable and heals better."];
     if (night) because.push("Your mouth is driest at night.");
     if (a === "meh") return { id: "gel", pri: 50, title: "Get more from your saliva gel", body: "Use a pea-sized amount spread over the tongue, cheeks and gums with a clean finger — before meals, at bedtime and whenever you need it. Water alone wears off within minutes.", because: [...because, "You said gel didn't help much."], refs: ["nuchit2020"], products: ["gc-dmg"] };
@@ -540,7 +540,7 @@ const RULES = [
     if (pts < 8) return;
     const names = m.named.map((x) => x.g).slice(0, 3);
     const because = [names.length ? `You take ${list(names)}, ${names.length === 1 ? "which is" : "which are"} known to dry the mouth.` : `Medicines make up ${pts} points of your dry mouth risk.`];
-    if (sipNow(m) >= 8) because.push(`Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}.`);
+    if (sipNow(m) >= 8) because.push(`Your dry mouth assessment shows ${sipLevel(sipNow(m)).full.toLowerCase()}.`);
     return { id: "medReview", pri: sipNow(m) >= 8 ? 61 : 44, title: "Ask for a medicine review", body: "Your pharmacist or GP may be able to change the dose, timing or type of a medicine that dries the mouth. Take your list. Never stop a medicine without asking first.", because, refs: ["wolff2017"] };
   },
   // Inhalers.
@@ -566,7 +566,7 @@ const RULES = [
     const best = m.insights.find((i) => i.change <= -2);
     return best && { id: `keep-${best.v}`, pri: 57, title: `Keep going with ${best.label}`,
       body: "Your own results suggest it's helping. Other things change too, so keep checking.",
-      because: [`Your dry mouth score averaged ${best.before} before you started and ${best.after} since.`] };
+      because: [`Your dry mouth assessment score averaged ${best.before} before you started and ${best.after} since.`] };
   },
   // Water.
   (m) => fluidLimit(m) && { id: "kidneyFluid", pri: 62, title: "Keep your mouth moist within your fluid limit",
@@ -577,7 +577,7 @@ const RULES = [
     because: ["You drink less than 4 glasses of water a day."] },
   // Getting started.
   (m) => !m.risk && { id: "startRisk", pri: 35, title: "Do your dry mouth risk check", body: "Two minutes on your health, medicines and habits. It shapes everything else the app suggests.", because: ["The app doesn't know your risk factors yet."], act: { label: "Start", open: "risk" } },
-  (m) => !m.sip && { id: "startSip", pri: 33, title: "Do your first dry mouth check", body: "Five quick questions (the GC SIP-SCORE) show how much dryness is affecting you.", because: ["You haven't scored your dry mouth yet."], act: { label: "Check now", open: "sip" } },
+  (m) => !m.sip && { id: "startSip", pri: 33, title: "Do your first dry mouth assessment", body: "Five quick questions show how much dryness is affecting you. Your first one is your baseline.", because: ["You haven't scored your dry mouth yet."], act: { label: "Check now", open: "sip" } },
 ];
 
 // Advice from the two risk checks, folded into the one plan. Each maps to the plan
@@ -602,7 +602,7 @@ function checkAdvice(m) {
     decayPlan(r, m.decayE.answers, { dry: dryOrCancer, acid: acidic(m) }).forEach((a, i) => out.push({ ...a, id: `decay.${a.id}`, pri: order(a, i),
       because: [r.noTeeth ? "You don't have natural teeth."
         : (a.id === "tmp" || a.id === "tm") && r.band.id === "low" && dryOrCancer
-          ? (dryingTx(m) ? "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth and leave teeth less protected." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`)
+          ? (dryingTx(m) ? "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth and leave teeth less protected." : `Your dry mouth assessment shows ${sipLevel(sipNow(m)).full.toLowerCase()}, so your teeth have less protection from saliva.`)
         : a.id === "tmp" && r.band.id === "low" && acidic(m) ? "Your saliva has been acidic, so your teeth need help repairing."
         : a.id === "tmp" && r.band.id === "low" ? "Optional, for extra protection: calcium, phosphate and fluoride for your teeth."
         : `Your tooth decay risk is ${r.band.label.toLowerCase()}.`] }));
@@ -611,7 +611,7 @@ function checkAdvice(m) {
     // No tooth decay check yet (it's optional after setup): a dry mouth or cancer treatment still
     // gets the daily Tooth Mousse routine, assuming natural teeth until the check says otherwise.
     const r = scoreDecay({ teeth: "yes" });
-    const why = dryingTx(m) ? "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth and leave teeth less protected." : acidic(m) && sipNow(m) < 8 ? "Your saliva has been acidic, so your teeth need help repairing." : `Your dry mouth score is ${sipLevel(sipNow(m)).label.toLowerCase()}, so your teeth have less protection from saliva.`;
+    const why = dryingTx(m) ? "Chemotherapy, radiotherapy and immunotherapy commonly dry the mouth and leave teeth less protected." : acidic(m) && sipNow(m) < 8 ? "Your saliva has been acidic, so your teeth need help repairing." : `Your dry mouth assessment shows ${sipLevel(sipNow(m)).full.toLowerCase()}, so your teeth have less protection from saliva.`;
     decayPlan(r, { teeth: "yes" }, { dry: true }).filter((a) => a.id === "tmp" || a.id === "tm")
       .forEach((a) => out.push({ ...a, id: `decay.${a.id}`, pri: a.id === "tmp" ? 70 : 65, because: [why] }));
   }
@@ -732,7 +732,7 @@ export function summary(m) {
   }
   if (m.sip) {
     const t = m.rise >= 2 ? `, drier than on ${fmt(m.prevSip.ts)}` : m.rise <= -2 ? `, less dry than on ${fmt(m.prevSip.ts)}` : "";
-    s.push(`${sipLevel(m.sip.sip).label} dry mouth score${t}.`);
+    s.push(`Dry mouth assessment: ${sipLevel(m.sip.sip).full.toLowerCase()}${t}.`);
   }
   if (m.phPat.level === "flag" || m.phPat.level === "watch") s.push(m.phPat.n === 1 ? "Your last pH test was acidic." : `Saliva acidic in ${m.phPat.acid} of the last ${m.phPat.n} pH tests.`);
   else if (m.phPat.level === "ok") s.push(m.phPat.n === 1 ? "Saliva pH healthy in the last test." : "Saliva pH healthy in recent tests.");

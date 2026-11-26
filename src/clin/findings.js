@@ -63,7 +63,7 @@ export function findingsText(profile = {}, entries = [], plan = null) {
   } else L.push("Not done.");
   L.push("");
 
-  L.push("SIP-SCORE (5 to 15)");
+  L.push("DRY MOUTH ASSESSMENT (Summated Xerostomia Inventory, 5 to 15)");
   if (f.sips.length) f.sips.slice(-8).forEach((s) => L.push(`- ${fmtDate(s.ts)}: ${s.sip}, ${sipLevel(s.sip).label}`));
   else L.push("None recorded.");
   L.push("");

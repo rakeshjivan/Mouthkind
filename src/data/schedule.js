@@ -32,7 +32,7 @@ export function dueWords(n) {
  * its own notifications.
  */
 const ICS_KIND = {
-  sip: { uid: "sip", summary: "Mouthkind: dry mouth check", description: "Five quick questions (SIP score), and a pH strip if you use them.", alarm: "Time for your dry mouth check" },
+  sip: { uid: "sip", summary: "Mouthkind: dry mouth check", description: "Your dry mouth assessment (five quick questions), and a pH strip if you use them.", alarm: "Time for your dry mouth check" },
   log: { uid: "log", summary: "Mouthkind: log your mouth today", description: "Dryness, pain and anything new. Under a minute: open Mouthkind and tap +.", alarm: "Time to log how your mouth feels" },
 };
 export function reminderIcs(everyDays, hour = 9, from = Date.now(), kind = "sip") {

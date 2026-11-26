@@ -32,7 +32,7 @@ async def main():
     await dlg.get_by_role("button", name="Woman or female").click(); await pg.wait_for_timeout(600)
     await pg.screenshot(path=S+"2-risk-result.png")
     nxt=dlg.locator(".sheet-foot .btn.primary"); print("risk next:", await nxt.inner_text())
-    assert "Dry mouth score" in await nxt.inner_text()
+    assert "Dry mouth assessment" in await nxt.inner_text()
     await nxt.click(); await pg.wait_for_timeout(400)
     # frequency then SIP
     await pg.screenshot(path=S+"4-freq.png")

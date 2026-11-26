@@ -1,5 +1,5 @@
 // ─── Building the plan ─────────────────────────────────────────────────────
-// The baseline: the dry mouth risk check, the dry mouth score and the tooth decay check,
+// The baseline: the dry mouth risk check, the dry mouth assessment and the tooth decay check,
 // then the care team's numbers (skippable) and a few questions, then the plan. The pH
 // test is asked for afterwards and can be skipped by anyone without strips.
 // After that, questions never pop up; any new ones wait behind an optional
@@ -8,7 +8,7 @@ import { careContacts } from "./careTeam.js";
 
 export const SETUP_STEPS = [
   { id: "risk", label: "Dry mouth risk check", short: "Dry mouth risk", sheet: "risk", mins: 2 },
-  { id: "sip", label: "Dry mouth score", short: "Dry mouth score", sheet: "sip", mins: 1 },
+  { id: "sip", label: "Dry mouth assessment", short: "Dry mouth assessment", sheet: "sip", mins: 1 },
   { id: "decay", label: "Tooth decay check", short: "Tooth decay check", sheet: "decay", mins: 2 },
   { id: "team", label: "Your care team's numbers", short: "Care team numbers", sheet: "careteam", mins: 1, optional: true },
   { id: "questions", label: "A few questions about you", short: "A few questions", sheet: "setupq", mins: 1 },

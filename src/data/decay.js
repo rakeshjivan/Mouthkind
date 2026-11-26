@@ -213,10 +213,10 @@ function contextFactors(ctx) {
   const known = ctx.rtHN || ctx.sjogren;
   if (known) { /* dryness already counted through the cause */ }
   else if (ctx.sip != null && ctx.sip >= 11)
-    out.push({ q: "ctx", v: "sip", label: "High dry mouth score", pts: 8, dryStrong: true, from: "sip",
+    out.push({ q: "ctx", v: "sip", label: "Dry mouth assessment: moderate to severe or worse", pts: 8, dryStrong: true, from: "sip",
       why: "Your dry mouth check shows a lot of dryness. Less saliva means much less protection from decay.", refs: ["featherstone2021"] });
   else if (ctx.sip != null && ctx.sip >= 8)
-    out.push({ q: "ctx", v: "sip", label: "Moderate dry mouth score", pts: 4, from: "sip",
+    out.push({ q: "ctx", v: "sip", label: "Dry mouth assessment: mild to moderate", pts: 4, from: "sip",
       why: "Your dry mouth check shows some dryness, so your saliva protects your teeth less.", refs: ["featherstone2021"] });
   else if (ctx.sip == null && (ctx.dryRisk === "high" || ctx.dryRisk === "veryhigh"))
     out.push({ q: "ctx", v: "dryrisk", label: "High risk of dry mouth", pts: 4, from: "risk",

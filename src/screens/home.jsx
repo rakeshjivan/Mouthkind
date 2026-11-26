@@ -82,7 +82,7 @@ export function CheckBoxes({ profile, entries, prefs, open, planned = true }) {
           sub={d ? (d.noTeeth ? "Denture care" : `${d.factors.length} risk factor${d.factors.length === 1 ? "" : "s"}`) : "Food, cleaning and your teeth"}
           status={d ? (planned && ["high", "veryhigh"].includes(d.band.id) ? "Covered in your plan" : "See result") : "Check now · 2 min"} due={!d}
           onClick={() => open(d ? "decayresult" : "decay")} />
-        <Box kind="sip" title="Dry mouth score" icon={<Icon name="drop" size={22} />}
+        <Box kind="sip" title="Dry mouth assessment" icon={<Icon name="drop" size={22} />}
           value={sip ? sipLevel(sip.sip).label : null} valueTone={sip ? calm(sipLevel(sip.sip).tone) : null}
           sub={sip ? (trend && !empty ? trend.label : `Checked ${fmtShort(sip.ts)}`) : "5 quick questions"}
           status={sipNext ? when(sipNext) : "Not done yet"} due={!sip || sipNext?.due}
@@ -124,7 +124,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
   const progress = (() => {
     if (sips.length >= 2) {
       const a = sipLevel(sips[0].sip), z = sipLevel(sip.sip);
-      if (a.id !== z.id) return { good: z.lo < a.lo, text: `Your dry mouth score has ${z.lo < a.lo ? "improved" : "gone up"} from ${a.label.toLowerCase()} to ${z.label.toLowerCase()} since you started.` };
+      if (a.id !== z.id) return { good: z.lo < a.lo, text: `Your dry mouth assessment has ${z.lo < a.lo ? "improved" : "gone up"} from ${a.label.toLowerCase()} to ${z.label.toLowerCase()} since you started.` };
     }
     const logs = entries.filter((e) => e.kind === "daily" && e.dryness != null).sort((x, y) => x.ts - y.ts);
     if (logs.length >= 8) {
@@ -148,7 +148,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
   const reviewDue = clin?.plan && Date.now() >= clin.plan.review;
   const alert = clin ? (building ? null
     : reviewDue ? { tone: "accent", title: "Your plan review is due", sub: `Book in with ${clin.plan.by.name} or your dentist`, act: "Call", go: () => open("call") }
-    : sipNext?.due ? { tone: "accent", title: "Your dry mouth score is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
+    : sipNext?.due ? { tone: "accent", title: "Your dry mouth assessment is due", sub: "5 quick questions", act: "Start", go: () => open("sip") }
     : !phSkip && (phNext?.due || !ph) ? { tone: "accent", title: ph ? "Your pH test is due" : "Record your saliva pH", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : null)
     : triage?.level === "now" ? { tone: "red", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
@@ -156,7 +156,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
     : building ? null
     : pat.level === "flag" ? { tone: "amber", title: "Your saliva has been acidic", sub: `${pat.acid} of your last ${pat.n} pH tests. Show your dentist.`, act: "What helps", go: () => go("advice", "plan") }
     : action ? { tone: "amber", title: action.title, sub: action.because?.[0], act: "What to do", go: () => onWhy(action.id) }
-    : sipNext?.due ? { tone: "accent", title: "Your dry mouth score is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
+    : sipNext?.due ? { tone: "accent", title: "Your dry mouth assessment is due", sub: "5 quick questions", act: "Start", go: () => open("sip") }
     : !phSkip && (phNext?.due || !ph) ? { tone: "accent", title: ph ? "Your pH test is due" : "Test your saliva pH", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : null;
   // The log: daily during cancer treatment, weekly otherwise.

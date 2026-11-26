@@ -77,7 +77,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
     const b = sipLevel(done.sip);
     const diff = previous ? done.sip - previous.sip : null;
     return (
-      <Sheet title="Dry mouth score" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
+      <Sheet title="Dry mouth assessment" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className="sip-result">
           <Gauge score={done.sip} />
           <p className="sip-num">{plain ? `${done.sip} out of 15` : b.label}</p>
@@ -101,7 +101,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
     onSave(e); setDone(e);
   };
   return (
-    <Sheet title="Dry mouth score" onClose={onClose}
+    <Sheet title="Dry mouth assessment" onClose={onClose}
       progress={intro ? null : { of: 5, at: k, label: `${k + 1} of 5` }}
       footer={intro ? <button className="btn primary big" onClick={() => setK(0)}>Start</button>
         : k > 0 ? <button className="btn ghost" onClick={() => setK(k - 1)}><Icon name="back" size={18} /> Back</button> : null}>
@@ -109,7 +109,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
         <div className="intro">
           <div className="intro-mark dry"><Icon name="drop" size={28} /></div>
           <h2 className="q">Five quick questions</h2>
-          <p className="lede">This is the {plain ? "SIP-SCORE" : "GC SIP-SCORE"}. Think about {f.days === 1 ? "today" : f.days === 7 ? "the last week" : "the last two weeks"}. Your result shows as low, moderate or high.</p>
+          <p className="lede">Think about {f.days === 1 ? "today" : f.days === 7 ? "the last week" : "the last two weeks"}. You'll get a score from 5 to 15.{previous ? "" : " Your first one is your baseline, and later ones are compared with it."}</p>
         </div>
       ) : (<>
         <p className="eyebrow-q">{f.recall}</p>

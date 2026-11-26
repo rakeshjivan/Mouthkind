@@ -42,7 +42,7 @@ const ABOUT = (
     <summary><h2 className="panel-title">About Mouthkind</h2><Icon name="chev" size={18} /></summary>
     <p><strong>What it is.</strong> A diary and record of your mouth, general information about dry mouth and mouth care, and your care team's numbers in one place. It doesn't diagnose, predict or recommend treatment, and it doesn't recommend or sell any product. Your dentist, doctor or pharmacist can tell you what suits you.</p>
     <p><strong>Who made it.</strong> Dr Rakesh Jivan, a dentist. He works for GC Australasia, a dental products company. To keep the information independent, Mouthkind names no brands and has no links to buy anything.</p>
-    <p><strong>The dry mouth score.</strong> The SIP-SCORE uses the five questions of the Summated Xerostomia Inventory, a published measure of dry mouth, added up by its fixed rules.</p>
+    <p><strong>The dry mouth assessment.</strong> Five questions from the Summated Xerostomia Inventory, a validated measure of dry mouth symptoms, added up by its fixed rules to a score from 5 to 15.</p>
     <p><strong>Where the information comes from.</strong> Guidelines and studies are listed under "Sources" on each topic.</p>
     <p><strong>Your privacy.</strong> Everything stays on this device. Nothing is sent anywhere unless you choose to share or back it up.</p>
   </details>
