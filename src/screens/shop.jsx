@@ -72,7 +72,7 @@ export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
     <div className="screen">
       <header className="hero"><h1 className="display">Shop</h1>
         <p className="lede">Products that help a dry or acidic mouth and protect your teeth.</p>
-        <p className="soft-note">GC products are made by GC Australasia, where the app's author works. Other brands are listed too.</p></header>
+</header>
       {SHOP_URL ? (
         <p className="soft-note shop-soon">Available in Australia. Each button opens the seller's website.</p>
       ) : (
@@ -82,6 +82,8 @@ export function Shop({ forYou = [], mineLabel = "Recommended for you" }) {
       {mine.map((p) => <ShopItem key={p.id} p={p} />)}
       {mine.length > 0 && rest.length > 0 && <h2 className="list-h">Other products</h2>}
       {rest.map((p) => <ShopItem key={p.id} p={p} />)}
+      {/* Disclosure of interest: kept, at the foot of the page. */}
+      <p className="foot-note">GC products are made by GC Australasia, where the app's author works.</p>
     </div>
   );
 }
