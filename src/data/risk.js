@@ -18,8 +18,9 @@ import { medicineById } from "./medicines.js";
 // Raoof 2023 (OSA, CPAP, MAD); Sunavala-Dossabhoy 2022 (radioiodine);
 // Usmani 2019 (bladder antimuscarinics); Shiboski 2017 (Sjögren's);
 // Villa 2015 (causes overview).
-// `limited: true` = plausible and commonly listed, but no primary source yet
-// checked for this app. Shown in the plan for clinical review.
+// Every scored answer cites a primary source. Answers recorded for context but not
+// scored (heart disease, stroke, dementia, triptans) dry the mouth through their
+// medicines, which are counted on the medicine screens.
 // Mercadante 2021 (cancer therapy).
 
 export const RISK_VERSION = 3; // 3: "Kidney disease or dialysis" split into dialysis and kidney disease
@@ -47,7 +48,7 @@ export const MED_PURPOSES = [
   { v: "stomach", label: "Nausea, travel sickness or stomach cramps", g: "gut" },
   { v: "adhd", label: "ADHD", g: "stimulant" },
   { v: "parkinsons", label: "Parkinson's", g: "parkinson" },
-  { v: "migraine", label: "Migraine", g: "migraine" },
+  { v: "migraine", label: "Migraine", g: null },
   { v: "muscle", label: "Muscle spasm", g: "relaxant" },
   { v: "acne", label: "Acne (isotretinoin)", g: "acne" },
   { v: "smoking", label: "Quitting smoking", g: "smoking" },
@@ -100,18 +101,18 @@ export const RISK_QUESTIONS = [
       { v: "diabetes", label: "Diabetes", pts: 6, why: "Dry mouth is common in diabetes, especially when blood sugar runs high.", refs: ["huang2025", "vonbultz2007"] },
       { v: "dialysis", label: "Kidney failure, on dialysis", pts: 10, why: "About half of people on haemodialysis have a dry mouth (28–79% across studies), from fluid limits, the medicines and the kidney disease itself.", refs: ["kumar2021", "laheij2021"] },
       { v: "kidney", label: "Kidney disease, not on dialysis", pts: 5, why: "Saliva flow is lower in chronic kidney disease, even before dialysis, and the medicines for it often dry the mouth.", refs: ["oyetola2015", "laheij2021"] },
-      { v: "heart", label: "Heart disease or high blood pressure", as: "Heart disease or high blood pressure", pts: 2, limited: true, why: "Mostly through the medicines used to treat it — fluid tablets and some blood pressure tablets reduce saliva." },
-      { v: "stroke", label: "Stroke", pts: 3, limited: true, why: "A stroke can affect swallowing and mouth control, and often brings several new medicines." },
+      { v: "heart", label: "Heart disease or high blood pressure", pts: 0 },
+      { v: "stroke", label: "Stroke", pts: 0 },
       { v: "parkinsons", label: "Parkinson's disease", pts: 4, why: "Dry mouth is common in Parkinson's, partly from the medicines used to treat it.", refs: ["martimbianco2021"] },
-      { v: "dementia", label: "Dementia or Alzheimer's", pts: 4, limited: true, why: "Drinking less and the medicines used make a dry mouth more likely." },
+      { v: "dementia", label: "Dementia or Alzheimer's", pts: 0 },
       { v: "mood", label: "Depression or anxiety", pts: 4, why: "Anxiety reduces saliva, and the medicines for these conditions often do too.", refs: ["villa2015", "wolff2017"] },
-      { v: "thyroid", label: "Thyroid disease", pts: 2, why: "Thyroid problems are linked with lower saliva flow.", refs: ["naik2018"], limited: true },
+      { v: "thyroid", label: "Thyroid disease", pts: 2, why: "Thyroid problems are linked with lower saliva flow.", refs: ["naik2018", "aghahosseini2016", "bergdahl2001"] },
       { v: "hiv", label: "HIV", pts: 5, why: "HIV can affect the salivary glands, and dry mouth is common in people living with HIV.", refs: ["mkonyi2025", "vonbultz2007"] },
       { v: "hepc", label: "Hepatitis C", pts: 4, why: "Hepatitis C is linked with a Sjögren's-like dryness of the mouth and eyes.", refs: ["cacoub2017", "vonbultz2007"] },
       { v: "sarcoid", label: "Sarcoidosis", pts: 6, why: "Sarcoidosis can inflame the salivary glands.", refs: ["vonbultz2007"] },
       { v: "longcovid", label: "Long COVID", pts: 2, why: "Dry mouth and taste changes can linger after COVID-19.", refs: ["avais2025"] },
-      { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, limited: true, why: "Stomach acid wears teeth, and repeated vomiting can leave the mouth dry." },
-      { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, limited: true, why: "Vomiting, restricted fluids and some medicines can dry the mouth and wear the teeth." },
+      { v: "reflux", label: "Reflux, or vomiting often", as: "Reflux or frequent vomiting", pts: 2, acid: true, why: "Stomach acid wears teeth, and long-standing reflux lowers the pH of saliva.", refs: ["preetha2015"] },
+      { v: "eating", label: "An eating disorder, now or in the past", as: "Eating disorder", pts: 4, acid: true, why: "Saliva flow is lower and a dry mouth more common with bulimia, and vomiting wears the teeth.", refs: ["dynesen2008", "rytomaa1998"] },
       { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 10, why: "More than half of pregnant women report a dry mouth, and gums become more sensitive.", refs: ["nazir2026"] },
       { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 12, acid: true, why: "More than half of pregnant women report a dry mouth, and vomiting adds to it: it brings stomach acid onto the teeth and can leave you dehydrated.", refs: ["nazir2026", "adaPregnancy"] },
       { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
@@ -154,7 +155,7 @@ export const RISK_QUESTIONS = [
       { v: "stimulant", label: "ADHD medicines", hint: "e.g. methylphenidate, dexamfetamine, lisdexamfetamine (Vyvanse)", pts: 4, why: "Stimulants and other ADHD medicines commonly cause dry mouth.", refs: ["wolff2017"] },
       { v: "parkinson", label: "Parkinson's medicines", hint: "e.g. levodopa, benztropine, pramipexole", pts: 5, why: "Several Parkinson's medicines reduce saliva.", refs: ["wolff2017"] },
       { v: "relaxant", label: "Muscle relaxants", hint: "e.g. baclofen, orphenadrine", pts: 3, why: "Some muscle relaxants reduce saliva.", refs: ["wolff2017"] },
-      { v: "migraine", label: "Migraine tablets (triptans)", hint: "e.g. sumatriptan, rizatriptan", pts: 2, why: "Triptans can cause a dry mouth.", refs: [], limited: true },
+      { v: "migraine", label: "Migraine tablets (triptans)", hint: "e.g. sumatriptan, rizatriptan", pts: 0 },
       { v: "cannabis", label: "Medicinal cannabis", hint: "THC or THC/CBD products", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
     ],
   },
@@ -198,7 +199,7 @@ export const RISK_QUESTIONS = [
   {
     id: "breathing", type: "many", section: "Sleep and breathing", text: "Do any of these apply to you?", none: "None of these",
     options: [
-      { v: "mouth", label: "I breathe through my mouth, day or night", as: "Mouth breathing", pts: 6, why: "Breathing through your mouth dries it out, especially overnight.", refs: [], limited: true },
+      { v: "mouth", label: "I breathe through my mouth, day or night", as: "Mouth breathing", pts: 6, why: "Breathing through your mouth dries it out, especially overnight.", refs: ["dawes2004"] },
       { v: "snore", label: "I snore, or have sleep apnoea", as: "Snoring or sleep apnoea", pts: 4, why: "Sleep apnoea is linked with waking up with a dry mouth.", refs: ["raoof2023"] },
       { v: "cpap", label: "I use a CPAP machine", as: "Using a CPAP machine", pts: 5, why: "Many CPAP users report a dry mouth, especially with mouth leaks.", refs: ["raoof2023"] },
       { v: "mad", label: "I wear a sleep apnoea or snoring splint", as: "Wearing a sleep apnoea splint", pts: 3, why: "Splints that hold the jaw forward can leave the mouth dry.", refs: ["raoof2023"] },
@@ -207,18 +208,16 @@ export const RISK_QUESTIONS = [
   {
     id: "habits", type: "many", section: "Everyday habits", text: "Do any of these apply to you?", none: "None of these",
     options: [
-      { v: "smoke", label: "I smoke", as: "Smoking", pts: 5, why: "Smoking is linked with a drier mouth and less saliva.", refs: [], limited: true },
-      { v: "vape", label: "I vape", as: "Vaping", pts: 4, why: "Vaping liquids draw moisture from the mouth.", refs: [], limited: true },
+      { v: "smoke", label: "I smoke", as: "Smoking", pts: 5, why: "Smokers make less saliva and report a dry mouth more often.", refs: ["rad2010", "nigar2022", "chaffee2026"] },
+      { v: "vape", label: "I vape", as: "Vaping", pts: 4, why: "Daily vaping is linked with a dry mouth almost twice as often.", refs: ["chaffee2026"] },
       { v: "cannabis", label: "I use cannabis, prescribed or not", as: "Cannabis use", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
-      { v: "alcohol", label: "I have more than 2 alcoholic drinks most days", as: "More than 2 alcoholic drinks most days", pts: 3, why: "Alcohol dries the mouth.", refs: [], limited: true },
-      { v: "caffeine", label: "I have more than 3 coffees, teas or energy drinks a day", as: "More than 3 caffeinated drinks a day", pts: 2, why: "Caffeine can add to a dry mouth.", refs: [], limited: true },
     ],
   },
   {
     id: "water", type: "one", section: "Everyday habits", text: "How much water do you drink on a normal day?",
     hint: "Count water and other drinks that aren't alcohol or caffeine.",
     options: [
-      { v: "low", label: "Less than 4 glasses", as: "Less than 4 glasses of water a day", pts: 4, why: "Not drinking enough leaves less fluid for saliva.", refs: [], limited: true },
+      { v: "low", label: "Less than 4 glasses", as: "Less than 4 glasses of water a day", pts: 4, why: "Being short of fluid lowers resting saliva flow.", refs: ["ito2026"] },
       { v: "mid", label: "4 to 7 glasses", pts: 0 },
       { v: "high", label: "8 glasses or more", pts: 0 },
     ],
@@ -372,8 +371,8 @@ export function riskAdvice(result, answers = {}) {
     out.push({ id: "nose", title: "Find out why you mouth-breathe", body: "A blocked nose, allergies or sleep apnoea are common causes. Your GP can check, and treating the cause helps the dryness." });
   if (has("habits", "smoke") || has("habits", "vape"))
     out.push({ id: "smoke", title: "Smoking and vaping", body: "Both dry the mouth. Quitting helps your saliva and your teeth — Quitline (13 78 48 in Australia, 0800 778 778 in New Zealand) is free." });
-  if (has("water", "low") || has("habits", "caffeine") || has("habits", "alcohol"))
-    out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day. Cut back on alcohol, and on caffeine if it dries your mouth, and use an alcohol-free mouthwash." });
+  if (has("water", "low"))
+    out.push({ id: "drink", title: "Drink more water", body: "Keep a water bottle nearby and sip through the day." });
   if (has("conditions", "pregnant") || has("conditions", "pregnantSick"))
     out.push({ id: "pregnant", title: "Looking after your mouth in pregnancy", body: "Tell your dentist you're pregnant — check-ups and most treatment are safe, and the second trimester is often the most comfortable time. Gums often swell and bleed more in pregnancy: keep brushing gently twice a day and clean between your teeth. Keep sweet snacks to mealtimes.", refs: ["adaPregnancy", "pbbTeeth"] });
   if (result.factors.some((f) => f.acid) || has("medTypes", "glp1"))

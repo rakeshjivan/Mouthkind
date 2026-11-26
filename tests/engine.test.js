@@ -118,13 +118,15 @@ test("after head and neck radiotherapy, tooth decay risk is very high even with 
   assert.equal(scoreDecay(clean, decayContext({ ageAns: "40" })).band.id, "low");
 });
 
-test("near-certain causes are very high; weak answers count at half", async () => {
+test("near-certain causes are very high; every scored answer has a source", async () => {
   const { scoreRisk } = await import("../src/data/risk.js");
   assert.equal(scoreRisk({ cancer: ["rt_hn"] }).band.id, "veryhigh");
   assert.equal(scoreRisk({ conditions: ["sjogren"] }).band.id, "veryhigh");
-  const r = scoreRisk({ habits: ["vape", "caffeine"], water: "low", sex: "f" });
+  const r = scoreRisk({ habits: ["vape"], water: "low", sex: "f" });
   assert.equal(r.band.id, "low");
-  assert.ok(r.factors.filter((f) => f.limited).every((f) => f.note));
+  assert.ok(r.factors.every((f) => !f.limited && f.refs.length));
+  // Recorded for context only: their medicines are what's counted.
+  assert.equal(scoreRisk({ conditions: ["heart", "stroke", "dementia"] }).score, 0);
 });
 
 test("allergies take Tooth Mousse and the gel out of the plan", () => {
