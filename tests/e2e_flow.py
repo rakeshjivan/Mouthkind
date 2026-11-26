@@ -12,7 +12,7 @@ async def main():
     dlg=pg.get_by_role("dialog"); btn=lambda n: dlg.get_by_role("button", name=n, exact=True)
     await pg.goto(BASE); await pg.wait_for_timeout(500)
     wl=pg.locator(".welcome")
-    await wl.get_by_role("button", name="Myself").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
+    await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
     await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)  # about you
     await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(400)
     await pg.screenshot(path=S+"1-home.png")

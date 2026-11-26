@@ -19,7 +19,7 @@ async def main():
     await pg.goto(BASE); await pg.wait_for_timeout(500)
     wl = pg.locator(".welcome")
     await text("welcome")
-    await wl.get_by_role("button", name="Myself").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
+    await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
     await text("welcome 2")
     await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
     await wl.get_by_role("button", name="Cancer treatment").first.click(); await pg.wait_for_timeout(200)

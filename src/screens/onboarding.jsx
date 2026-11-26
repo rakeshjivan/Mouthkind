@@ -44,8 +44,8 @@ export function Welcome({ profile, onDone }) {
           <p className="brand welcome-brand"><BrandMark size={22} />Mouthkind</p>
           <h1 className="display">Keep track of a dry mouth.</h1>
           <p className="lede">Record how your mouth feels, keep your results in one place, and share them with a health professional. Everything stays on this phone.</p>
-          <h2 className="q welcome-q">Who are you using Mouthkind for?</h2>
-          <Pick options={[{ v: false, label: "Myself" }, { v: true, label: "Someone I care for" }]} value={p.carer}
+          <h2 className="q welcome-q">Who is using Mouthkind?</h2>
+          <Pick options={[{ v: false, label: "Me" }, { v: true, label: "Someone I care for" }]} value={p.carer}
             onPick={(v) => set({ carer: v, ...(v ? { carerFor: p.firstName || p.carerFor || "" } : {}) })} />
         </>)}
 

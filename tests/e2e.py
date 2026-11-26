@@ -46,7 +46,7 @@ async def main():
         # First run: welcome
         await shot("00-welcome")
         wl = pg.locator(".welcome")
-        await wl.get_by_role("button", name="Myself").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
+        await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
         await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)  # about you (all optional)
         await wl.get_by_role("button", name="Medicines that dry my mouth").click()
         await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(300)
