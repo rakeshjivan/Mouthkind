@@ -1853,8 +1853,8 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .shop-sec { background: var(--card); border-radius: 14px; padding: 0 14px; margin: 8px 0; }
 .shop-sec > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; min-height: 48px; font-weight: 700; cursor: pointer; }
 .shop-sec > summary::-webkit-details-marker { display: none; }
-.shop-sec > summary svg { transition: transform .15s; color: var(--ink3); }
-.shop-sec[open] > summary svg { transform: rotate(90deg); }
+.shop-sec > summary > svg:last-child { transition: transform .15s; color: var(--ink3); }
+.shop-sec[open] > summary > svg:last-child { transform: rotate(90deg); }
 .shop-sec > p, .shop-sec > ul { margin: 0 0 12px; }
 .shop-list { list-style: none; padding: 0; display: grid; gap: 8px; }
 .shop-list li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; line-height: 1.45; }
@@ -1866,3 +1866,9 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .shop-item .shop-statement { margin: 10px 2px 0; }
 .shop-img .pimg { width: 108px; height: 108px; }
 .shop-img .pimg { background: #fff; }
+.shop-sec > summary > span, .shop-ifu-btn > span { display: inline-flex; align-items: center; gap: 8px; }
+.shop-warn-sec { background: var(--amberbg); border: 1.5px solid color-mix(in srgb, var(--amber) 45%, transparent); }
+.shop-warn-sec > summary span svg { color: var(--amber); }
+.shop-ifu-btn { display: flex; align-items: center; justify-content: space-between; min-height: 48px; font-weight: 700; color: var(--accent); text-decoration: none; }
+.shop-ifu-btn > svg { color: var(--ink3); }
+.shop-item .shop-buy { margin: 12px 0 0; }

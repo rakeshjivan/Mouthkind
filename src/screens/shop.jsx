@@ -8,8 +8,8 @@ import { ProductImage } from "../components/productImage.jsx";
 // Each product keeps one pastel, the same as its subject elsewhere in the app.
 const SHOP_TONE = { "gc-dmg": "green", "gc-tmp": "peach", "gc-tm": "amber", neutrafluor: "blue", "neutrafluor-plus": "rose", oranurse: "lilac", "sensodyne-brush": "green", "colgate-slimsoft": "amber", "colgate-gentle": "rose" };
 
-/** One product, laid out to read top to bottom: what it is, choose and buy, what it does,
- *  the warnings (always open), then how to use and the full details folded away. */
+/** One product: what it is, then each kind of information folded under its own button
+ *  (warnings in yellow), the mandatory statements, and flavour and Buy at the foot. */
 export function ShopItem({ p }) {
   const flavours = SHOP_FLAVOURS[p.id];
   const [fl, setFl] = useState(flavours?.[0].id);
@@ -22,6 +22,34 @@ export function ShopItem({ p }) {
         <div><h2>{p.name}</h2><p className="shop-form">{p.form}</p></div>
       </div>
       {SHOP_MEETS[p.id] && <ul className="meets" aria-label="What to look for">{SHOP_MEETS[p.id].map((m) => <li key={m}><Icon name="check" size={14} stroke={3} />{m}</li>)}</ul>}
+
+      <details className="shop-sec">
+        <summary>What it does<Icon name="chev" size={16} /></summary>
+        {p.benefits ? <ul className="shop-list">{p.benefits.map((x) => <li key={x}><Icon name="check" size={16} stroke={3} /><span>{x}</span></li>)}</ul> : <p>{p.why}</p>}
+      </details>
+      {warn && (
+        <details className="shop-sec shop-warn-sec">
+          <summary><span><Icon name="alert" size={18} /> Warnings</span><Icon name="chev" size={16} /></summary>
+          <p>{warn}</p>
+        </details>
+      )}
+      <details className="shop-sec">
+        <summary>How to use<Icon name="chev" size={16} /></summary>
+        <p>{p.use}</p>
+      </details>
+      {p.details && (
+        <details className="shop-sec">
+          <summary>Product details<Icon name="chev" size={16} /></summary>
+          <p>{p.details}</p>
+        </details>
+      )}
+      {p.ifu && (
+        <a className="shop-sec shop-ifu-btn" href={p.ifu} target="_blank" rel="noopener noreferrer" onClick={externalClick(p.ifu)}>
+          <span><Icon name="doc" size={18} /> Instructions for use (PDF)</span><Icon name="chev" size={16} /></a>
+      )}
+      {/* Mandatory statements, Therapeutic Goods Advertising Code: always shown, never folded. */}
+      {p.pharmacist && <p className="shop-statement">ASK YOUR PHARMACIST – THEY MUST DECIDE IF THIS PRODUCT IS RIGHT FOR YOU.</p>}
+      <p className="shop-statement">ALWAYS READ THE LABEL AND FOLLOW THE DIRECTIONS FOR USE.</p>
 
       <div className="shop-buy">
         {flavours && (
@@ -37,26 +65,6 @@ export function ShopItem({ p }) {
           <p className="shop-seller">Opens {SHOP_SELLER[p.id] || "Chemist Warehouse"}</p>
         </>)}
       </div>
-
-      <details className="shop-sec">
-        <summary>What it does<Icon name="chev" size={16} /></summary>
-        {p.benefits ? <ul className="shop-list">{p.benefits.map((x) => <li key={x}><Icon name="check" size={16} stroke={3} /><span>{x}</span></li>)}</ul> : <p>{p.why}</p>}
-      </details>
-      {warn && <div className="shop-warn"><Icon name="alert" size={18} /><p><b>Warnings</b>{warn}</p></div>}
-      <details className="shop-sec">
-        <summary>How to use<Icon name="chev" size={16} /></summary>
-        <p>{p.use}</p>
-      </details>
-      {(p.details || p.ifu) && (
-        <details className="shop-sec">
-          <summary>Product details<Icon name="chev" size={16} /></summary>
-          {p.details && <p>{p.details}</p>}
-          {p.ifu && <p className="shop-ifu"><a href={p.ifu} target="_blank" rel="noopener noreferrer" onClick={externalClick(p.ifu)}>Instructions for use (PDF)</a></p>}
-        </details>
-      )}
-      {/* Mandatory statements, Therapeutic Goods Advertising Code: always shown, never folded. */}
-      {p.pharmacist && <p className="shop-statement">ASK YOUR PHARMACIST – THEY MUST DECIDE IF THIS PRODUCT IS RIGHT FOR YOU.</p>}
-      <p className="shop-statement">ALWAYS READ THE LABEL AND FOLLOW THE DIRECTIONS FOR USE.</p>
     </section>
   );
 }
