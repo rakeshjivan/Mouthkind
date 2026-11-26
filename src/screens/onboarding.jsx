@@ -37,7 +37,7 @@ export function Welcome({ profile, onDone }) {
         <div className="welcome-top">
           {step > 0 ? <button className="icon-btn" onClick={() => setStep(step - 1)} aria-label="Back"><Icon name="back" /></button> : <span />}
           <div className="pips" aria-hidden="true">{steps.map((s, i) => <span key={s} className={i <= step ? "on" : ""} />)}</div>
-          <button className="link-btn" onClick={finish}>Skip</button>
+          {step > 0 ? <button className="link-btn" onClick={finish}>Skip</button> : <span />}
         </div>
 
         {at === "who" && (<>
