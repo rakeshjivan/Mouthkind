@@ -292,15 +292,15 @@ export const CARE_TOPICS = [
     forYou: (c) => has(c, "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
     steps: [
       "Sleeping with your mouth open dries it, and saliva almost stops at night anyway.",
-      "In a sleep clinic study, about 1 in 3 people with sleep apnoea, and 4 in 10 with severe sleep apnoea, almost always woke with a dry mouth, compared with 3 in 100 people without it.",
-      "A dry mouth or a dry, sore throat is one of the most common side effects of CPAP, especially when air leaks from the mouth. Snoring or sleep apnoea splints can also leave the mouth dry, though this usually eases as you get used to them.",
+      "A dry mouth is one of the commonest symptoms of sleep apnoea. In one study of 385 people, 6 in 10 had a dry mouth daily or almost daily before starting CPAP, and about half had a dry throat.",
+      "CPAP usually helps, but dry mouth remains one of its most common side effects: in the same study, over a third still had a dry mouth most days on CPAP, especially when air leaks from the mouth. It's also one of the side effects that makes people give up CPAP. Snoring or sleep apnoea splints can leave the mouth dry too, though this usually eases with time.",
       "Ask your sleep clinic about a heated humidifier, and about stopping mouth leaks with a chin strap or a full-face mask. Don't stop using CPAP because of dryness: talk to them first.",
       "Use a dry mouth gel before bed so your mouth is coated for the night, and keep water by the bed.",
       "If your mouth stays dry or your throat is sore during the day too, use a dry mouth product through the day as well.",
       "Brush with fluoride toothpaste last thing at night, because teeth are least protected while you sleep. Ask your dentist whether you need extra protection overnight.",
       "Tell your dentist you use CPAP or a splint.",
     ],
-    refs: ["oksenberg2006", "ma2024", "raoof2023", "mador2005", "kennedy2019", "dawes2008"],
+    refs: ["kreivi2010", "ulander2014", "vidal2024", "oksenberg2006", "raoof2023", "mador2005", "kennedy2019", "dawes2008"],
   },
   {
     id: "clean", icon: "check", title: "Clean gently, twice a day",

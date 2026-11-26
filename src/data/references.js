@@ -237,4 +237,7 @@ export const REFS = {
   charters2024: { short: "Charters 2024", title: "Systematic review of adherence to swallow and trismus exercises during radiation therapy for head and neck cancer", where: "Head Neck 2024;46:2348–62", url: "https://doi.org/10.1002/hed.27849" },
   oksenberg2006: { short: "Oksenberg 2006", title: "Dry mouth upon awakening in obstructive sleep apnea", where: "J Sleep Res 2006;15:317–20", url: "https://doi.org/10.1111/j.1365-2869.2006.00527.x" },
   ma2024: { short: "Ma 2024", title: "Correlation of morning dry mouth with clinical features of OSA in a community population: a cross-sectional study", where: "Postgrad Med 2024;136:30–5", url: "https://doi.org/10.1080/00325481.2024.2303972" },
+  kreivi2010: { short: "Kreivi 2010", title: "Frequency of upper airway symptoms before and during continuous positive airway pressure treatment in patients with obstructive sleep apnea syndrome", where: "Respiration 2010;80:488–94", url: "https://doi.org/10.1159/000321371" },
+  ulander2014: { short: "Ulander 2014", title: "Side effects to continuous positive airway pressure treatment for obstructive sleep apnoea: changes over time and association to adherence", where: "Sleep Breath 2014;18:799–807", url: "https://doi.org/10.1007/s11325-014-0945-5" },
+  vidal2024: { short: "Vidal 2024", title: "Mask side-effects are related to gender in long-term CPAP: results from the InterfaceVent real-life study", where: "Respir Res 2024;25:331", url: "https://doi.org/10.1186/s12931-024-02965-1" },
 };
