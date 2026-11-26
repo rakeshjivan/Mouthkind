@@ -170,7 +170,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
       <section className="clin-sec">
         <h3>Suggest topics to read</h3>
         <div className="chips">
-          {CARE_TOPICS.map((t) => { const on = topics.includes(t.id); return (
+          {CARE_TOPICS.filter((t) => !t.general).map((t) => { const on = topics.includes(t.id); return (
             <button key={t.id} type="button" className={`chip${on ? " on" : ""}`} aria-pressed={on} onClick={() => toggle(topics, setTopics, t.id)}>{on && <Icon name="check" size={16} stroke={3} />}{t.title}</button>); })}
         </div>
       </section>

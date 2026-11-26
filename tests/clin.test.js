@@ -71,7 +71,7 @@ test("dry mouth factors are listed in question order, the same for everyone, wit
 });
 
 test("general information on teeth and dry mouth products is there for everyone, with no brand names", () => {
-  for (const id of ["teeth", "products"]) {
+  for (const id of ["saliva", "teeth", "products"]) {
     const t = CARE_TOPICS.find((x) => x.id === id);
     assert.ok(t && t.general && t.refs.length >= 3, id);
     assert.ok(!t.products, id);

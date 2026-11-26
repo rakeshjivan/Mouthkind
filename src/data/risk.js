@@ -174,7 +174,7 @@ export const RISK_QUESTIONS = [
       { v: "inhaler", label: "Inhalers for asthma or COPD", hint: "e.g. tiotropium (Spiriva), umeclidinium, ipratropium, steroid inhalers", pts: 3, why: "Some inhalers dry the mouth directly.", refs: ["wolff2017"] },
       { v: "gut", label: "Medicines for stomach cramps, nausea or travel sickness", hint: "e.g. Buscopan, hyoscine (Kwells), prochlorperazine (Stemetil)", pts: 4, why: "These medicines block the nerves that drive saliva.", refs: ["wolff2017"] },
       { v: "acne", label: "Isotretinoin for acne", hint: "e.g. Roaccutane, Oratane", pts: 6, why: "About half of people taking isotretinoin get a dry mouth, and most get dry lips.", refs: ["alqahtani2026"] },
-      { v: "smoking", label: "Quit-smoking tablets", hint: "e.g. varenicline (Champix), bupropion (Zyban)", pts: 2, why: "Both list dry mouth as a common side effect.", refs: ["wolff2017"] },
+      { v: "smoking", label: "Quit-smoking tablets", hint: "e.g. varenicline (Champix), bupropion (Zyban)", pts: 2, why: "Varenicline and bupropion both list dry mouth as a common side effect.", refs: ["wolff2017"] },
       { v: "allergy", label: "Non-drowsy antihistamines, most days", hint: "e.g. cetirizine, loratadine, fexofenadine", pts: 2, why: "Even non-drowsy antihistamines can dry the mouth a little.", refs: ["wolff2017"] },
       { v: "decong", label: "Cold and flu tablets or decongestants, most days", hint: "e.g. pseudoephedrine", pts: 2, why: "Decongestants dry the mouth while you take them.", refs: ["wolff2017"] },
     ],

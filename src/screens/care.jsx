@@ -13,7 +13,8 @@ import { fmtDate } from "../lib/store.js";
 export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile, open, setup, onSetup, refine, onShop, openSheet, clin }) {
   const general = CARE_TOPICS.filter((t) => t.general);
   const mine = CARE_TOPICS.filter((t) => !t.general && (clin ? (clin.plan?.topics || []).includes(t.id) : t.forYou(ctx)));
-  const rest = CARE_TOPICS.filter((t) => !t.general && !mine.includes(t));
+  // Cancer topics only for people in cancer care (or chosen by their professional).
+  const rest = CARE_TOPICS.filter((t) => !t.general && !mine.includes(t) && (!t.cancer || ctx.cancer));
   // Two views: the personal plan, and a library of topics to read ("Learn").
   const topicFocus = focus && focus !== "plan";
   const [view, setView] = useState(topicFocus ? "learn" : "plan");
@@ -32,7 +33,7 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
         {on && (
           <div className="ctopic-body">
             {t.sections ? topicSections(t, ctx).map((x) => (
-              <div key={x.h} className="ct-sec"><h3>{x.h}</h3><ul>{x.steps.map((s) => <li key={s}>{s}</li>)}</ul></div>
+              <div key={x.h} className="ct-sec"><h3>{x.h}</h3><ul>{x.steps.map((s) => milkAllergic(profile) ? milkFree(s) : s).map((s) => <li key={s}>{s}</li>)}</ul></div>
             )) : <ul>{t.steps.map((s) => milkAllergic(profile) ? milkFree(s) : s).map((s) => <li key={s}>{s}</li>)}</ul>}
             {t.products && (
               <div className="prod-cards">
@@ -45,6 +46,7 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
                 ))}
               </div>
             )}
+            {t.shop && onShop && <button type="button" className="btn ghost ct-shop" onClick={onShop}><Icon name="cart" size={18} /> See products with these features</button>}
             {t.refs?.length > 0 && <details className="srcs"><summary>Sources</summary><Sources refs={t.refs} /></details>}
           </div>
         )}

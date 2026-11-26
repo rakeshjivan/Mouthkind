@@ -100,7 +100,7 @@ async def main():
     await pg.click('nav >> text="Help"'); await pg.wait_for_timeout(200)
     await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200); await text("learn unsigned")
     main = await pg.locator("main").inner_text()
-    assert "Start here" in main and "A dry mouth, tooth decay and erosion" in main and "Choosing a dry mouth product" in main
+    assert "Start here" in main and "Protecting your teeth when your mouth is dry" in main and "What saliva does" in main and "Choosing a dry mouth product" in main
     await pg.get_by_role("button", name=re.compile("Choosing a dry mouth product")).click(); await pg.wait_for_timeout(200)
     assert "6.7" in await pg.locator("main").inner_text()
     await pg.screenshot(path=S + "4b-learn-products.png", full_page=True)

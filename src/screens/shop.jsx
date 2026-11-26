@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Icon } from "../components/ui.jsx";
 import { PRODUCTS } from "../data/products.js";
-import { SHOP_FLAVOURS, SHOP_PRODUCTS, SHOP_SELLER, SHOP_URL, shopItem } from "../data/shop.js";
+import { SHOP_FLAVOURS, SHOP_MEETS, SHOP_PRODUCTS, SHOP_SELLER, SHOP_URL, shopItem } from "../data/shop.js";
 import { externalClick } from "../lib/external.js";
 import { ProductImage } from "../components/productImage.jsx";
 
@@ -15,6 +15,7 @@ export function ShopItem({ p }) {
         <ProductImage product={p} flavour={fl} />
         <div><h2>{p.name}</h2><p className="shop-form">{p.form}</p></div>
       </div>
+      {SHOP_MEETS[p.id] && <ul className="meets" aria-label="What to look for">{SHOP_MEETS[p.id].map((m) => <li key={m}><Icon name="check" size={14} stroke={3} />{m}</li>)}</ul>}
       {p.benefits ? <ul className="pcard-list">{p.benefits.map((b) => <li key={b}>{b}</li>)}</ul> : <p>{p.why}</p>}
       <p className="prod-use"><b>How to use:</b> {p.use}</p>
       {p.details && <p className="shop-details"><b>Product details:</b> {p.details}</p>}

@@ -1689,3 +1689,5 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .welcome .lede { font-size: calc(16px * var(--s)); line-height: 1.5; }
 .welcome .welcome-q { font-size: calc(19px * var(--s)); font-weight: 650; margin: 32px 0 12px; }
 .welcome-help { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 44px; margin-bottom: 8px; color: var(--red); font-weight: 600; }
+.meets { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; padding: 0; }
+.meets li { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--tint); color: var(--btn-ink); font-size: calc(14px * var(--s)); font-weight: 600; }
