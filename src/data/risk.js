@@ -33,7 +33,7 @@ export const RISK_VERSION = 3; // 3: "Kidney disease or dialysis" split into dia
 export const MED_PURPOSES = [
   { v: "mood", label: "Depression, anxiety or low mood", g: "antidep" },
   { v: "mental", label: "Bipolar, schizophrenia or psychosis", g: "antipsych" },
-  { v: "sleep", label: "Sleep", g: "sleep" },
+  { v: "sleep", label: "Sleep problems or insomnia", g: "sleep" },
   { v: "pain", label: "Strong or long-term pain", hint: "Not just paracetamol or ibuprofen now and then", g: "opioid" },
   { v: "nerve", label: "Epilepsy or nerve pain", g: "seizure" },
   { v: "bp", label: "Blood pressure, heart or fluid", g: "bp" },
@@ -215,6 +215,9 @@ export const RISK_QUESTIONS = [
       { v: "smoke", label: "I smoke", as: "Smoking", pts: 5, why: "Smokers make less saliva and report a dry mouth more often.", refs: ["rad2010", "nigar2022", "chaffee2026"] },
       { v: "vape", label: "I vape", as: "Vaping", pts: 4, why: "Daily vaping is linked with a dry mouth almost twice as often.", refs: ["chaffee2026"] },
       { v: "cannabis", label: "I use cannabis, prescribed or not", as: "Cannabis use", pts: 5, why: "Cannabis commonly causes a dry mouth.", refs: ["wolff2017"] },
+      // Recorded, not scored: the evidence that usual amounts dry the mouth is weak.
+      { v: "alcohol", label: "I drink alcohol most days", as: "Alcohol most days", pts: 0, record: true, why: "Alcohol can leave the mouth feeling drier, especially in the evening. An alcohol-free mouthwash is better for a dry mouth." },
+      { v: "caffeine", label: "I drink a lot of tea or coffee", hint: "More than 4 cups a day", as: "A lot of tea or coffee", pts: 0, record: true, why: "Usual amounts of tea and coffee don't dry the mouth much for most people, but some notice it, and sugar in them feeds decay." },
     ],
   },
   {

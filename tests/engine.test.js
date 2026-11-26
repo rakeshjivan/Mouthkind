@@ -186,18 +186,18 @@ test("products already in use are praised, not recommended as new", () => {
 
 test("the baseline: risk, dry mouth score and decay check, then care team and questions, then the plan", async () => {
   const { setupState } = await import("../src/data/setup.js");
-  const s0 = setupState({ entries: [], profile: {}, openQs: 0 });
+  const s0 = setupState({ entries: [], profile: {}, openQs: 0, skip: ["teeth"] });
   assert.equal(s0.at, 0); assert.equal(s0.next.id, "risk"); assert.ok(!s0.built); assert.equal(s0.minsLeft, 7);
   const checks = [{ kind: "risk" }, { kind: "sip", sip: 10 }, { kind: "decay" }];
-  assert.equal(setupState({ entries: checks.slice(0, 2), profile: {}, openQs: 0 }).next.id, "decay");
-  const s1 = setupState({ entries: checks, profile: {}, openQs: 2 });
+  assert.equal(setupState({ entries: checks.slice(0, 2), profile: {}, openQs: 0, skip: ["teeth"] }).next.id, "decay");
+  const s1 = setupState({ entries: checks, profile: {}, openQs: 2, skip: ["teeth"] });
   assert.equal(s1.next.id, "team");
-  const s2 = setupState({ entries: checks, profile: { teamAsked: true }, openQs: 2 });
+  const s2 = setupState({ entries: checks, profile: { teamAsked: true }, openQs: 2, skip: ["teeth"] });
   assert.equal(s2.next.id, "questions"); assert.ok(!s2.built);
-  const s3 = setupState({ entries: checks, profile: { dentist: { phone: "07 1111 2222" } }, openQs: 0 });
+  const s3 = setupState({ entries: checks, profile: { dentist: { phone: "07 1111 2222" } }, openQs: 0, skip: ["teeth"] });
   assert.ok(s3.all && s3.built && !s3.next);
   // Once built, a new question doesn't take the plan away.
-  assert.ok(setupState({ entries: checks, profile: { teamAsked: true, planBuilt: true }, openQs: 1 }).built);
+  assert.ok(setupState({ entries: checks, profile: { teamAsked: true, planBuilt: true }, openQs: 1, skip: ["teeth"] }).built);
 });
 
 test("without the decay check, a dry mouth still gets the Tooth Mousse routine", () => {

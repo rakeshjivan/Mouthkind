@@ -64,13 +64,16 @@ function TopicPage({ t, ctx, profile, onClose, onShop, next, onNext }) {
       <p className="lp-answer">{t.short}</p>
       {secs.map((x, i) => {
         const k = kindOf(x.h, t.id);
+        const items = <ul>{x.steps.map(fix).map((s) => (
+          <li key={s}>{k === "do" ? <Icon name="check" size={16} stroke={3} /> : k === "avoid" ? <Icon name="x" size={16} stroke={3} /> : <i aria-hidden="true" />}<span>{s}</span></li>
+        ))}</ul>;
+        // Untitled lists, the first section and reasons to call are open; the rest open on tap.
+        if (!x.h) return <section key={i} className={`lp-sec k-${k}`}>{items}</section>;
         return (
-          <section key={x.h || i} className={`lp-sec k-${k}`}>
-            {x.h && <h3>{k === "call" && <Icon name="alert" size={18} />}{x.h}</h3>}
-            <ul>{x.steps.map(fix).map((s) => (
-              <li key={s}>{k === "do" ? <Icon name="check" size={16} stroke={3} /> : k === "avoid" ? <Icon name="x" size={16} stroke={3} /> : <i aria-hidden="true" />}<span>{s}</span></li>
-            ))}</ul>
-          </section>
+          <details key={x.h} className={`lp-sec lp-box k-${k}`} open={i === 0 || k === "call" || /^What to look for/.test(x.h)}>
+            <summary><span>{k === "call" && <Icon name="alert" size={18} />}{x.h}</span><em>{x.steps.length}</em><Icon name="chev" size={16} /></summary>
+            {items}
+          </details>
         );
       })}
       {t.look?.length > 0 && (

@@ -49,7 +49,7 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
         <button className="btn primary big" onClick={save}>Save and continue</button>
       </> : <button className="btn primary big" onClick={save}>Save</button>}>
       <h2 className="q">{setup ? "Your care team's numbers" : "My care team"}</h2>
-      <p className="lede tight">{setup ? "Add the one or two you'd most likely call, so they're one tap away on Home. You can add the rest later." : "Add whoever you might need to call. Leave any you don't have blank."}</p>
+      <p className="lede tight">{setup ? "Add the one or two you'd most likely call, so they're one tap away on Today. You can add the rest later." : "Add whoever you might need to call. Leave any you don't have blank."}</p>
       {contactRoles(p).map((r) => {
         const c = getContact(p, r.id);
         if (r.extra) return (
@@ -75,7 +75,7 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
           </fieldset>
         );
       })}
-      <button type="button" className="btn ghost team-add" onClick={() => setP((x) => addExtraContact(x))}><Icon name="plus" size={18} /> Add someone else</button>
+      <button type="button" className="btn ghost team-add" onClick={() => setP((x) => addExtraContact(x))}><Icon name="plus" size={18} /> Add a new contact</button>
       <p className="small">For example a dietitian, speech pathologist, physiotherapist, social worker or oral medicine specialist.</p>
     </Sheet>
   );

@@ -208,7 +208,7 @@ export function SetupCard({ setup, onSetup, slim, clin }) {
         ))}
       </ol>
       <button className="btn primary big" onClick={onSetup}>{setup.at ? "Continue" : "Start"}</button>
-      <p className="setup-note">Step {setup.at + 1} of {setup.total} · about {setup.minsLeft} minute{setup.minsLeft === 1 ? "" : "s"} left. {clin ? "A dentist or health professional uses your answers to choose your plan." : "Your plan appears when you've finished."}</p>
+      <p className="setup-note">Step {setup.at + 1} of {setup.total} · about {setup.minsLeft} minute{setup.minsLeft === 1 ? "" : "s"} left. {clin ? "A dentist or health professional uses your answers to help guide your plan to manage your dry mouth symptoms." : "Your plan appears when you've finished."}</p>
     </section>
   );
 }

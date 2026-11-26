@@ -8,13 +8,13 @@ import { downloadText } from "../lib/store.js";
 
 // ─── How often ─────────────────────────────────────────────────────────────
 export function FrequencyPicker({ value, onPick, onClose, first }) {
-  const [v, setV] = useState(value ?? 14);
+  const [v, setV] = useState(value ?? 7);
   return (
     <Sheet title="How often to check" onClose={onClose}
       footer={<button className="btn primary big" onClick={() => onPick(v)}>{first ? "Continue" : "Save"}</button>}>
       <h2 className="q">How often would you like to check your mouth?</h2>
       <p className="lede tight">Each time: a pH test and the five dry mouth questions. You can change this whenever you like.</p>
-      <Pick options={FREQUENCIES.map((f) => ({ v: f.days, label: f.label, hint: f.recommended ? "Suits most people: dryness usually changes slowly" : f.days === 1 ? "Useful when things are changing quickly, like during treatment" : "Useful when you're trying a new product or medicine" }))}
+      <Pick options={FREQUENCIES.map((f) => ({ v: f.days, label: f.label, hint: f.recommended ? "Suits most people: often enough to see if things are helping" : f.days === 1 ? "Useful when things are changing quickly, like during treatment" : "Enough when things are steady" }))}
         value={v} onPick={setV} />
     </Sheet>
   );

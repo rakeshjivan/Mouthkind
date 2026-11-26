@@ -7,6 +7,7 @@ import { MedLookup } from "../components/medLookup.jsx";
 import { ProductImage } from "../components/productImage.jsx";
 import { PRODUCTS } from "../data/products.js";
 import { fmtDate, load, save } from "../lib/store.js";
+import { infoFor } from "../data/optionInfo.js";
 
 /** The dry mouth risk check. Answers already in Me (age, gender) are used instead of asked. */
 export function dryModel(fromProfile = {}) {
@@ -19,6 +20,7 @@ export function dryModel(fromProfile = {}) {
       return { id: id || `r_${Date.now()}`, ts: Date.now(), kind: "risk", v: RISK_VERSION, answers, score: r.score, band: r.band.id };
     },
     Result: (p) => <RiskResult {...p} />,
+    info: (q, o) => infoFor(q.id, o.v),
   };
 }
 
@@ -65,10 +67,10 @@ export function RiskFlow({ last, onClose, onSave, onCare, plan, next: nextStep, 
       {q.type === "lookup" ? (
         <MedLookup value={picked} onChange={(list) => setAns({ ...ans, medList: list })} />
       ) : q.type === "one" ? (
-        <Pick options={q.options} value={picked}
+        <Pick options={q.options} value={picked} info={model.info && ((o) => model.info(q, o))}
           onPick={(v) => { const a = { ...ans, [q.id]: v }; setAns(a); setTimeout(() => next(a), 180); }} />
       ) : (
-        <TickRows key={q.key || q.id} options={q.options} value={picked} onChange={(v) => setAns({ ...ans, [q.id]: v })} />
+        <TickRows key={q.key || q.id} options={q.options} value={picked} info={model.info && ((o) => model.info(q, o))} onChange={(v) => setAns({ ...ans, [q.id]: v })} />
       )}
     </Sheet>
   );

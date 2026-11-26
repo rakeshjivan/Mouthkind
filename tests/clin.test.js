@@ -56,10 +56,24 @@ test("AHPRA format: three letters and ten digits", () => {
 });
 
 
-test("clinician setup skips the tooth decay check", () => {
+test("clinician setup: no tooth decay check, and a teeth and gums step after the assessment", () => {
   const st = setupState({ entries: [], profile: {}, openQs: 0, skip: ["decay"] });
   assert.ok(!st.steps.some((x) => x.id === "decay"));
-  assert.equal(st.total, 4);
+  assert.deepEqual(st.steps.map((x) => x.id), ["risk", "sip", "teeth", "team", "questions"]);
+});
+
+test("teeth and gums: a record with no score, a book-in line, and the dentures answer carried over", async () => {
+  const { teethRecord, teethQuestions, denturesFrom } = await import("../src/data/teeth.js");
+  const { OPTION_INFO } = await import("../src/data/optionInfo.js");
+  assert.equal(teethQuestions({ dTeeth: "dentures" }).length, 4, "denture wearers skip the brushing questions");
+  const r = teethRecord({ dTeeth: "natural", dPain: ["sensitive"], dGums: "yes", dBrush: "once", dFluoride: "yes", dBetween: "never", dSugar: "often", dAcid: "rare", dVisit: "year" });
+  assert.ok(r.book && r.rows.every((x) => x.info), "every answer has its explanation");
+  assert.ok(!teethRecord({ dTeeth: "natural", dPain: [], dGums: "no", dVisit: "year" }).book);
+  assert.equal(denturesFrom({ dTeeth: "both" }), "partial");
+  // Every risk option a person can tick has a "?" explanation.
+  const { RISK_QUESTIONS } = await import("../src/data/risk.js");
+  for (const q of RISK_QUESTIONS.filter((x) => ["conditions", "medFor", "medTypes", "cancer", "breathing", "habits"].includes(x.id)))
+    for (const o of q.options) assert.ok(OPTION_INFO[q.id]?.[o.v], `no explanation for ${q.id}.${o.v}`);
 });
 
 test("dry mouth factors are listed in question order, the same for everyone, with no points", () => {

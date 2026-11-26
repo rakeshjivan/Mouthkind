@@ -5,10 +5,10 @@ import { DAY } from "../lib/store.js";
 // matches how often the person checks.
 export const FREQUENCIES = [
   { days: 1, label: "Every day", short: "daily", recall: "Today" },
-  { days: 7, label: "Once a week", short: "weekly", recall: "Over the last week" },
-  { days: 14, label: "Every two weeks", short: "fortnightly", recall: "Over the last two weeks", recommended: true },
+  { days: 7, label: "Once a week", short: "weekly", recall: "Over the last week", recommended: true },
+  { days: 14, label: "Every two weeks", short: "fortnightly", recall: "Over the last two weeks" },
 ];
-export const freqFor = (days) => FREQUENCIES.find((f) => f.days === days) || FREQUENCIES[2];
+export const freqFor = (days) => FREQUENCIES.find((f) => f.days === days) || FREQUENCIES[1];
 
 const startOfDay = (ts) => { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); };
 

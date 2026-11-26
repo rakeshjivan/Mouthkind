@@ -117,7 +117,7 @@ export default function App() {
   const qs = openQuestions(model);
   const q = qs[0] || null;
   // Build the plan first: every check and question, in order; then the plan.
-  const setup = setupState({ entries: view, profile, openQs: qs.length });
+  const setup = setupState({ entries: view, profile, openQs: qs.length, skip: ["teeth"] });
   const building = !setup.built;
   useEffect(() => { if (setup.all && !profile.planBuilt) setProfile({ ...profile, planBuilt: true }); }, [setup.all, profile, setProfile]);
   const continueSetup = () => {
@@ -171,7 +171,7 @@ export default function App() {
           onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq); setAfterFreq(null); }} />
       )}
       {sheet === "sip" && prefs.sipEvery && <SipFlow every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} followUp={ask(true)} next={next} />}
-      {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
+      {sheet === "remind" && <Reminder every={prefs.sipEvery || 7} onClose={close} />}
       {sheet === "logremind" && <LogReminder prefs={prefs} setPrefs={setPrefs} onClose={close} weekly={!activeTreatment(profile)} />}
       {sheet === "ph" && <PhFlow readings={phReadings(entries)} followUp={ask(true)} next={next} onSkip={building ? () => { setProfile({ ...profile, phSkip: true }); const ready = setup.steps.filter((s) => s.id !== "ph" && s.id !== "questions").every((s) => s.done); setSheet(ready && qs.length ? "setupq" : null); if (ready && !qs.length) go("home"); } : null} onClose={close} onSave={addEntry} onCare={() => go("advice", "teeth")} />}
       {sheet === "report" && <Summary entries={view} profile={profile} onClose={close} />}

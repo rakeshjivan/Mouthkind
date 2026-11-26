@@ -29,20 +29,20 @@ async def main():
     await pg.get_by_role("button", name="Close").last.click(); await pg.wait_for_timeout(200)
     await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
     await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
-    await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(400)
+    await wl.get_by_role("button", name="My medicines are drying my mouth").click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(400)
     await text("home setup"); await pg.screenshot(path=S + "1-home.png")
     assert "Get your answers ready" in await pg.locator(".setup-card").inner_text()
     assert await pg.locator(".helpbar").count() == 1, "urgent help is reachable during setup"
     await pg.locator(".setup-card .btn").click(); await pg.wait_for_timeout(400)
     # Dry mouth questions
     await btn("None of these").click(); await pg.wait_for_timeout(250)
-    await dlg.get_by_role("button", name="Bladder urgency or leaking").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
+    await dlg.get_by_role("button", name="Bladder urgency or leaking", exact=True).click(); await btn("Next").click(); await pg.wait_for_timeout(250)
     await btn("Skip").click(); await pg.wait_for_timeout(250)
-    await dlg.get_by_role("button", name="3 or 4").click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="3 or 4", exact=True).click(); await pg.wait_for_timeout(400)
     for _ in range(3): await btn("None of these").click(); await pg.wait_for_timeout(250)
-    await dlg.get_by_role("button", name="Less than 4 glasses").click(); await pg.wait_for_timeout(400)
-    await dlg.get_by_role("button", name="65 to 79").click(); await pg.wait_for_timeout(400)
-    await dlg.get_by_role("button", name="Woman or female").click(); await pg.wait_for_timeout(600)
+    await dlg.get_by_role("button", name="Less than 4 glasses", exact=True).click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="65 to 79", exact=True).click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="Woman or female", exact=True).click(); await pg.wait_for_timeout(600)
     await text("risk saved"); await pg.screenshot(path=S + "2-risk-saved.png", full_page=True)
     body = await dlg.inner_text()
     assert "Saved" in body and "for your dentist" not in body and "What can affect a dry mouth" in body, body
@@ -56,8 +56,18 @@ async def main():
     await pg.wait_for_timeout(300); await text("sip"); await pg.screenshot(path=S + "3-sip.png")
     assert "Saved to your records" in await dlg.inner_text()
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(400)
-    # No tooth decay check: straight on to the care team
-    assert "tooth decay" not in (await dlg.inner_text()).lower()
+    # Teeth and gums: no score, answers saved with an explanation each
+    assert "tooth decay check" not in (await dlg.inner_text()).lower()
+    pick = lambda t: dlg.get_by_role("button", name=t, exact=True)
+    await pick("Yes, all or most of them").click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="What Sensitive to hot, cold or sweet means for your mouth", exact=True).click(); await pg.wait_for_timeout(200)
+    assert "enamel" in await pg.locator(".infopop").inner_text(); await pg.get_by_role("button", name="Got it").click(); await pg.wait_for_timeout(150)
+    await pick("Sensitive to hot, cold or sweet").click(); await btn("Next").click(); await pg.wait_for_timeout(400)
+    for t in ["Sometimes", "Twice a day or more", "Yes", "Every day", "Once or twice a day", "Rarely", "In the last year"]:
+      await pick(t).first.click(); await pg.wait_for_timeout(400)
+    body = await dlg.inner_text(); await pg.screenshot(path=S + "3b-teeth-saved.png", full_page=True)
+    assert "Your teeth and gums" in body and not re.search(r"\bpts\b|/100|risk", body, re.I), body
+    await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(400)
     # Care team, then the follow-up questions
     await dlg.get_by_label("Phone").nth(1).fill("07 5444 1234")
     await btn("Save and continue").click(); await pg.wait_for_timeout(500)
@@ -129,7 +139,7 @@ async def main():
     go = dlg.locator(".sheet-foot .btn.primary")
     await dlg.get_by_label("Your name").fill("Dr Test Smith")
     await dlg.get_by_label("AHPRA registration number").fill("DEN12345"); await dlg.get_by_label("Your name").click()
-    await dlg.get_by_role("button", name="I'm a registered health professional reviewing this with the patient").click()
+    await dlg.get_by_role("button", name="I'm a registered health professional reviewing this with the patient", exact=True).click()
     assert await go.is_disabled(), "a malformed AHPRA number must not get through"
     await dlg.get_by_label("AHPRA registration number").fill("DEN0001234567")
     assert not await go.is_disabled()
@@ -144,7 +154,7 @@ async def main():
     for k in range(await dlg.locator(".clin-opt").count()):
       if await dlg.locator(".clin-opt").nth(k).locator(".clin-sugg").count(): await dlg.locator(".clin-opt").nth(k).locator(".pick-row").click()
     await dlg.get_by_label("Note for the patient").fill("Use the gel at night and come back in three months.")
-    await dlg.get_by_role("button", name="Sign plan").click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="Sign plan", exact=True).click(); await pg.wait_for_timeout(400)
     assert "Plan saved" in await dlg.inner_text()
     await btn("Hand back").click(); await pg.wait_for_timeout(400)
     # Today with the signed plan

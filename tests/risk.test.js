@@ -59,9 +59,9 @@ test("advice follows the answers", () => {
   for (const x of riskAdvice(scoreRisk(a), a)) for (const p of x.products || []) assert.ok(PRODUCTS.some((y) => y.id === p), p);
 });
 
-test("frequencies: daily, weekly, fortnightly (recommended)", () => {
+test("frequencies: daily, weekly (recommended), fortnightly", () => {
   assert.deepEqual(FREQUENCIES.map((f) => f.days), [1, 7, 14]);
-  assert.equal(FREQUENCIES.find((f) => f.recommended).days, 14);
+  assert.equal(FREQUENCIES.find((f) => f.recommended).days, 7);
 });
 test("next check is due after the chosen gap", () => {
   const now = Date.parse("2026-11-18T10:00:00");

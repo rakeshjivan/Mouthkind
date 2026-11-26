@@ -133,6 +133,9 @@ export function PhInput({ value, onPick, readOnly }) {
 // ─── Bottom sheet ──────────────────────────────────────────────────────────
 export function Sheet({ title, onClose, onBack, progress, children, footer, tone }) {
   const ref = useRef(null);
+  const bodyRef = useRef(null);
+  // A new question (or step) always opens at the top.
+  useEffect(() => { bodyRef.current?.scrollTo?.(0, 0); }, [progress?.at, title]);
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
@@ -154,7 +157,7 @@ export function Sheet({ title, onClose, onBack, progress, children, footer, tone
           ) : <span className="sheet-title">{title}</span>}
           <span className="sheet-count">{progress?.label || ""}</span>
         </div>
-        <div className="sheet-body">{children}</div>
+        <div className="sheet-body" ref={bodyRef}>{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>

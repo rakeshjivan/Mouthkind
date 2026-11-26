@@ -127,7 +127,7 @@ export default function AppLite() {
       )}
       {sheet === "sip" && prefs.sipEvery && <SipFlow plain every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} next={inSetup ? { label: "Next: your care team", go: () => nextStep() } : null} />}
       {sheet === "ph" && <PhFlow plain readings={phs} onClose={close} onSave={addEntry} onCare={close} />}
-      {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
+      {sheet === "remind" && <Reminder every={prefs.sipEvery || 7} onClose={close} />}
       {sheet === "logremind" && <LogReminder prefs={prefs} setPrefs={setPrefs} onClose={close} weekly={!activeTreatment(profile)} />}
       {sheet === "daily" && <DailyCheck profile={profile} initial={daily && sameDay(daily.ts, Date.now()) ? daily : null} onClose={close} onSave={addEntry} onSaved={() => setSheet("saved")} />}
       {sheet === "saved" && <DiarySaved onClose={close} open={open} />}

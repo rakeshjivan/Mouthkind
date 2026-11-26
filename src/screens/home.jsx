@@ -148,8 +148,6 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
   const reviewDue = clin?.plan && Date.now() >= clin.plan.review;
   const alert = clin ? (building ? null
     : reviewDue ? { tone: "accent", title: "Your plan review is due", sub: `Book in with ${clin.plan.by.name} or another health professional`, act: "Call", go: () => open("call") }
-    : sipNext?.due ? { tone: "accent", title: "Your dry mouth assessment is due", sub: "5 quick questions", act: "Start", go: () => open("sip") }
-    : !phSkip && (phNext?.due || !ph) ? { tone: "accent", title: ph ? "Your pH test is due" : "Record your saliva pH", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : null)
     : triage?.level === "now" ? { tone: "red", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
     : triage?.level === "today" ? { tone: "amber", title: cancer ? "Let your treatment team know today" : "See a dentist or doctor today", sub: triage.today[0], act: "What to do", go: () => open("dailyresult") }
@@ -186,6 +184,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
       )}
 
       {building ? <SetupCard setup={setup} onSetup={onSetup} clin={!!clin} /> : (<>
+        {clin?.tiles}
         {clin?.card}
         <button type="button" className={`log5${due ? " due" : ""}`} onClick={() => open("daily")}>
           <span className="log5-icon" aria-hidden="true"><Icon name="plus" size={20} stroke={2.6} /></span>

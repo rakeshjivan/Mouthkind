@@ -14,7 +14,7 @@ async def main():
     wl=pg.locator(".welcome")
     await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
     await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)  # about you
-    await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(400)
+    await wl.get_by_role("button", name="My medicines are drying my mouth").click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(400)
     await pg.screenshot(path=S+"1-home.png")
     assert await pg.locator(".setup-card").count()==1 and await pg.locator(".focus").count()==0 and await pg.locator(".ask").count()==0
     assert await pg.locator(".helpbar").count()==0  # no help bar until setup is done

@@ -1726,3 +1726,41 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .lp-look { margin: 4px 0 12px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); }
 .lp-look h3 { margin: 0 0 4px; font-size: calc(16px * var(--s)); }
 .lp-look .btn { margin-top: 10px; }
+
+/* Today tiles (clinician build): four soft pastel boxes */
+.today-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 4px 0 14px; }
+.tt { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 124px; padding: 16px 14px; border: 0; border-radius: 20px; text-align: left; color: var(--ink); cursor: pointer; }
+.tt strong { font-size: calc(17px * var(--s)); line-height: 1.25; }
+.tt em { font-style: normal; font-size: calc(14px * var(--s)); color: var(--ink2); line-height: 1.35; }
+.tt > svg { margin-bottom: 4px; }
+.tt.t-ph { background: var(--dry-bg); } .tt.t-ph > svg { color: var(--dry); }
+.tt.t-sip { background: var(--good-bg); } .tt.t-sip > svg { color: var(--good); }
+.tt.t-learn { background: var(--amberbg); } .tt.t-learn > svg { color: var(--amber); }
+.tt.t-send { background: var(--tint); } .tt.t-send > svg { color: var(--accent); }
+.main.with-help { padding-bottom: calc(210px + env(safe-area-inset-bottom, 0px)); }
+.lp-box { padding: 0; }
+.lp-box > summary { display: flex; align-items: center; gap: 10px; padding: 14px 16px; list-style: none; cursor: pointer; font-weight: 700; color: var(--accent); font-size: calc(16px * var(--s)); }
+.lp-box > summary::-webkit-details-marker { display: none; }
+.lp-box > summary > span { flex: 1; display: flex; align-items: center; gap: 6px; }
+.lp-box > summary > em { font-style: normal; font-weight: 600; font-size: calc(13px * var(--s)); color: var(--ink2); background: var(--card); border-radius: 999px; padding: 2px 9px; }
+.lp-box > summary > svg { transition: transform .2s; color: var(--ink2); }
+.lp-box[open] > summary > svg { transform: rotate(90deg); }
+.lp-box > ul { padding: 0 16px 14px; }
+.lp-box.k-call > summary { color: var(--red); }
+@media (prefers-reduced-motion: reduce) { .lp-box > summary > svg { transition: none; } }
+.teeth-book { display: flex; gap: 8px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--amberbg); color: var(--ink); font-weight: 600; }
+.teeth-book > svg { color: var(--amber); flex: none; margin-top: 2px; }
+.clin-teeth { margin: 4px 0 12px; padding-left: 18px; } .clin-teeth li { margin-bottom: 4px; }
+/* The "?" beside an option, and its pop-up */
+.pick-item { position: relative; }
+.pick-item.has-info > .pick-row { padding-right: 64px; }
+.pick-item.has-info > .pick-row .pick-dot { margin-right: 4px; }
+.pick-info { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); color: var(--accent); font-weight: 800; font-size: 17px; cursor: pointer; display: grid; place-items: center; }
+.pick-item.has-info > .pick-row:not(.tick) { padding-right: 104px; }
+.pick-item.has-info > .pick-row:not(.tick) .pick-dot { position: absolute; right: 60px; top: 50%; transform: translateY(-50%); }
+.infopop-wrap { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.45); display: grid; place-items: end center; padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.infopop { width: 100%; max-width: 480px; background: var(--card); color: var(--ink); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); }
+.infopop h3 { margin: 0 0 8px; font-size: calc(19px * var(--s)); }
+.infopop p { margin: 0 0 10px; line-height: 1.5; }
+.infopop .infopop-note { color: var(--ink2); font-size: calc(14px * var(--s)); }
+.infopop .btn { width: 100%; margin-top: 6px; }

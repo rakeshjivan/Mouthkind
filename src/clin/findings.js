@@ -4,6 +4,7 @@
 // person chooses to.
 import { RISK_GROUPS, RISK_QUESTIONS, fullAnswers, scoreRisk, unsureOf } from "../data/risk.js";
 import { medicineById } from "../data/medicines.js";
+import { teethRecord } from "../data/teeth.js";
 import { sipLevel } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
 import { REFS } from "../data/references.js";
@@ -28,7 +29,7 @@ export function dryFactors(answers = {}) {
   for (const q of RISK_QUESTIONS) {
     if (!q.options || q.id === "medFor") continue;
     const v = a[q.id];
-    const picked = q.options.filter((o) => (q.type === "one" ? o.v === v : [].concat(v || []).includes(o.v)) && o.pts > 0);
+    const picked = q.options.filter((o) => (q.type === "one" ? o.v === v : [].concat(v || []).includes(o.v)) && (o.pts > 0 || o.record));
     for (const o of picked) if (!rows.some((r) => r.q === q.id && r.v === o.v)) rows.push({ q: q.id, v: o.v, label: o.as || o.label, why: o.why || "", refs: o.refs || [] });
   }
   const named = (a.medList || []).map((x) => { const m = x.id ? medicineById(x.id) : null; return { name: x.name || m?.g || "", known: m ? (m.c === "rep" ? "reported" : m.c ? "known" : "no") : "unknown" }; }).filter((x) => x.name);
@@ -50,7 +51,8 @@ export function findings(profile = {}, entries = []) {
     e.eat === "none" && `${fmtDate(e.ts)}: can't eat or drink`,
   ].filter(Boolean));
   const jaws = entries.filter((e) => e.kind === "jaw" && e.fingers).sort((a, b) => a.ts - b.ts);
-  return { risk, r, sips, phs, pat: phPattern(phs), diary, recent, dryAvg: avg("dryness"), painAvg: avg("pain"), flags, jaws };
+  const teeth = latest(entries, "teeth");
+  return { risk, r, teeth, sips, phs, pat: phPattern(phs), diary, recent, dryAvg: avg("dryness"), painAvg: avg("pain"), flags, jaws };
 }
 
 /** The findings as plain text, for an email or a message. */
@@ -87,6 +89,15 @@ export function findingsText(profile = {}, entries = [], plan = null, { patient 
   } else L.push("Not done.");
   L.push("");
   }
+
+  L.push(patient ? "MY TEETH AND GUMS" : "TEETH AND GUMS (patient-reported, not scored)");
+  if (f.teeth) {
+    const tr = teethRecord(f.teeth.answers);
+    L.push(`Answered ${fmtDate(f.teeth.ts)}.`);
+    tr.rows.forEach((x) => L.push(`- ${x.text} ${x.label}`));
+    if (tr.book) L.push(patient ? "I should book in with a dentist." : "Reported pain, bleeding gums or no dental visit in over 2 years.");
+  } else L.push("Not done.");
+  L.push("");
 
   L.push("DRY MOUTH ASSESSMENT (Summated Xerostomia Inventory, 5 to 15)");
   if (f.sips.length) f.sips.slice(-8).forEach((s) => L.push(`- ${fmtDate(s.ts)}: ${s.sip}, ${sipLevel(s.sip).label}`));

@@ -1,16 +1,41 @@
+import { useState } from "react";
 import { Icon } from "./ui.jsx";
 
+// ─── "?" beside an option: a short explanation in a small pop-up ───────────
+export function InfoPop({ title, text, onClose }) {
+  return (
+    <div className="infopop-wrap" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+      <div className="infopop" onClick={(e) => e.stopPropagation()}>
+        <h3>{title}</h3>
+        <p>{text}</p>
+        <p className="infopop-note">General information. A dentist, doctor or pharmacist can tell you how it applies to you.</p>
+        <button type="button" className="btn primary" onClick={onClose} autoFocus>Got it</button>
+      </div>
+    </div>
+  );
+}
+function InfoBtn({ o, info, setOpen }) {
+  const text = info?.(o);
+  if (!text) return null;
+  return <button type="button" className="pick-info" aria-label={`What ${o.label} means for your mouth`} onClick={() => setOpen({ title: o.label, text })}>?</button>;
+}
+
 // ─── Pick one, big rows ────────────────────────────────────────────────────
-export function Pick({ options, value, onPick }) {
+export function Pick({ options, value, onPick, info }) {
+  const [pop, setPop] = useState(null);
   return (
     <div className="pick">
       {options.map((o) => (
-        <button key={String(o.v)} type="button" className={`pick-row${value === o.v ? " on" : ""}${o.danger ? " danger" : ""}`}
-          onClick={() => onPick(o.v)} aria-pressed={value === o.v}>
-          <span><strong>{o.label}</strong>{o.hint && <em>{o.hint}</em>}</span>
-          <span className="pick-dot" aria-hidden="true">{value === o.v && <Icon name="check" size={18} stroke={3} />}</span>
-        </button>
+        <div key={String(o.v)} className={`pick-item${info?.(o) ? " has-info" : ""}`}>
+          <button type="button" className={`pick-row${value === o.v ? " on" : ""}${o.danger ? " danger" : ""}`}
+            onClick={() => onPick(o.v)} aria-pressed={value === o.v}>
+            <span><strong>{o.label}</strong>{o.hint && <em>{o.hint}</em>}</span>
+            <span className="pick-dot" aria-hidden="true">{value === o.v && <Icon name="check" size={18} stroke={3} />}</span>
+          </button>
+          <InfoBtn o={o} info={info} setOpen={setPop} />
+        </div>
       ))}
+      {pop && <InfoPop {...pop} onClose={() => setPop(null)} />}
     </div>
   );
 }
@@ -77,19 +102,24 @@ export function SymptomChart({ days, fmt }) {
 }
 
 // ─── Tick any, as full rows with a hint line ───────────────────────────────
-export function TickRows({ options, value, onChange }) {
+export function TickRows({ options, value, onChange, info }) {
+  const [pop, setPop] = useState(null);
   const toggle = (v) => onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v]);
   return (
     <div className="pick">
       {options.map((o) => {
         const on = value.includes(o.v);
         return (
-          <button key={o.v} type="button" className={`pick-row tick${on ? " on" : ""}`} onClick={() => toggle(o.v)} aria-pressed={on}>
-            <span className="tick-box" aria-hidden="true">{on && <Icon name="check" size={18} stroke={3} />}</span>
-            <span><strong>{o.label}</strong>{o.hint && <em>{o.hint}</em>}</span>
-          </button>
+          <div key={o.v} className={`pick-item${info?.(o) ? " has-info" : ""}`}>
+            <button type="button" className={`pick-row tick${on ? " on" : ""}`} onClick={() => toggle(o.v)} aria-pressed={on}>
+              <span className="tick-box" aria-hidden="true">{on && <Icon name="check" size={18} stroke={3} />}</span>
+              <span><strong>{o.label}</strong>{o.hint && <em>{o.hint}</em>}</span>
+            </button>
+            <InfoBtn o={o} info={info} setOpen={setPop} />
+          </div>
         );
       })}
+      {pop && <InfoPop {...pop} onClose={() => setPop(null)} />}
     </div>
   );
 }

@@ -9,10 +9,10 @@ import { GENDERS, ageFrom } from "../data/person.js";
 import { WorrySheet } from "./help.jsx";
 
 export const SITUATIONS = [
-  { v: "cancer", label: "Cancer treatment", hint: "Before, during or after radiotherapy, chemotherapy or other treatment" },
+  { v: "cancer", label: "I'm having, or have had, cancer treatment", hint: "Before, during or after radiotherapy, chemotherapy or other treatment" },
   { v: "sjogren", label: "Sjögren's or another condition that dries the mouth" },
-  { v: "meds", label: "Medicines that dry my mouth" },
-  { v: "checking", label: "Just checking how my mouth is going" },
+  { v: "meds", label: "My medicines are drying my mouth" },
+  { v: "checking", label: "My mouth feels dry" },
 ];
 
 /** First run: who it's for, what brings them here, and (for cancer care) their treatment. Everything can be changed later in Me. */
@@ -39,7 +39,7 @@ export function Welcome({ profile, onDone }) {
         <div className="welcome-top">
           {step > 0 ? <button className="icon-btn" onClick={() => setStep(step - 1)} aria-label="Back"><Icon name="back" /></button> : <span />}
           <div className="pips" aria-hidden="true">{steps.map((s, i) => <span key={s} className={i <= step ? "on" : ""} />)}</div>
-          {!["who", "about"].includes(at) ? <button className="link-btn" onClick={finish}>Skip</button> : <span />}
+          {!["who", "about", "why"].includes(at) ? <button className="link-btn" onClick={finish}>Skip</button> : <span />}
         </div>
 
         {at === "who" && (<>
@@ -74,7 +74,6 @@ export function Welcome({ profile, onDone }) {
             <label className="field"><span>Your first name (optional)</span>
               <input value={p.carerName || ""} onChange={(e) => set({ carerName: e.target.value })} autoComplete="given-name" /></label>
           )}
-          <p className="soft-note">All optional, and you can change them any time in Me.</p>
         </>)}
 
         {at === "why" && (<>

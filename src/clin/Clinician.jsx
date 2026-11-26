@@ -4,6 +4,7 @@
 // assessment and the plan options; the professional chooses, adds a note and a review
 // date, and signs. Only a signed plan reaches the patient's screens.
 import { unsureOf } from "../data/risk.js";
+import { teethRecord } from "../data/teeth.js";
 import { useMemo, useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { REFS } from "../data/references.js";
@@ -134,6 +135,10 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
           {unsureOf(f.risk.answers).length > 0 && <p className="soft-note"><b>Answered "Not sure":</b> {unsureOf(f.risk.answers).join(", ").toLowerCase()}. Go through these with the patient; the score may be low.</p>}
           {f.r.factors.length > 0 && <FactorTable rows={f.r.factors} />}
         </>) : <p>Dry mouth risk check not done.</p>}
+        {f.teeth ? (<>
+          <p><b>Teeth and gums</b> ({fmtDate(f.teeth.ts)}), patient-reported, not scored{teethRecord(f.teeth.answers).book ? ": reports pain, bleeding gums or no dental visit in over 2 years" : ""}.</p>
+          <ul className="clin-teeth">{teethRecord(f.teeth.answers).rows.map((x) => <li key={x.q + x.label}>{x.text} <b>{x.label}</b></li>)}</ul>
+        </>) : <p>Teeth and gums questions not done.</p>}
         <p className="soft-note">Tooth decay risk is not assessed by the app: assess it clinically. Tooth Mousse™ and fluoride options below are listed for a dry mouth, where saliva's protection of the teeth is reduced.</p>
         {f.pat.level === "flag" && <p><b>pH pattern:</b> acidic in {f.pat.acid} of the last {f.pat.n} tests.</p>}
       </section>

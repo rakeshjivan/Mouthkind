@@ -28,6 +28,7 @@ import { buildModel, buildOptions, openQuestions } from "../data/engine.js";
 import { SetupQuestions } from "../screens/plan.jsx";
 import { CareTeamEdit } from "../screens/careTeam.jsx";
 import { setupState } from "../data/setup.js";
+import { dueWords, freqFor, nextCheck } from "../data/schedule.js";
 import { buildRoutine, tickEntry, ticksToday } from "../data/routine.js";
 import { CallSheet, HelpBar, WorrySheet } from "../screens/help.jsx";
 import { PlanItem } from "../screens/plan.jsx";
@@ -35,6 +36,8 @@ import { DEFAULT_PREFS, DEFAULT_PROFILE, fmtDate, load, save, wipe } from "../li
 import { DiarySaved, LiteSummary, Records } from "../lite/screens.jsx";
 import { ClinicianSheet, PlanFrom } from "./Clinician.jsx";
 import { dryFactors, findingsText, sendFindings } from "./findings.js";
+import { denturesFrom, teethQuestions, teethRecord } from "../data/teeth.js";
+import { infoFor } from "../data/optionInfo.js";
 
 const TABS = [
   { id: "home", label: "Today", icon: "home" },
@@ -73,7 +76,19 @@ function SavedForDentist({ entry, onClose, onRedo, next, what }) {
         <h2 className="q">Saved</h2>
         <p className="lede">Your answers from {fmtDate(entry.ts)} are saved on this phone. You can show them to a dentist, doctor, nurse or pharmacist, or send them from Today with "Send my answers".</p></div>
       {x && <DryFactors x={x} />}
+      {entry?.kind === "teeth" && <TeethRec answers={entry.answers} />}
     </Sheet>
+  );
+}
+
+function TeethRec({ answers }) {
+  const r = teethRecord(answers);
+  return (
+    <section className="dryrec" aria-label="Your teeth and gums">
+      <h3 className="list-h first">Your teeth and gums</h3>
+      {r.book && <p className="teeth-book"><Icon name="alert" size={18} /> Book in with a dentist. Some of your answers are worth having checked.</p>}
+      <div className="dryrec-g"><ul>{r.rows.map((x) => <li key={x.q + x.label}><strong>{x.label}</strong><span>{x.info}</span></li>)}</ul></div>
+    </section>
   );
 }
 
@@ -154,6 +169,7 @@ export default function AppClin() {
 
   // The engine, as in the full app: it feeds the clinician view only.
   const risk = latestOf(entries, "risk");
+  const teeth = latestOf(entries, "teeth");
   const riskR = risk && scoreRisk(risk.answers);
   const latestSip = sipReadings(entries).at(-1)?.sip ?? null;
   const phLevel = phPattern(phReadings(entries)).level;
@@ -188,21 +204,37 @@ export default function AppClin() {
   const whyItem = whyId && plan.find((i) => i.id === whyId);
   const lastSip = [...entries].filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => b.ts - a.ts)[0];
   const send = () => sendFindings(findingsText(profile, view, signed, { patient: true }), "My Mouthkind answers");
+  // Today's tiles: the four things people come back for.
+  const lastPh = [...entries].filter((e) => e.ph != null).sort((a, b) => b.ts - a.ts)[0];
+  const every = prefs.sipEvery || 7;
+  const sipDue = nextCheck(lastSip?.ts, every), phDue = nextCheck(lastPh?.ts, every);
+  const tiles = (
+    <div className="today-tiles">
+      <button type="button" className="tt t-ph" onClick={() => open("ph")}><Icon name="drop" size={24} /><strong>Check my saliva pH</strong><em>{lastPh ? (phDue.due ? "Due now" : dueWords(phDue)) : "2 minutes with a test strip"}</em></button>
+      <button type="button" className="tt t-sip" onClick={() => open("sip")}><Icon name="chart" size={24} /><strong>My {freqFor(every).short} mouth check</strong><em>{lastSip ? (sipDue.due ? "Due now" : dueWords(sipDue)) : "5 quick questions"}</em></button>
+      <button type="button" className="tt t-learn" onClick={() => go("advice", "learn")}><Icon name="book" size={24} /><strong>Learn about dry mouth</strong><em>Start with 3 short guides</em></button>
+      <button type="button" className="tt t-send" onClick={send}><Icon name="send" size={24} /><strong>Send my results</strong><em>To your dentist, doctor or pharmacist</em></button>
+    </div>
+  );
   const card = <><PlanFrom plan={signed} onOpen={() => setSheet("clinician")} onSee={() => go("advice", "plan")} onSend={send} /><TeethNote onRead={() => go("advice", "teeth")} /></>;
 
   return (
     <div className="app">
       <main className={`main${profile.onboarded && !showWelcome && tab === "home" ? " with-help" : ""}`} id="main">
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
-          routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card }} />}
+          routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card, tiles }} />}
         {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel="In your plan" />}
         {tab === "advice" && <Care key={focus || "c"} ctx={careCtx} openSheet={setSheet} focus={focus} plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open}
           setup={building ? setup : null} onSetup={continueSetup} onShop={() => go("shop")} clin={{ plan: signed, onOpen: () => setSheet("clinician") }} />}
-        {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} extra={
+        {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} extra={<>
           <section className="panel">
             <div className="panel-h"><h2>What can affect a dry mouth</h2><button className="link-btn" onClick={() => open(risk ? "riskresult" : "risk")}>{risk ? "See" : "Start"}</button></div>
             <p className="soft-note">{risk ? `Your medicines, health and habits, from ${fmtDate(risk.ts)}. Saved on this phone.` : "Your medicines, health and habits. About 2 minutes."}</p>
-          </section>} />}
+          </section>
+          <section className="panel">
+            <div className="panel-h"><h2>Your teeth and gums</h2><button className="link-btn" onClick={() => open(teeth ? "teethresult" : "teeth")}>{teeth ? "See" : "Start"}</button></div>
+            <p className="soft-note">{teeth ? `Sensitivity, gums, brushing and diet, from ${fmtDate(teeth.ts)}. Saved on this phone.` : "Sensitivity, gums, brushing and diet. About 2 minutes."}</p>
+          </section></>} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} about={ABOUT} />}
       </main>
 
@@ -219,13 +251,19 @@ export default function AppClin() {
       </nav>
 
       {sheet === "risk" && <RiskFlow last={risk} model={{ ...dryModel(fromProfile), Result: (p) => <SavedForDentist {...p} what="Dry mouth risk questions" /> }} next={next} onClose={close} onSave={addEntry} />}
+      {sheet === "teeth" && <RiskFlow last={teeth} next={next} onClose={close}
+        onSave={(e) => { addEntry(e); const d = denturesFrom(e.answers); if (d) setProfile({ ...profile, fu: { ...(profile.fu || {}), dentures: { v: d, ts: e.ts } } }); }}
+        model={{ title: "Your teeth and gums", draftKey: "teethDraft", questions: (a) => teethQuestions(a), info: (q, o) => infoFor(q.id, o.v),
+          entry: (a, id) => ({ id: id || `t_${Date.now()}`, ts: Date.now(), kind: "teeth", answers: { ...a } }),
+          Result: (p) => <SavedForDentist {...p} what="Teeth and gums" /> }} />}
+      {sheet === "teethresult" && teeth && <SavedForDentist entry={teeth} what="Teeth and gums" onClose={close} onRedo={() => setSheet("teeth")} />}
       {sheet === "riskresult" && risk && <SavedForDentist entry={risk} what="Dry mouth risk questions" onClose={close} onRedo={() => setSheet("risk")} />}
       {sheet === "freq" && (
         <FrequencyPicker value={prefs.sipEvery} first={!!afterFreq} onClose={() => { setAfterFreq(null); close(); }}
           onPick={(d) => { setPrefs({ ...prefs, sipEvery: d }); setSheet(afterFreq); setAfterFreq(null); }} />
       )}
       {sheet === "sip" && prefs.sipEvery && <SipFlow plain every={prefs.sipEvery} previous={lastSip} onClose={close} onSave={addEntry} next={next} />}
-      {sheet === "remind" && <Reminder every={prefs.sipEvery || 14} onClose={close} />}
+      {sheet === "remind" && <Reminder every={prefs.sipEvery || 7} onClose={close} />}
       {sheet === "logremind" && <LogReminder prefs={prefs} setPrefs={setPrefs} onClose={close} weekly={!activeTreatment(profile)} />}
       {sheet === "ph" && <PhFlow plain readings={phReadings(entries)} next={next} onClose={close} onSave={addEntry} onCare={close}
         onSkip={building ? () => { setProfile({ ...profile, phSkip: true }); close(); } : null} />}
