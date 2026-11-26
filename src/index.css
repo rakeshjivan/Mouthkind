@@ -1807,3 +1807,13 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .daily-q .dseg-btn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .daily-q .dseg.wrap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .daily-q .dseg.wrap .dseg-btn { min-height: 52px; padding: 8px 10px; line-height: 1.25; }
+/* Today: Call my team and When to worry sit under the tiles, not fixed over the page. */
+.helpbar.inline { position: static; max-width: none; margin: 0 0 14px; padding: 0; border: 0; background: none; box-shadow: none; }
+/* What can affect a dry mouth, and teeth and gums: each item in a pastel card, colours in turn. */
+.dryrec-g li { background: var(--dry-bg); }
+.dryrec-g li:nth-child(6n+2) { background: var(--good-bg); }
+.dryrec-g li:nth-child(6n+3) { background: var(--amberbg); }
+.dryrec-g li:nth-child(6n+4) { background: var(--peach-bg); }
+.dryrec-g li:nth-child(6n+5) { background: var(--lilac-bg); }
+.dryrec-g li:nth-child(6n+6) { background: var(--rose-bg); }
+.dryrec-g li { padding: 12px 14px; border-radius: 16px; }

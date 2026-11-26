@@ -75,7 +75,7 @@ function SavedForDentist({ entry, onClose, onRedo, next, what }) {
       </>}>
       <div className="lite-saved"><span className="lite-saved-mark" aria-hidden="true"><Icon name="check" size={28} stroke={3} /></span>
         <h2 className="q">Saved</h2>
-        <p className="lede">Your answers from {fmtDate(entry.ts)} are saved on this phone. You can show them to a dentist, doctor, nurse or pharmacist, or send them from Today with "Send my answers".</p></div>
+        <p className="lede">Your answers from {fmtDate(entry.ts)} are saved on this phone. You can show them to a dentist, doctor, nurse or pharmacist, or send them from Today with "Send my results".</p></div>
       {x && <DryFactors x={x} />}
       {entry?.kind === "teeth" && <TeethRec answers={entry.answers} />}
     </Sheet>
@@ -215,9 +215,9 @@ export default function AppClin() {
 
   return (
     <div className="app">
-      <main className={`main${profile.onboarded && !showWelcome && tab === "home" ? " with-help" : ""}`} id="main">
+      <main className="main" id="main">
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
-          routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card, tiles }} />}
+          routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card, tiles, help: <HelpBar inline profile={profile} open={open} /> }} />}
         {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel="In your plan" />}
         {tab === "learn" && <LearnPage key={focus || "l"} ctx={careCtx} focus={focus} profile={profile} setProfile={setProfile} onShop={() => go("shop")} clin={{ plan: signed }} />}
         {tab === "plan" && <PlanPage ctx={careCtx} plan={plan} profile={profile} setProfile={setProfile} open={open} setup={building ? setup : null} onSetup={continueSetup}
@@ -229,7 +229,6 @@ export default function AppClin() {
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} about={ABOUT} />}
       </main>
 
-      {profile.onboarded && !showWelcome && tab === "home" && <HelpBar profile={profile} open={open} />}
       <nav className="tabbar" aria-label="Main">
         {TABS.map((t) => (
           <button key={t.id} className={`tab${tab === t.id ? " on" : ""}`} onClick={() => go(t.id)} aria-current={tab === t.id ? "page" : undefined}>

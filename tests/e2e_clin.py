@@ -84,6 +84,9 @@ async def main():
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(500)
     # Today before a plan: no routine, no plan-driven alert, the dentist card
     await text("today unsigned"); await pg.screenshot(path=S + "6-today-unsigned.png", full_page=True)
+    await pg.evaluate("window.scrollTo(0, 99999); document.querySelectorAll('main, .app').forEach(e => e.scrollTop = 99999)"); await pg.wait_for_timeout(200)
+    await pg.screenshot(path=S + "6d-today-bottom.png")
+    await pg.evaluate("window.scrollTo(0, 0); document.querySelectorAll('main, .app').forEach(e => e.scrollTop = 0)")
     t0 = await pg.evaluate("document.documentElement.getAttribute('data-theme')")
     await pg.evaluate("document.documentElement.setAttribute('data-theme','dark')"); await pg.wait_for_timeout(150)
     await pg.screenshot(path=S + "6b-today-dark.png", full_page=True)

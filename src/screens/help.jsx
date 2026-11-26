@@ -11,11 +11,11 @@ export function callTarget(profile) {
 
 /** Always on screen, just above the footer: call, and when to worry.
  * One number saved: rings it. Several: opens a list to choose who. None: add one. */
-export function HelpBar({ profile, open }) {
+export function HelpBar({ profile, open, inline = false }) {
   const list = careContacts(profile);
   const c = list.length === 1 ? list[0] : null;
   return (
-    <div className="helpbar" role="region" aria-label="Get help">
+    <div className={`helpbar${inline ? " inline" : ""}`} role="region" aria-label="Get help">
       {list.length > 1 ? (
         <button type="button" className="help-btn call" onClick={() => open("call")} aria-haspopup="dialog"><Icon name="phone" size={20} stroke={2.2} /> Call my team</button>
       ) : c ? (

@@ -184,7 +184,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
         </section>
       )}
 
-      {building ? <SetupCard setup={setup} onSetup={onSetup} clin={!!clin} /> : (<>
+      {building ? <><SetupCard setup={setup} onSetup={onSetup} clin={!!clin} />{clin?.help}</> : (<>
         {clin?.tiles}
         {clin ? (
           // The mouth log and questions sit with the other tiles as two more squares.
@@ -210,6 +210,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
           <Icon name="chev" size={16} />
         </button>
         )}
+        {clin?.help}
         {clin?.card}
         <RoutineCard routine={routine} done={ticks} onTick={onTick} onWhy={onWhy} />
       </>)}
