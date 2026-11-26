@@ -27,8 +27,9 @@ import { debrandAll } from "./debrand.js";
 import { myRoutine } from "./routineLib.js";
 import { DiarySaved, Learn, LiteSummary, Records, RoutineBuilder, Today, liteSetup } from "./screens.jsx";
 
-// General information, without brands or product lists.
-debrandAll(CARE_TOPICS);
+// General information, without brands or product lists. Done when this edition first
+// renders, not on import, so the other editions in the same bundle keep their products.
+let debranded = false;
 
 const TABS = [
   { id: "home", label: "Today", icon: "home" },
@@ -48,6 +49,7 @@ const ABOUT = (
 );
 
 export default function AppLite() {
+  if (!debranded) { debrandAll(CARE_TOPICS); debranded = true; }
   const [profile, setProfileState] = useState(() => ({ ...DEFAULT_PROFILE, ...load("profile", {}) }));
   const [entries, setEntries] = useState(() => { const e = load("entries", []); return Array.isArray(e) ? e : []; });
   const [prefs, setPrefsState] = useState(() => ({ ...DEFAULT_PREFS, ...load("prefs", {}) }));

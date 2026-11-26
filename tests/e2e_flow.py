@@ -50,7 +50,6 @@ async def main():
     await pick("Yes, once").click(); await pg.wait_for_timeout(350)
     await pick("3 or more times a day").click(); await pg.wait_for_timeout(350)
     await btn("Once a day").click(); await pg.wait_for_timeout(350)
-    await pick("Sometimes").click(); await pg.wait_for_timeout(350)
     await btn("None of these").click(); await pg.wait_for_timeout(250)
     await btn("None of these").click(); await pg.wait_for_timeout(250)
     await btn("None of these").click(); await pg.wait_for_timeout(250)

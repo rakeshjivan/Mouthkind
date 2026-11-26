@@ -4,4 +4,7 @@
 //                 advertising rules: a diary, records, general information and the care team.
 //                 No risk prediction, no personalised treatment or product advice, no
 //                 triage from what's logged, no brands and no links to buy.
-export const EDITION = "compliant";
+//   "clinician" — TGA option 3: the full app's engine, with its results and plan options
+//                 shown only in a clinician view. A registered professional chooses and
+//                 signs the plan the patient follows.
+export const EDITION = "clinician";

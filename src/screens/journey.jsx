@@ -6,8 +6,8 @@ import { CallTeam } from "./daily.jsx";
 import { questionsText } from "../data/questions.js";
 
 /** What to expect, now and next, for each treatment. */
-export function Journey({ profile, onClose, openTool, onEdit, transform }) {
-  const j = transform ? transform(journey(profile)) : journey(profile);
+export function Journey({ profile, onClose, openTool, onEdit, transform, general }) {
+  const j = transform ? transform(journey(profile, Date.now(), { general })) : journey(profile, Date.now(), { general });
   const chemo = hasTx(profile, "chemo") || hasTx(profile, "transplant");
   return (
     <Sheet title="What to expect" onClose={onClose}
@@ -25,7 +25,7 @@ export function Journey({ profile, onClose, openTool, onEdit, transform }) {
         </section>
       ))}
       <div className="jtools">
-        {chemo && <button className="btn ghost" onClick={() => openTool("chemoday")}><Icon name="plus" size={18} /> I had treatment today</button>}
+        {chemo && !general && <button className="btn ghost" onClick={() => openTool("chemoday")}><Icon name="plus" size={18} /> I had treatment today</button>}
         {hasTx(profile, "rt_hn") && <button className="btn ghost" onClick={() => openTool("jaw")}>Jaw opening check</button>}
         {(hasTx(profile, "rt_hn") || hasTx(profile, "bone")) && <button className="btn ghost" onClick={() => openTool("rtcard")}>My dental alert card</button>}
         <button className="btn ghost" onClick={() => openTool("questions")}>Questions for my care team</button>
@@ -41,7 +41,7 @@ export function Journey({ profile, onClose, openTool, onEdit, transform }) {
 // front teeth. Fewer than 3 suggests reduced opening — worth telling the team.
 // Exercises improve opening once stiffness starts; they haven't been shown to
 // prevent it (Shao 2020).
-export function JawTool({ entries, onClose, onSave }) {
+export function JawTool({ entries, onClose, onSave, plain }) {
   const [mode, setMode] = useState("test");
   const [fingers, setFingers] = useState(null);
   const last = entries.filter((e) => e.kind === "jaw" && e.fingers).sort((a, b) => b.ts - a.ts)[0];
@@ -62,7 +62,8 @@ export function JawTool({ entries, onClose, onSave }) {
         </div>
         {last && <p className="soft-note">Last time: {last.fingers === 3 ? "3 or more" : last.fingers} finger{last.fingers === 1 ? "" : "s"}.</p>}
       </>)}
-      {mode === "done" && (fingers >= 3
+      {mode === "done" && plain && <div className="alert-x good callout"><strong>Saved</strong><p>Your measurements are in your records for your treatment team or dentist. Measure again once a month, or as your team suggests.</p></div>}
+      {mode === "done" && !plain && (fingers >= 3
         ? <div className="alert-x good callout"><strong>Good opening</strong><p>Check again once a month, and after radiotherapy finishes.</p></div>
         : <div className="alert-x amber callout"><strong>Your mouth may not be opening fully</strong><p>Fewer than three fingers can be an early sign of a stiff jaw (trismus). Tell your treatment team or dentist — exercises help most when started early.</p></div>)}
       {mode === "ex" && <JawExercise onLog={() => onSave({ id: `u_${Date.now()}`, ts: Date.now(), kind: "used", items: ["jaw"] })} />}
@@ -208,14 +209,14 @@ async function share(profile) {
 }
 
 /** "I had treatment today" — adds today's date to the chemotherapy dates. */
-export function ChemoToday({ profile, setProfile, onClose }) {
+export function ChemoToday({ profile, setProfile, onClose, plain }) {
   const today = new Date(); const iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   const [d, setD] = useState(iso);
   return (
     <Sheet title="Treatment date" onClose={onClose}
       footer={<button className="btn primary big" onClick={() => { setProfile({ ...profile, chemoDates: [...new Set([...(profile.chemoDates || []), d])].sort() }); onClose(); }}>Save</button>}>
       <h2 className="q">When did you have chemotherapy?</h2>
-      <p className="lede tight">The app counts the days from your latest treatment, to tell you when sores are most likely.</p>
+      <p className="lede tight">{plain ? "Saved with your records, for your treatment team." : "The app counts the days from your latest treatment, to tell you when sores are most likely."}</p>
       <label className="field"><span>Date</span><input type="date" value={d} max={iso} onChange={(e) => setD(e.target.value)} /></label>
     </Sheet>
   );

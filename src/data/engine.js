@@ -691,7 +691,7 @@ function encourage(it, using) {
 }
 
 /** The plan, most important first. The first three are "your focus". */
-export function buildPlan(m) {
+export function buildPlan(m, { raw = false } = {}) {
   const seen = new Set(), out = [];
   for (const r of RULES) {
     const it = r(m);
@@ -710,7 +710,7 @@ export function buildPlan(m) {
     else if (p.includes("gc-tmp") && !p.includes("gc-tm")) it.products = [...p, "gc-tm"];
   }
   const using = inUse(m);
-  for (let i = out.length - 1; i >= 0; i--) { const s = safe(out[i], m); if (s) out[i] = encourage(s, using); else out.splice(i, 1); }
+  for (let i = out.length - 1; i >= 0; i--) { const s = raw ? out[i] : safe(out[i], m); if (s) out[i] = encourage(s, using); else out.splice(i, 1); }
   // Two items can end up praising the same thing: keep the first.
   for (let i = out.length - 1; i >= 0; i--) if (out[i].kept && out.findIndex((x) => x.title === out[i].title) < i) out.splice(i, 1);
   // A new medicine already says "ask your pharmacist"; don't say it twice.
@@ -740,4 +740,28 @@ export function summary(m) {
   const best = m.insights.find((i) => i.change <= -2);
   if (best) s.push(`${best.label} seems to be helping.`);
   return s;
+}
+
+/** For the clinician view: every plan item the rules suggest, as options. Items the
+ *  allergy and dialysis safeguards change carry those changes as warnings; items they
+ *  would remove are still listed, with the reason, but not pre-ticked.
+ *  { id, item, warn: [..], ticked } */
+export function buildOptions(m) {
+  const safeItems = buildPlan(m);
+  const rawItems = buildPlan(m, { raw: true });
+  const al = [].concat(answered(m, "allergy") || []);
+  const out = safeItems.map((it) => {
+    const r = rawItems.find((x) => x.id === it.id);
+    const warn = (it.because || []).filter((b) => !(r?.because || []).includes(b));
+    if (fluidLimit(m) && r && r.body !== it.body && /fluid limit/.test(it.body)) warn.push("On dialysis: water advice changed to \"within your fluid limit\".");
+    return { id: it.id, item: it, warn, ticked: true };
+  });
+  for (const r of rawItems) {
+    if (safeItems.some((x) => x.id === r.id)) continue;
+    const why = fluidLimit(m) && ["water", "riseDrink", "risk.drink"].includes(r.id) ? "On dialysis: drinking more water conflicts with a fluid limit."
+      : al.includes("milk") && /decay\.tm/.test(r.id) ? "Milk protein allergy: Tooth Mousse™ contains milk protein (CPP-ACP)."
+      : "Left out by the app's safety rules for this patient.";
+    out.push({ id: r.id, item: r, warn: [why], ticked: false, contra: true });
+  }
+  return out;
 }

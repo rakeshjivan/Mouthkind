@@ -74,10 +74,11 @@ export function activeTreatment(p, now = Date.now()) {
  * What to expect now and next. Returns { title, now: [..], next?: {title, items}, always: [..] }
  * Each item = { t: text, refs?: [] }.
  */
-export function journey(p, now = Date.now()) {
+// `general`: the timeline by treatment type only, without the personal day count.
+export function journey(p, now = Date.now(), { general = false } = {}) {
   const out = { cards: [] };
   if (hasTx(p, "rt_hn")) out.cards.push(rtCard(p, now));
-  if (hasTx(p, "chemo") || hasTx(p, "transplant")) out.cards.push(chemoCard(p, now));
+  if (hasTx(p, "chemo") || hasTx(p, "transplant")) out.cards.push(chemoCard(p, now, general));
   // Radiotherapy away from the head and neck doesn't reach the salivary glands, so it
   // rarely affects the mouth directly; chemotherapy given with it, and tiredness, can.
   if (hasTx(p, "rt_other") && !hasTx(p, "rt_hn")) out.cards.push({ id: "rt_other", title: "Radiotherapy", when: "During and after", items: [
@@ -150,13 +151,13 @@ const ORN = [
   { t: "Tell every dentist you've had radiotherapy to the head or neck before any treatment. The jaw bone heals slowly in the treated area (a problem called osteoradionecrosis), so extractions and surgery are planned with care.", refs: ["peterson2024"] },
 ];
 
-function chemoCard(p, now) {
-  const d = chemoDay(p, now);
+function chemoCard(p, now, general) {
+  const d = general ? null : chemoDay(p, now);
   const base = { id: "chemo", title: hasTx(p, "transplant") ? "Chemotherapy or transplant" : "Chemotherapy" };
   const always = [{ t: "A temperature of 38°C or more is an emergency during chemotherapy. Call your treatment team or go to the emergency department straight away.", refs: ["ccaMouth2025"] }];
   if (d == null) return { ...base, when: "Each cycle", items: [
     { t: "Mouth sores usually start 3 to 4 days after a dose and are worst between days 7 and 14, then settle.", refs: ["nciPdqHp"] },
-    { t: "Add your treatment dates (Me › Situation and treatment) and the app will tell you which days to watch." },
+    ...(general ? [] : [{ t: "Add your treatment dates (Me › Situation and treatment) and the app will tell you which days to watch." }]),
     { t: "Rinse at least 4 times a day and brush gently with a soft brush.", refs: ["canberraHN", "elad2020"] },
   ], always };
   if (d <= 2) return { ...base, when: `Day ${d} after treatment`, items: [

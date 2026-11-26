@@ -6,7 +6,7 @@
 // The testing release keeps its own data, so it can never change a live user's results.
 // The compliant edition keeps its own again, so the two testing apps don't mix.
 import { EDITION } from "../edition.js";
-const PREFIX = EDITION === "compliant" ? "mkc:" : "mkt:";
+const PREFIX = EDITION === "compliant" ? "mkc:" : EDITION === "clinician" ? "mkd:" : "mkt:";
 const driver = {
   get(k) {
     try { const v = localStorage.getItem(PREFIX + k); return v == null ? null : JSON.parse(v); } catch { return null; }

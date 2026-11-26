@@ -103,7 +103,9 @@ export function CheckBoxes({ profile, entries, prefs, open, planned = true }) {
   </>);
 }
 
-export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSetup, phSkip, onMe, routine = [], ticks = [], onTick, onWhy }) {
+// `clin`: the clinician-in-the-loop build. Today then shows only reminders that something is
+// due, and the plan card (`clin.card`) from the patient's professional.
+export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSetup, phSkip, onMe, routine = [], ticks = [], onTick, onWhy, clin }) {
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const sips = sipReadings(entries), sip = sips.at(-1);
@@ -143,8 +145,13 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
   // then the most important thing in the plan that isn't part of the daily routine.
   const inRoutine = new Set(routine.map((x) => x.why).filter(Boolean));
   const action = plan.find((it) => it.pri >= 80 && !inRoutine.has(it.id) && !it.id.startsWith("start") && !(profile.planDone || {})[it.id] && !it.kept);
-  const alert =
-    triage?.level === "now" ? { tone: "red", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
+  const reviewDue = clin?.plan && Date.now() >= clin.plan.review;
+  const alert = clin ? (building ? null
+    : reviewDue ? { tone: "accent", title: "Your plan review is due", sub: `Book in with ${clin.plan.by.name} or your dentist`, act: "Call", go: () => open("call") }
+    : sipNext?.due ? { tone: "accent", title: "Your dry mouth score is due", sub: "5 quick questions", act: "Check now", go: () => open("sip") }
+    : !phSkip && (phNext?.due || !ph) ? { tone: "accent", title: ph ? "Your pH test is due" : "Record your saliva pH", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
+    : null)
+    : triage?.level === "now" ? { tone: "red", title: cancer ? "Contact your treatment team now" : "Get help now", sub: triage.now[0], act: "See what to do", go: () => open("dailyresult") }
     : triage?.level === "today" ? { tone: "amber", title: cancer ? "Let your treatment team know today" : "See a dentist or doctor today", sub: triage.today[0], act: "What to do", go: () => open("dailyresult") }
     : building ? null
     : pat.level === "flag" ? { tone: "amber", title: "Your saliva has been acidic", sub: `${pat.acid} of your last ${pat.n} pH tests. Show your dentist.`, act: "What helps", go: () => go("advice", "plan") }
@@ -156,7 +163,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
   const weekly = logCadence(active) === "weekly";
   const due = logDue(entries, active);
   const since = daysSinceLog(entries);
-  const tx = cancer ? journey(profile).cards[0] : null;
+  const tx = cancer ? journey(profile, Date.now(), { general: !!clin }).cards[0] : null;
 
   return (
     <div className="screen home5">
@@ -178,7 +185,8 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
         </section>
       )}
 
-      {building ? <SetupCard setup={setup} onSetup={onSetup} /> : (<>
+      {building ? <SetupCard setup={setup} onSetup={onSetup} clin={!!clin} /> : (<>
+        {clin?.card}
         <button type="button" className={`log5${due ? " due" : ""}`} onClick={() => open("daily")}>
           <span className="log5-icon" aria-hidden="true"><Icon name="plus" size={20} stroke={2.6} /></span>
           <span className="log5-text">

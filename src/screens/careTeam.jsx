@@ -43,7 +43,7 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
   const tidy = (x) => ({ ...x, extraContacts: (x.extraContacts || []).filter((c) => [c.role, c.name, c.phone].some((v) => (v || "").trim())) });
   const save = () => (setup ? setup.done(tidy(p)) : (setProfile(tidy(p)), onClose()));
   return (
-    <Sheet title={setup ? (EDITION === "compliant" ? "Getting started" : "Build your plan") : "My care team"} onClose={onClose}
+    <Sheet title={setup ? (EDITION === "full" ? "Build your plan" : "Getting started") : "My care team"} onClose={onClose}
       footer={setup ? <>
         <button className="btn ghost" onClick={() => setup.done(profile)}>Skip for now</button>
         <button className="btn primary big" onClick={save}>Save and continue</button>

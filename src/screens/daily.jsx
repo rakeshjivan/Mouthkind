@@ -69,6 +69,8 @@ export function DailyCheck({ profile, onClose, onSave, onUsed, followUp, initial
                   className={`dseg-btn${a[q.id] === o.v ? " on" : ""}`} onClick={() => setA({ ...a, [q.id]: o.v })}>{o.label}</button>
               ))}
             </div>)}
+            {/* The same line for everyone, whatever is answered. */}
+            {q.safety && <p className="q-safety"><Icon name="alert" size={16} /> {q.safety}</p>}
           </fieldset>
         ))}
       </div>

@@ -5,11 +5,14 @@ import { PRODUCTS } from "../data/products.js";
 import { ProductImage } from "../components/productImage.jsx";
 import { PlanBlock } from "./plan.jsx";
 import { milkAllergic, milkFree } from "../data/allergy.js";
+import { fmtDate } from "../lib/store.js";
 
 /** Support strategies. Topics that match the person's results come first. */
-export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile, open, setup, onSetup, refine, onShop, openSheet }) {
-  const mine = CARE_TOPICS.filter((t) => t.forYou(ctx));
-  const rest = CARE_TOPICS.filter((t) => !t.forYou(ctx));
+// `clin`: the clinician-in-the-loop build. "My plan" is the plan the patient's professional
+// signed, and Learn highlights the topics they suggested instead of matching results.
+export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile, open, setup, onSetup, refine, onShop, openSheet, clin }) {
+  const mine = CARE_TOPICS.filter((t) => (clin ? (clin.plan?.topics || []).includes(t.id) : t.forYou(ctx)));
+  const rest = CARE_TOPICS.filter((t) => !mine.includes(t));
   // Two views: the personal plan, and a library of topics to read ("Learn").
   const topicFocus = focus && focus !== "plan";
   const [view, setView] = useState(topicFocus ? "learn" : "plan");
@@ -63,7 +66,18 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
         <button role="tab" aria-selected={view === "learn"} className={`dseg-btn${view === "learn" ? " on" : ""}`} onClick={() => setView("learn")}>Learn</button>
       </div>
       {view === "plan" ? (
-        setup?.next ? (
+        clin ? (clin.plan ? (<>
+          <p className="planfrom-k inline">Your plan from {clin.plan.by.name}, {clin.plan.by.profession}, {fmtDate(clin.plan.ts)}</p>
+          {clin.plan.note && <p className="planfrom-note">"{clin.plan.note}"</p>}
+          <PlanBlock plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open} onShop={onShop} clin />
+        </>) : (
+          <section className="plan-wait" id="my-plan">
+            <h2>Your plan comes from your dentist</h2>
+            <p>{setup?.next ? `First, finish getting ready: next is ${setup.next.label}. ` : ""}At your next visit, hand your phone to your dentist or care team. They'll go through your answers and choose your plan.</p>
+            {setup?.next ? <button className="btn primary big" onClick={onSetup}>Continue</button> : <button className="btn primary big" onClick={clin.onOpen}>For my dentist</button>}
+          </section>
+        ))
+        : setup?.next ? (
           <section className="plan-wait" id="my-plan">
             <h2>Your plan is on its way</h2>
             <p>{setup.total - setup.at === 1 ? "One more step" : `${setup.total - setup.at} more steps`} and your personal plan appears here. Next: {setup.next.label}.</p>
@@ -74,7 +88,7 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
       ) : (<>
         <p className="lede tight">What helps a dry or acidic mouth, and protects your teeth.</p>
         {mine.length > 0 && (<>
-          <h2 className="list-h first">For you</h2>
+          <h2 className="list-h first">{clin ? "Your dentist suggested" : "For you"}</h2>
           {mine.map((t) => <Topic key={t.id} t={t} mineFlag={false} />)}
         </>)}
         <h2 className={`list-h${mine.length ? "" : " first"}`}>{mine.length ? "Everything else" : "All topics"}</h2>

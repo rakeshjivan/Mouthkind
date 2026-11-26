@@ -38,13 +38,13 @@ export const DAILY = [
   { id: "white", text: "White patches or coating", options: [
     { v: "no", label: "No" }, { v: "yes", label: "Yes" },
   ] },
-  { id: "fever", text: "Temperature of 38°C or more", when: (p) => (p.treatments || []).some((t) => t === "chemo" || t === "transplant"), options: [
+  { id: "fever", text: "Temperature of 38°C or more", safety: "A temperature of 38°C or more during chemotherapy is an emergency. Call your treatment team's 24-hour number now, or go to the emergency department.", when: (p) => (p.treatments || []).some((t) => t === "chemo" || t === "transplant"), options: [
     { v: "no", label: "No" }, { v: "yes", label: "Yes" }, { v: "unsure", label: "Haven't checked" },
   ] },
   { id: "bone", text: "Bone showing in the mouth", when: (p) => (p.treatments || []).some((t) => t === "rt_hn" || t === "bone"), options: [
     { v: "no", label: "No" }, { v: "yes", label: "Yes" }, { v: "unsure", label: "Not sure" },
   ] },
-  { id: "urgent", text: "Swelling, breathing or swallowing", options: [
+  { id: "urgent", text: "Swelling, breathing or swallowing", safety: "Trouble breathing, or can't swallow your own saliva: call 000. New swelling of the face or neck: see a doctor or dentist today.", options: [
     { v: "none", label: "No problems" }, { v: "swell", label: "Face or neck swelling" }, { v: "breath", label: "Hard to breathe or swallow saliva" },
   ] },
 ];
