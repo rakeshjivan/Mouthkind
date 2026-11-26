@@ -17,18 +17,20 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
 
   return (
     <div className="screen">
-      <header className="hero"><h1 className="display">Help</h1></header>
-      {/* The things people look for when they're worried, first. */}
+      <header className="hero"><h1 className="display">{view === "learn" ? "Learn" : "Help"}</h1></header>
+      <div className="dseg plan-switch" role="tablist" aria-label="My plan or learn">
+        <button role="tab" aria-selected={view === "plan"} className={`dseg-btn${view === "plan" ? " on" : ""}`} onClick={() => setView("plan")}>My plan</button>
+        <button role="tab" aria-selected={view === "learn"} className={`dseg-btn${view === "learn" ? " on" : ""}`} onClick={() => setView("learn")}>Learn</button>
+      </div>
+      {view === "plan" && (<>
+      {/* Help links sit with the plan. Learn starts straight at "Start here"; urgent help is always in the help bar. */}
       <div className="help-links">
         <button type="button" className="help-link" onClick={() => open("worry")}><Icon name="alert" size={20} /><span><strong>When to worry</strong><em>What needs help now, today or soon</em></span><Icon name="chev" size={16} /></button>
         <button type="button" className="help-link" onClick={() => open("careteam")}><Icon name="phone" size={20} /><span><strong>My care team</strong><em>Numbers to call, find a dentist or pharmacy</em></span><Icon name="chev" size={16} /></button>
         <button type="button" className="help-link" onClick={() => open("questions")}><Icon name="doc" size={20} /><span><strong>Questions for my care team</strong><em>Write them down as they come to you</em></span><Icon name="chev" size={16} /></button>
         {ctx.cancer && <button type="button" className="help-link" onClick={() => open("journey")}><Icon name="info" size={20} /><span><strong>What to expect</strong><em>Your treatment, week by week, and tools</em></span><Icon name="chev" size={16} /></button>}
       </div>
-      <div className="dseg plan-switch" role="tablist" aria-label="My plan or learn">
-        <button role="tab" aria-selected={view === "plan"} className={`dseg-btn${view === "plan" ? " on" : ""}`} onClick={() => setView("plan")}>My plan</button>
-        <button role="tab" aria-selected={view === "learn"} className={`dseg-btn${view === "learn" ? " on" : ""}`} onClick={() => setView("learn")}>Learn</button>
-      </div>
+      </>)}
       {view === "plan" ? (
         clin ? (clin.plan ? (<>
           <p className="planfrom-k inline">Your plan from {clin.plan.by.name}, {clin.plan.by.profession}, {fmtDate(clin.plan.ts)}</p>

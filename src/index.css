@@ -1784,3 +1784,7 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .tt.t-team { background: var(--lilac-bg); } .tt.t-team > svg { color: var(--lilac); }
 .tt.t-send { background: var(--soft); } .tt.t-send > svg { color: var(--ink2); }
 .forteam-acts { display: grid; gap: 10px; margin-top: 16px; }
+.tt.t-log { background: var(--rose-bg); } .tt.t-log > svg { color: var(--paper); background: var(--rose); border-radius: 50%; padding: 6px; width: 36px; height: 36px; box-sizing: border-box; }
+.tt.t-qs { background: var(--sky-bg); } .tt.t-qs > svg { color: var(--blue); }
+.learn .lg::before { content: none; } /* .lg is also the chart legend class */
+.learn .list-h.first { margin-top: 4px; }

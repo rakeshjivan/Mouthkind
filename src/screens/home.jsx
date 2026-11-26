@@ -12,6 +12,7 @@ import { sameDay, triageFor } from "../data/daily.js";
 import { SetupCard } from "./plan.jsx";
 import { RoutineCard } from "./routine.jsx";
 import { IS_TESTING } from "../edition.js";
+import { openQuestionCount } from "../data/careTeam.js";
 
 export const latestOf = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const phReadings = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);
@@ -107,6 +108,7 @@ export function CheckBoxes({ profile, entries, prefs, open, planned = true }) {
 // `clin`: the clinician-in-the-loop build. Today then shows only reminders that something is
 // due, and the plan card (`clin.card`) from the patient's professional.
 export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSetup, phSkip, onMe, routine = [], ticks = [], onTick, onWhy, clin }) {
+  const openQs = openQuestionCount(profile);
   const risk = latestOf(entries, "risk");
   const r = risk && scoreRisk(risk.answers);
   const sips = sipReadings(entries), sip = sips.at(-1);
@@ -184,7 +186,19 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
 
       {building ? <SetupCard setup={setup} onSetup={onSetup} clin={!!clin} /> : (<>
         {clin?.tiles}
-        {clin?.card}
+        {clin ? (
+          // The mouth log and questions sit with the other tiles as two more squares.
+          <div className="today-tiles">
+            <button type="button" className={`tt t-log${due ? " due" : ""}`} onClick={() => open("daily")}><Icon name="plus" size={24} stroke={2.6} />
+              <strong>{dailyToday ? "Today's mouth log" : `Log how ${who ? `${who}'s` : "my"} mouth feels`}</strong>
+              <em>{dailyToday ? [daily.dryness != null && `Dryness ${daily.dryness}`, daily.pain != null && `Pain ${daily.pain}`].filter(Boolean).join(" · ") + " · Update"
+              : due ? (since != null && since >= 2 ? `Last logged ${since} days ago · under a minute` : "Not logged yet · under a minute")
+              : `Logged ${since === 1 ? "yesterday" : `${since} days ago`} · next in ${7 - since} day${7 - since === 1 ? "" : "s"}`}</em></button>
+            <button type="button" className="tt t-qs" onClick={() => open("questions")}><Icon name="doc" size={24} />
+              <strong>Questions for my care team</strong>
+              <em>{openQs ? `${openQs} written down` : "Write them down as they come to you"}</em></button>
+          </div>
+        ) : (
         <button type="button" className={`log5${due ? " due" : ""}`} onClick={() => open("daily")}>
           <span className="log5-icon" aria-hidden="true"><Icon name="plus" size={20} stroke={2.6} /></span>
           <span className="log5-text">
@@ -195,6 +209,8 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
           </span>
           <Icon name="chev" size={16} />
         </button>
+        )}
+        {clin?.card}
         <RoutineCard routine={routine} done={ticks} onTick={onTick} onWhy={onWhy} />
       </>)}
     </div>

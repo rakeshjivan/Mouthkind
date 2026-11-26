@@ -89,13 +89,13 @@ async def main():
     await pg.screenshot(path=S + "6b-today-dark.png", full_page=True)
     await pg.evaluate(f"document.documentElement.setAttribute('data-theme','{t0 or 'light'}')")
     assert await pg.locator(".planfrom").count() == 0 and await pg.locator(".routine").count() == 0
-    assert await pg.locator(".today-tiles .tt").count() == 6
+    assert await pg.locator(".today-tiles .tt").count() == 8
     assert await pg.locator(".helpbar").count() == 1
     assert "Protect my teeth" in await pg.locator(".tt.t-teeth").inner_text()
     # Diary: mouth questions only, and the same note whatever is logged
     notes = []
     for pain in ["9", "0"]:
-      await pg.locator(".log5").click(); await pg.wait_for_timeout(300)
+      await pg.locator(".tt.t-log").click(); await pg.wait_for_timeout(300)
       body = await dlg.inner_text()
       assert "38°C" not in body and "breathing" not in body.lower(), "the diary asks about the mouth only"
       for k in range(await dlg.locator(".painscale").count()): await dlg.locator(".painscale").nth(k).get_by_role("radio", name=pain, exact=True).click()
@@ -177,6 +177,8 @@ async def main():
     await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200)
     await pg.screenshot(path=S + "11-learn.png", full_page=True)
     print("learn heading:", "Suggested in your plan" in await pg.locator("main").inner_text())
+    assert await pg.locator(".help-links").count() == 0, "Learn starts at Start here, without the help links"
+    await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200)
     nav = await pg.locator("nav.tabbar").inner_text()
     assert "Shop" in nav
     # Care team: dentist and pharmacy can each be searched for near a postcode
