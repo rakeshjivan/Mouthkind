@@ -1874,3 +1874,13 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .shop-item .shop-buy { margin: 12px 0 0; }
 .shop-soon p { margin: 0; } .shop-soon .shop-statement { margin-top: 8px; }
 .shop-soon .shop-intro { color: var(--ink); font-weight: 600; margin-bottom: 6px; }
+/* A plain score scale: one colour, no bands. */
+.scorescale { margin: 10px 0 4px; }
+.ss-bar { position: relative; height: 12px; border-radius: 999px; background: var(--line); margin: 14px 8px 6px; }
+.ss-bar .ss-now { position: absolute; top: 50%; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); border: 3px solid var(--card); transform: translate(-50%, -50%); box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.ss-bar .ss-past { position: absolute; top: 50%; width: 10px; height: 10px; border-radius: 50%; background: var(--ink3); transform: translate(-50%, -50%); opacity: .6; }
+.ss-ends { display: flex; justify-content: space-between; color: var(--ink3); font-size: calc(13px * var(--s)); margin: 0 4px; }
+.ss-hist { margin: 10px 0 6px; color: var(--ink2); }
+.ss-list { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ss-list li { display: flex; gap: 6px; align-items: baseline; background: var(--card); border-radius: 10px; padding: 4px 10px; font-size: calc(14px * var(--s)); }
+.ss-list li span { color: var(--ink3); }

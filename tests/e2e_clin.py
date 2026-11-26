@@ -116,6 +116,12 @@ async def main():
       await pg.click(f'nav >> text="{t}"'); await pg.wait_for_timeout(300); await text(t)
       if t == "Records":
         assert "What can affect a dry mouth" in await pg.locator("main").inner_text()
+        recs = await pg.locator("main").inner_text()
+        assert not re.search(r"\b(minimal|mild|moderate|severe)\b", recs, re.I), "no severity bands for the patient"
+        await pg.locator(".tt.t-sip").click(); await pg.wait_for_timeout(300)
+        assert not re.search(r"\b(minimal|mild|moderate|severe)\b", await dlg.inner_text(), re.I)
+        await pg.screenshot(path=S + "4f-sip-record.png")
+        await dlg.get_by_role("button", name="Close").first.click(); await pg.wait_for_timeout(200)
         await pg.screenshot(path=S + "4-records.png", full_page=True)
       if t == "Shop":
         await pg.screenshot(path=S + "4e-shop.png", full_page=True)

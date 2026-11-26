@@ -100,7 +100,7 @@ export function findingsText(profile = {}, entries = [], plan = null, { patient 
   L.push("");
 
   L.push("DRY MOUTH ASSESSMENT (Summated Xerostomia Inventory, 5 to 15)");
-  if (f.sips.length) f.sips.slice(-8).forEach((s) => L.push(`- ${fmtDate(s.ts)}: ${s.sip}, ${sipLevel(s.sip).label}`));
+  if (f.sips.length) f.sips.slice(-8).forEach((s) => L.push(`- ${fmtDate(s.ts)}: ${s.sip}${patient ? "" : `, ${sipLevel(s.sip).label}`}`)); // the patient's own copy has no bands
   else L.push("None recorded.");
   L.push("");
 

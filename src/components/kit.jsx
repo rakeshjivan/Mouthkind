@@ -197,3 +197,23 @@ export function PhTimeline({ readings, zones, color, fmt, max = 7 }) {
     </svg>
   );
 }
+
+/** The dry mouth assessment score on a plain 5 to 15 scale, with no bands or colours, and
+ *  the person's own scores over time. Interpreting the score is for the health professional. */
+export function ScoreScale({ score, history = [], fmt }) {
+  const pos = (v) => `${((v - 5) / 10) * 100}%`;
+  const past = history.slice(-8);
+  return (
+    <div className="scorescale">
+      <div className="ss-bar" role="img" aria-label={`${score} on a scale from 5 to 15`}>
+        {past.slice(0, -1).map((h, i) => <i key={i} className="ss-past" style={{ left: pos(h.sip) }} />)}
+        <b className="ss-now" style={{ left: pos(score) }} />
+      </div>
+      <div className="ss-ends" aria-hidden="true"><span>5</span><span>15</span></div>
+      {past.length > 1 && (
+        <p className="ss-hist">{past.length > 2 ? `First: ${past[0].sip} · ` : ""}{`Last time: ${past.at(-2).sip} · This time: ${score}`}</p>
+      )}
+      {past.length > 1 && fmt && <ol className="ss-list">{past.map((h) => <li key={h.id || h.ts}><span>{fmt(h.ts)}</span><b>{h.sip}</b></li>)}</ol>}
+    </div>
+  );
+}

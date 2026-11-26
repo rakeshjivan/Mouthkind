@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Gauge, Icon, PhInput, Sheet, Sources } from "../components/ui.jsx";
-import { Pick } from "../components/kit.jsx";
+import { Pick, ScoreScale } from "../components/kit.jsx";
 import { SIP_OPTIONS, SIP_QUESTIONS, phColor, sipLevel } from "../data/clinical.js";
 import { PH_STEPS, PH_WINDOW, phPattern, phZone } from "../data/ph.js";
 import { FREQUENCIES, freqFor, reminderIcs } from "../data/schedule.js";
@@ -79,10 +79,16 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
     return (
       <Sheet title="Dry mouth assessment" onClose={onClose} footer={next ? <button className="btn primary big" onClick={next.go}>{next.label}</button> : <button className="btn primary big" onClick={onClose}>Done</button>}>
         <div className="sip-result">
-          <Gauge score={done.sip} />
-          <p className="sip-num">{plain ? `${done.sip} out of 15` : b.label}</p>
-          <p className="sip-band" style={{ color: b.color }}>{b.full}</p>
-          {diff != null && <p className="soft-note center">{diff === 0 ? "The same as last time." : diff > 0 ? "Drier than last time." : "Less dry than last time."}</p>}
+          {plain ? (<>
+            {/* Plain edition: the score and its history only. The professional interprets it. */}
+            <p className="sip-num">{done.sip} out of 15</p>
+            <ScoreScale score={done.sip} history={[...(previous ? [previous] : []), done]} />
+          </>) : (<>
+            <Gauge score={done.sip} />
+            <p className="sip-num">{b.label}</p>
+            <p className="sip-band" style={{ color: b.color }}>{b.full}</p>
+            {diff != null && <p className="soft-note center">{diff === 0 ? "The same as last time." : diff > 0 ? "Drier than last time." : "Less dry than last time."}</p>}
+          </>)}
         </div>
         {plain ? <p className="lede">Saved to your records. Your scores over time are there to show your dentist or doctor.</p> : <p className="lede">{done.sip >= 11
           ? "That's a lot of dryness to live with. Show your scores to your dentist or doctor — there's more they can do, including checking your medicines and prescribing saliva stimulants."
