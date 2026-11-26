@@ -61,7 +61,7 @@ async def main():
     pick = lambda t: dlg.get_by_role("button", name=t, exact=True)
     await pick("Yes, all or most of them").click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="What Sensitive to hot, cold or sweet means for your mouth", exact=True).click(); await pg.wait_for_timeout(200)
-    assert "enamel" in await pg.locator(".infopop").inner_text(); await pg.get_by_role("button", name="Got it").click(); await pg.wait_for_timeout(150)
+    await pg.screenshot(path=S + "3a-infopop.png"); assert "enamel" in await pg.locator(".infopop").inner_text(); await pg.get_by_role("button", name="Got it").click(); await pg.wait_for_timeout(150)
     await pick("Sensitive to hot, cold or sweet").click(); await btn("Next").click(); await pg.wait_for_timeout(400)
     for t in ["Sometimes", "Twice a day or more", "Yes", "Every day", "Once or twice a day", "Rarely", "In the last year"]:
       await pick(t).first.click(); await pg.wait_for_timeout(400)
