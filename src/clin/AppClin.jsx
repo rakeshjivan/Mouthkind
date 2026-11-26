@@ -82,7 +82,7 @@ function DryFactors({ x }) {
   return (
     <section className="dryrec" aria-label="What can affect a dry mouth">
       <h3 className="list-h first">What can affect a dry mouth</h3>
-      <p className="soft-note">{x.none ? "Nothing you told us is known to dry the mouth." : "You told us about these. Each is known to affect saliva or to make a dry mouth more likely. This is general information, not a result. A dentist, doctor or pharmacist can go through it with you."}</p>
+      <p className="soft-note">{x.none ? (x.unsure.length ? "Nothing you were sure of is known to dry the mouth." : "Nothing you told us is known to dry the mouth.") : "You told us about these. Each is known to affect saliva or to make a dry mouth more likely. This is general information, not a result. A dentist, doctor or pharmacist can go through it with you."}</p>
       {x.groups.map((g) => (
         <div key={g.id} className="dryrec-g">
           <h4>{g.label}</h4>
@@ -94,6 +94,7 @@ function DryFactors({ x }) {
           <ul>{x.named.map((m) => <li key={m.name}><strong>{m.name}</strong><span>{KNOWN[m.known]}</span></li>)}</ul>
           <p className="soft-note">Never stop or change a medicine yourself. Your pharmacist or GP can review them with you.</p></div>
       )}
+      {x.unsure.length > 0 && <p className="soft-note dryrec-unsure">You weren't sure about {x.unsure.join(", ").toLowerCase()}. A pharmacist, GP or dentist can help you work it out, and you can change your answers any time.</p>}
       {x.groups.some((g) => g.rows.some((r) => r.refs.length)) && <details className="srcs"><summary>Sources</summary><Sources refs={[...new Set(x.groups.flatMap((g) => g.rows.flatMap((r) => r.refs)))]} /></details>}
     </section>
   );
@@ -191,7 +192,7 @@ export default function AppClin() {
 
   return (
     <div className="app">
-      <main className={`main${profile.onboarded && !showWelcome && !building && tab === "home" ? " with-help" : ""}`} id="main">
+      <main className={`main${profile.onboarded && !showWelcome && tab === "home" ? " with-help" : ""}`} id="main">
         {tab === "home" && <Home profile={profile} entries={view} prefs={prefs} phSkip={!!profile.phSkip} open={open} go={go} plan={plan} setup={setup} onSetup={continueSetup} onMe={() => go("me")}
           routine={routine} ticks={ticks} onTick={onTick} onWhy={setWhyId} clin={{ plan: signed, card }} />}
         {tab === "shop" && <Shop forYou={[...new Set(plan.flatMap((it) => it.products || []))]} mineLabel="In your plan" />}
@@ -205,7 +206,7 @@ export default function AppClin() {
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} about={ABOUT} />}
       </main>
 
-      {profile.onboarded && !showWelcome && !building && tab === "home" && <HelpBar profile={profile} open={open} />}
+      {profile.onboarded && !showWelcome && tab === "home" && <HelpBar profile={profile} open={open} />}
       <nav className="tabbar" aria-label="Main">
         {TABS.flatMap((t, i) => [
           ...(i === 2 && profile.onboarded ? [<button key="log" type="button" className="tab tab-log" onClick={() => open("daily")} aria-label="Write in your mouth diary">

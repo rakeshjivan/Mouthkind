@@ -78,3 +78,14 @@ test("general information on teeth and dry mouth products is there for everyone,
     assert.doesNotMatch(t.steps.join(" "), /GC|Tooth Mousse|NeutraFluor|OraNurse|Biot[eè]ne/);
   }
 });
+
+test("\"Not sure\" answers score nothing, are listed for the professional and don't break the medicine count", async () => {
+  const { scoreRisk, unsureOf, fullAnswers } = await import("../src/data/risk.js");
+  const a = { conditions: ["unsure"], medFor: ["unsure"], meds: "unsure", breathing: ["unsure"], age: "65", sex: "f" };
+  assert.deepEqual(unsureOf(a), ["Health conditions", "Medicines", "Sleep and breathing"]);
+  assert.equal(fullAnswers(a).meds, "unsure");
+  assert.ok(!scoreRisk(a).factors.some((f) => f.v === "unsure"));
+  const x = dryFactors(a);
+  assert.ok(x.unsure.length === 3 && !x.groups.flatMap((g) => g.rows).some((r) => r.v === "unsure"));
+  assert.match(findingsText({}, [{ kind: "risk", ts: 1, answers: a }]), /Not sure/);
+});

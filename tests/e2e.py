@@ -46,10 +46,10 @@ async def main():
         # First run: welcome
         await shot("00-welcome")
         wl = pg.locator(".welcome")
-        await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
-        await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)  # about you (all optional)
+        await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
+        await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)  # about you (all optional)
         await wl.get_by_role("button", name="Medicines that dry my mouth").click()
-        await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(300)
+        await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(300)
         assert await pg.locator(".setup-card").count() == 1
         assert await pg.locator(".helpbar").count() == 0  # no help bar until setup is done
         # The rest of this test checks each screen on its own, so mark the plan as built.

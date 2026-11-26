@@ -23,11 +23,16 @@ async def main():
     dlg = pg.get_by_role("dialog"); btn = lambda n: dlg.get_by_role("button", name=n, exact=True)
     await pg.goto(BASE); await pg.wait_for_timeout(500)
     wl = pg.locator(".welcome")
-    await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
-    await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
-    await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(400)
+    assert await pg.get_by_role("button", name="Skip").count() == 0, "no Skip on the first page"
+    await pg.get_by_role("button", name="Need help now? When to worry").click(); await pg.wait_for_timeout(250)
+    assert "000" in await pg.locator(".sheet").inner_text()
+    await pg.get_by_role("button", name="Close").last.click(); await pg.wait_for_timeout(200)
+    await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
+    await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
+    await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(400)
     await text("home setup"); await pg.screenshot(path=S + "1-home.png")
     assert "Get your answers ready" in await pg.locator(".setup-card").inner_text()
+    assert await pg.locator(".helpbar").count() == 1, "urgent help is reachable during setup"
     await pg.locator(".setup-card .btn").click(); await pg.wait_for_timeout(400)
     # Dry mouth questions
     await btn("None of these").click(); await pg.wait_for_timeout(250)

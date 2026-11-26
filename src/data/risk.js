@@ -88,7 +88,7 @@ export function deriveMeds(a, lookup) {
   out.medRep = rep ? String(Math.min(rep, 3)) : undefined;
   for (const [q, set] of Object.entries(extra)) out[q] = [...new Set([...(a[q] || []), ...set])];
   const n = (a.medList || []).length;
-  out.meds = n ? countBand(Math.max(n, f.filter((v) => v !== "other").length)) : f.length ? a.meds : "0";
+  out.meds = n ? countBand(Math.max(n, f.filter((v) => v !== "other").length)) : f.length || a.medFor.includes("unsure") ? a.meds : "0";
   return out;
 }
 
@@ -116,13 +116,14 @@ export const RISK_QUESTIONS = [
       { v: "pregnant", label: "I'm pregnant", as: "Pregnancy", pts: 10, why: "More than half of pregnant women report a dry mouth, and gums become more sensitive.", refs: ["nazir2026"] },
       { v: "pregnantSick", label: "I'm pregnant, with morning sickness or vomiting", as: "Pregnancy with morning sickness", pts: 12, acid: true, why: "More than half of pregnant women report a dry mouth, and vomiting adds to it: it brings stomach acid onto the teeth and can leave you dehydrated.", refs: ["nazir2026", "adaPregnancy"] },
       { v: "menopause", label: "Menopause (now or in the past)", pts: 3, why: "Falling oestrogen is linked with less saliva and more tooth decay.", refs: ["arealquecuty2025"] },
+      { v: "unsure", label: "Not sure", pts: 0 },
     ],
   },
   {
     id: "medFor", type: "many", section: "Medicines", text: "Do you take any medicines for these conditions?",
     hint: "Tick any that apply. Include tablets, inhalers, injections or patches you use most days.",
     none: "No regular medicines",
-    options: MED_PURPOSES.map(({ v, label, hint }) => ({ v, label, hint, pts: 0 })),
+    options: [...MED_PURPOSES.map(({ v, label, hint }) => ({ v, label, hint, pts: 0 })), { v: "unsure", label: "I take medicines but I'm not sure what for", pts: 0 }],
   },
   {
     id: "medList", type: "lookup", section: "Medicines", text: "Add your medicine names",
@@ -138,6 +139,7 @@ export const RISK_QUESTIONS = [
       { v: "3", label: "3 or 4", as: "3 or 4 regular medicines", pts: 7, why: "The more medicines you take, the more likely a dry mouth is.", refs: ["wolff2017", "villa2016"] },
       { v: "5", label: "5 to 9", as: "5 to 9 regular medicines", pts: 14, why: "Taking five or more medicines (polypharmacy) is one of the strongest everyday causes of dry mouth.", refs: ["wolff2017", "villa2016"] },
       { v: "10", label: "10 or more", as: "10 or more regular medicines", pts: 20, why: "Ten or more medicines makes a dry mouth very likely.", refs: ["wolff2017", "villa2016"] },
+      { v: "unsure", label: "Not sure how many", pts: 0 },
     ],
   },
   // The medicine groups share one answer (medTypes), shown over two screens.
@@ -194,6 +196,7 @@ export const RISK_QUESTIONS = [
       { v: "rai", label: "Radioactive iodine for thyroid cancer", pts: 12, why: "Radioactive iodine collects in the salivary glands and can damage them.", refs: ["sunavala2022"] },
       { v: "immuno", label: "Cancer immunotherapy", hint: "e.g. Keytruda (pembrolizumab), Opdivo (nivolumab), Yervoy", pts: 8, why: "Immunotherapy can trigger a Sjögren's-like dryness of the mouth and eyes, often underrecognised.", refs: ["bitoun2024"] },
       { v: "chemo", label: "Chemotherapy, now or in the last 6 months", pts: 10, why: "Chemotherapy often thins and reduces saliva during and after treatment.", refs: ["mercadante2021"] },
+      { v: "unsure", label: "Not sure", pts: 0 },
     ],
   },
   {
@@ -203,6 +206,7 @@ export const RISK_QUESTIONS = [
       { v: "snore", label: "I snore, or have sleep apnoea", as: "Snoring or sleep apnoea", pts: 4, why: "Sleep apnoea is linked with waking up with a dry mouth.", refs: ["raoof2023"] },
       { v: "cpap", label: "I use a CPAP machine", as: "Using a CPAP machine", pts: 5, why: "Many CPAP users report a dry mouth, especially with mouth leaks.", refs: ["raoof2023"] },
       { v: "mad", label: "I wear a sleep apnoea or snoring splint", as: "Wearing a sleep apnoea splint", pts: 3, why: "Splints that hold the jaw forward can leave the mouth dry.", refs: ["raoof2023"] },
+      { v: "unsure", label: "Not sure", pts: 0 },
     ],
   },
   {
@@ -304,6 +308,9 @@ function countConditionsOnce(factors, a) {
     f.note = "Counted at half: the medicine you take for it is already counted.";
   }
 }
+
+/** The sections where the person answered "Not sure" (so a professional can go through them). */
+export const unsureOf = (answers = {}) => [...new Set(RISK_QUESTIONS.filter((q) => [].concat(answers[q.id] ?? []).includes("unsure")).map((q) => (q.section === "Health" ? "Health conditions" : q.section)))];
 
 /** The answers with medicines worked out, as scoring sees them. */
 export const fullAnswers = (a = {}) => migrate(a);

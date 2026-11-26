@@ -6,6 +6,7 @@ import { DateParts } from "../components/dateParts.jsx";
 import { Pick, TickRows } from "../components/kit.jsx";
 import { STAGES, TREATMENTS } from "../data/journey.js";
 import { GENDERS, ageFrom } from "../data/person.js";
+import { WorrySheet } from "./help.jsx";
 
 export const SITUATIONS = [
   { v: "cancer", label: "Cancer treatment", hint: "Before, during or after radiotherapy, chemotherapy or other treatment" },
@@ -18,6 +19,7 @@ export const SITUATIONS = [
 export function Welcome({ profile, onDone }) {
   const [p, setP] = useState({ ...profile });
   const [step, setStep] = useState(0);
+  const [worry, setWorry] = useState(false);
   const set = (x) => setP({ ...p, ...x });
   const cancer = (p.situation || []).includes("cancer");
   const steps = ["who", "about", "why", ...(cancer ? ["tx", "dates", "team"] : [])];
@@ -37,7 +39,7 @@ export function Welcome({ profile, onDone }) {
         <div className="welcome-top">
           {step > 0 ? <button className="icon-btn" onClick={() => setStep(step - 1)} aria-label="Back"><Icon name="back" /></button> : <span />}
           <div className="pips" aria-hidden="true">{steps.map((s, i) => <span key={s} className={i <= step ? "on" : ""} />)}</div>
-          {step > 0 ? <button className="link-btn" onClick={finish}>Skip</button> : <span />}
+          {!["who", "about"].includes(at) ? <button className="link-btn" onClick={finish}>Skip</button> : <span />}
         </div>
 
         {at === "who" && (<>
@@ -119,8 +121,11 @@ export function Welcome({ profile, onDone }) {
         </>)}
 
         <div className="welcome-foot">
+          <button type="button" className="link-btn welcome-help" onClick={() => setWorry(true)}><Icon name="alert" size={16} /> Need help now? When to worry</button>
           <button className="btn primary big" disabled={!canNext} onClick={next}>{last ? "Start" : "Next"}</button>
         </div>
+        {/* Urgent help is never behind the questions. */}
+        {worry && <WorrySheet profile={p} onClose={() => setWorry(false)} open={null} />}
       </div>
     </div>
   );

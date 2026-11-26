@@ -6,7 +6,7 @@ import { medicineById } from "../data/medicines.js";
 import { MedLookup } from "../components/medLookup.jsx";
 import { ProductImage } from "../components/productImage.jsx";
 import { PRODUCTS } from "../data/products.js";
-import { fmtDate } from "../lib/store.js";
+import { fmtDate, load, save } from "../lib/store.js";
 
 /** The dry mouth risk check. Answers already in Me (age, gender) are used instead of asked. */
 export function dryModel(fromProfile = {}) {
@@ -25,16 +25,22 @@ export function dryModel(fromProfile = {}) {
 /** A risk questionnaire, one question per screen. Starts from the last answers when updating.
  *  `model` supplies the questions (which can depend on earlier answers), the saved entry and the result screen. */
 export function RiskFlow({ last, onClose, onSave, onCare, plan, next: nextStep, model = dryModel() }) {
-  const [ans, setAns] = useState(() => ({ ...(last?.answers || {}) }));
-  const [i, setI] = useState(0);
+  // Save and resume: answers so far are kept on the phone, so closing the app mid-way
+  // picks up where the person left off.
+  const draft = (() => { const d = load(model.draftKey || "riskDraft", null); return d && d.ans ? d : null; })();
+  const [ans, setAnsState] = useState(() => draft?.ans || { ...(last?.answers || {}) });
+  const [i, setIState] = useState(() => draft?.i || 0);
+  const keep = (a, n) => save(model.draftKey || "riskDraft", { ans: a, i: n, ts: Date.now() });
+  const setAns = (a) => { setAnsState(a); keep(a, i); };
+  const setI = (n) => { setIState(n); keep(ans, n); };
   const [saved, setSaved] = useState(null);
   const [editId, setEditId] = useState(null); // changing answers after seeing the result replaces that result
   const qs = model.questions(ans);
   const q = qs[Math.min(i, qs.length - 1)];
   const lastQ = i >= qs.length - 1;
 
-  const finish = (a) => { const e = model.entry(a, editId); onSave(e); setSaved(e); };
-  const next = (a = ans) => (i >= model.questions(a).length - 1 ? finish(a) : setI(i + 1));
+  const finish = (a) => { const e = model.entry(a, editId); save(model.draftKey || "riskDraft", null); onSave(e); setSaved(e); };
+  const next = (a = ans) => (i >= model.questions(a).length - 1 ? finish(a) : (setIState(i + 1), keep(a, i + 1)));
 
   if (saved) return model.Result({ entry: saved, onClose, onCare, plan, next: nextStep,
     onRedo: () => { setEditId(saved.id); setSaved(null); setI(0); } });

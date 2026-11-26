@@ -2,7 +2,7 @@
 // What the clinician view shows, written out so it can be emailed or shared. Nothing is
 // sent by the app: the phone's own share sheet or mail app does that, and only when the
 // person chooses to.
-import { RISK_GROUPS, RISK_QUESTIONS, fullAnswers, scoreRisk } from "../data/risk.js";
+import { RISK_GROUPS, RISK_QUESTIONS, fullAnswers, scoreRisk, unsureOf } from "../data/risk.js";
 import { medicineById } from "../data/medicines.js";
 import { sipLevel } from "../data/clinical.js";
 import { phPattern, phZone } from "../data/ph.js";
@@ -33,7 +33,7 @@ export function dryFactors(answers = {}) {
   }
   const named = (a.medList || []).map((x) => { const m = x.id ? medicineById(x.id) : null; return { name: x.name || m?.g || "", known: m ? (m.c === "rep" ? "reported" : m.c ? "known" : "no") : "unknown" }; }).filter((x) => x.name);
   const groups = RISK_GROUPS.map((g) => ({ id: g.id, label: g.label, rows: rows.filter((r) => g.qs.includes(r.q)) })).filter((g) => g.rows.length);
-  return { groups, named, none: !rows.length };
+  return { groups, named, none: !rows.length, unsure: unsureOf(answers) };
 }
 
 /** Everything the professional reviews, worked out once. */
@@ -74,12 +74,15 @@ export function findingsText(profile = {}, entries = [], plan = null, { patient 
       if (x.none) L.push("Nothing known to dry the mouth.");
       x.groups.forEach((g) => g.rows.forEach((r) => L.push(`- ${g.label}: ${r.label}`)));
       if (x.named.length) L.push(`Medicines I listed: ${x.named.map((m) => m.name).join(", ")}.`);
+      if (x.unsure.length) L.push(`I wasn't sure about: ${x.unsure.join(", ").toLowerCase()}.`);
     }
     L.push("");
   } else {
   L.push("DRY MOUTH RISK CHECK");
   if (f.r) {
     L.push(`Score ${f.r.score}/100, ${f.r.band.label} (${fmtDate(f.risk.ts)}). Points-based checklist of published risk factors; not a validated instrument.`);
+    const un = unsureOf(f.risk.answers);
+    if (un.length) L.push(`Patient answered "Not sure" for: ${un.join(", ").toLowerCase()}. Go through these; the score may be low.`);
     f.r.factors.forEach((x) => L.push(`- ${x.label}: ${x.pts} pts${x.refs.length ? ` [${x.refs.map((k) => REFS[k]?.short || k).join("; ")}]` : ""}`));
   } else L.push("Not done.");
   L.push("");
