@@ -71,7 +71,7 @@ export function CareTeamEdit({ profile, setProfile, onClose, setup }) {
               <label className="field"><span>Name or clinic</span><input value={c.name} onChange={(e) => set(r.id, { name: e.target.value })} /></label>
               <label className="field"><span>Phone</span><input type="tel" inputMode="tel" value={c.phone} onChange={(e) => set(r.id, { phone: e.target.value })} /></label>
             </div>
-            {r.find && !c.phone.trim() && <FindNear what={r.find} postcode={p.postcode || ""} onPostcode={(v) => setP((x) => ({ ...x, postcode: v }))} cancer={r.find === "dentist" && contactRoles(p).some((x) => x.id === "line24")} />}
+            {r.find && <FindNear what={r.find} postcode={p.postcode || ""} onPostcode={(v) => setP((x) => ({ ...x, postcode: v }))} cancer={r.find === "dentist" && contactRoles(p).some((x) => x.id === "line24")} />}
           </fieldset>
         );
       })}

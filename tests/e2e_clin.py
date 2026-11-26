@@ -40,6 +40,8 @@ async def main():
     await btn("Skip").click(); await pg.wait_for_timeout(250)
     await dlg.get_by_role("button", name="3 or 4", exact=True).click(); await pg.wait_for_timeout(400)
     for _ in range(3): await btn("None of these").click(); await pg.wait_for_timeout(250)
+    await dlg.get_by_role("button", name="1 to 10", exact=True).click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="4 or more", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="Less than 4 glasses", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="65 to 79", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="Woman or female", exact=True).click(); await pg.wait_for_timeout(600)
@@ -170,6 +172,13 @@ async def main():
     print("learn heading:", "Suggested in your plan" in await pg.locator("main").inner_text())
     nav = await pg.locator("nav.tabbar").inner_text()
     assert "Shop" in nav
+    # Care team: dentist and pharmacy can each be searched for near a postcode
+    await pg.get_by_role("button", name=re.compile("My care team")).first.click(); await pg.wait_for_timeout(300)
+    for w in ["dentist", "pharmacy"]: assert await dlg.get_by_role("button", name=f"Find a {w} near me").count() == 1, w
+    await dlg.get_by_role("button", name="Find a pharmacy near me").click(); await pg.wait_for_timeout(150)
+    await dlg.get_by_label("Your postcode").last.fill("4558")
+    assert "Show pharmacies near 4558" in await dlg.inner_text()
+    await pg.screenshot(path=S + "12-careteam.png", full_page=True)
     print("errors:", errs)
     assert not errs
     await b.close()

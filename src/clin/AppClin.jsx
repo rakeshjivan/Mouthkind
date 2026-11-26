@@ -177,7 +177,7 @@ export default function AppClin() {
   // No tooth decay check in this build: the dentist assesses decay in the chair. Any decay
   // answers saved by an older version are left out.
   const view = useMemo(() => entries.filter((e) => e.kind !== "decay"), [entries]);
-  const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: null,
+  const careCtx = careContext({ factors: riskR?.factors, recorded: riskR?.recorded, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: null,
     cancer: inCancerCare(profile), tx: profile.treatments || [], active: activeTreatment(profile) });
   const daily = latestOf(entries, "daily");
   const showWelcome = !profile.onboarded && !entries.length;

@@ -57,7 +57,7 @@ export const PERSONAS = [
     entries: [risk({ cancer: ["chemo"], age: "80" }), decay({ teeth: "none" }), sip(10)],
     log: { dryness: 5, pain: 2, eat: "normal", sores: "none", night: "no", taste: "normal", teeth: ["denture"], white: "yes", urgent: "none", fever: "no" } },
   { name: "Smoker who vapes, drinks a lot of coffee", profile: { situation: ["self"] },
-    entries: [risk({ habits: ["smoke", "vape", "caffeine"] }), decay({ habits: ["smoke"] }), sip(9)] },
+    entries: [risk({ habits: ["smoke", "vape"], caffeine: "high" }), decay({ habits: ["smoke"] }), sip(9)] },
   { name: "After radiotherapy (a year on), using high fluoride", profile: { situation: ["cancer"], treatments: ["rt_hn"], stage: "long", rtStart: iso(-500), rtWeeks: 6, fu: fu({ rtFluoride: ["hf", "tmp"] }) },
     entries: [risk({ cancer: ["rt_hn"] }), decay({ protect: ["hf", "tm"] }), sip(12), { id: "j1", kind: "jaw", ts: NOW - 5 * D, fingers: 2 }] },
 ];

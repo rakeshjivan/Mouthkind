@@ -72,7 +72,7 @@ test("teeth and gums: a record with no score, a book-in line, and the dentures a
   assert.equal(denturesFrom({ dTeeth: "both" }), "partial");
   // Every risk option a person can tick has a "?" explanation.
   const { RISK_QUESTIONS } = await import("../src/data/risk.js");
-  for (const q of RISK_QUESTIONS.filter((x) => ["conditions", "medFor", "medTypes", "cancer", "breathing", "habits"].includes(x.id)))
+  for (const q of RISK_QUESTIONS.filter((x) => ["conditions", "medFor", "medTypes", "cancer", "breathing", "habits", "alcohol", "caffeine"].includes(x.id)))
     for (const o of q.options) assert.ok(OPTION_INFO[q.id]?.[o.v], `no explanation for ${q.id}.${o.v}`);
 });
 

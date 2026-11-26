@@ -105,7 +105,7 @@ export default function App() {
   const view = useMemo(() => entries.map((e) => (e.kind === "decay" ? { ...e, ctx: { ...(e.ctx || {}), rtHN: decayCtx.rtHN, sjogren: decayCtx.sjogren, acid: decayCtx.acid, smoke: decayCtx.smoke } } : e)), [entries, decayCtx.rtHN, decayCtx.sjogren, decayCtx.acid, decayCtx.smoke]);
   const decay = latestOf(view, "decay");
   const decayR = decay && scoreDecay(decay.answers, decay.ctx);
-  const careCtx = careContext({ factors: riskR?.factors, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null,
+  const careCtx = careContext({ factors: riskR?.factors, recorded: riskR?.recorded, sip: latestSip, ph: phLevel, risk: riskR?.band.id || null, decay: decayR && !decayR.noTeeth ? decayR.band.id : null,
     cancer: inCancerCare(profile), tx: profile.treatments || [], active: activeTreatment(profile) });
   const daily = latestOf(entries, "daily");
   const lastUsed = latestOf(entries, "used");

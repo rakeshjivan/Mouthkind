@@ -99,8 +99,16 @@ export const OPTION_INFO = {
     smoke: "Smokers make less saliva and report a dry mouth more often. Smoking also hides gum disease by reducing bleeding, and slows healing. Quitline is free: 13 78 48.",
     vape: "Daily vaping is linked with a dry mouth almost twice as often. Many vapes are sweetened, which feeds decay.",
     cannabis: "Cannabis commonly causes a dry mouth, often called cottonmouth, and smoking it irritates the gums.",
-    alcohol: "Alcohol can leave the mouth feeling drier, especially in the evening, and many drinks are acidic or sugary. Choose an alcohol-free mouthwash, and have water alongside.",
-    caffeine: "Tea and coffee in usual amounts don't dry the mouth much for most people, but some notice it. Sugar in them feeds decay, so go easy on sweetened drinks between meals.",
+  },
+  alcohol: {
+    none: "Good for your mouth: alcohol can leave it drier, and many drinks are acidic or sugary.",
+    low: "Within the Australian guideline of no more than 10 a week. Alcohol can still leave the mouth drier, especially in the evening, so have water alongside and choose an alcohol-free mouthwash.",
+    high: "Above the Australian guideline of no more than 10 a week. Alcohol dries the mouth, and wine, cider and mixers are acidic or sugary, which wears and decays teeth faster when saliva is low. Having water alongside helps.",
+  },
+  caffeine: {
+    none: "Fine for your mouth. Water is the best drink between meals.",
+    low: "Usual amounts of tea and coffee don't dry the mouth much for most people. Sugar in them feeds decay, so keep sweetened cups to mealtimes.",
+    high: "Some people notice their mouth is drier with a lot of tea, coffee, cola or energy drinks. Sugar in them feeds decay, and cola and energy drinks are acidic. Swap some for water and see if it helps.",
   },
   // Teeth and gums (no score).
   dPain: {

@@ -96,6 +96,8 @@ async def main():
         await btn("None of these").click(); await pg.wait_for_timeout(250)
         await pick("I use a CPAP machine").click(); await btn("Next").click(); await pg.wait_for_timeout(250)
         await btn("None of these").click(); await pg.wait_for_timeout(250)
+        await pick("None").click(); await pg.wait_for_timeout(350)
+        await pick("1 to 3").click(); await pg.wait_for_timeout(350)
         await pick("Less than 4 glasses").click(); await pg.wait_for_timeout(350)
         await pick("65 to 79").click(); await pg.wait_for_timeout(350)
         assert await dlg.get_by_role("button", name="I use a different term").count() == 1

@@ -27,6 +27,8 @@ async def main():
     await btn("None of these").click(); await pg.wait_for_timeout(250)
     await btn("None of these").click(); await pg.wait_for_timeout(250)
     await btn("None of these").click(); await pg.wait_for_timeout(250)
+    await dlg.get_by_role("button", name="None", exact=True).click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="1 to 3", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="Less than 4 glasses").click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="65 to 79").click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="Woman or female").click(); await pg.wait_for_timeout(600)

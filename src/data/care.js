@@ -253,7 +253,7 @@ export const CARE_TOPICS = [
   {
     id: "water", icon: "drop", title: "Drink enough water",
     short: "Small sips through the day keep your mouth moist.",
-    forYou: (c) => !has(c, "conditions.dialysis") && (has(c, "water.low", "habits.caffeine", "habits.alcohol") || (c.sip ?? 0) >= 8),
+    forYou: (c) => !has(c, "conditions.dialysis") && (has(c, "water.low", "caffeine.high", "alcohol.high") || (c.sip ?? 0) >= 8),
     steps: [
       "On dialysis, or told to limit fluids? Keep within your limit. Sugar-free gum, sugar-free sweets and a saliva gel moisten your mouth without adding fluid.",
       "Carry a water bottle and take small sips often.",
@@ -280,7 +280,7 @@ export const CARE_TOPICS = [
   {
     id: "habits", icon: "user", title: "Change a few habits",
     short: "Small changes that stop your mouth drying out.",
-    forYou: (c) => has(c, "habits.smoke", "habits.vape", "habits.cannabis", "habits.alcohol", "habits.caffeine", "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
+    forYou: (c) => has(c, "habits.smoke", "habits.vape", "habits.cannabis", "alcohol.high", "caffeine.high", "breathing.mouth", "breathing.cpap", "breathing.snore", "breathing.mad"),
     steps: [
       "If you smoke or vape, quitting helps. Quitline is free: 13 78 48 (Australia), 0800 778 778 (New Zealand).",
       "Have less alcohol, especially in the evening. Cut back on caffeine too if you notice it dries your mouth.",
@@ -388,8 +388,8 @@ export const CARE_TOPICS = [
 ];
 
 /** Build the context `forYou` needs from saved results and the person's situation. */
-export function careContext({ factors = [], sip = null, ph = "none", risk = null, decay = null, cancer = false, tx = [], active = false }) {
-  return { f: new Set(factors.map((x) => `${x.q}.${x.v}`)), sip, ph, risk, decay, cancer, tx, active };
+export function careContext({ factors = [], recorded = [], sip = null, ph = "none", risk = null, decay = null, cancer = false, tx = [], active = false }) {
+  return { f: new Set([...factors, ...recorded].map((x) => `${x.q}.${x.v}`)), sip, ph, risk, decay, cancer, tx, active };
 }
 
 for (const t of CARE_TOPICS) if (t.sections && !t.steps) t.steps = t.sections.flatMap((x) => x.steps.map((y) => (typeof y === "string" ? y : y.t)));
