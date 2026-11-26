@@ -9,7 +9,7 @@ import { GENDERS, ageFrom } from "../data/person.js";
 import { WorrySheet } from "./help.jsx";
 
 export const SITUATIONS = [
-  { v: "cancer", label: "I'm having, or have had, cancer treatment", hint: "Before, during or after radiotherapy, chemotherapy or other treatment" },
+  { v: "cancer", label: "I'm having, or have had, cancer treatment" },
   { v: "sjogren", label: "Sjögren's or another condition that dries the mouth" },
   { v: "meds", label: "My medicines are drying my mouth" },
   { v: "checking", label: "My mouth feels dry" },
