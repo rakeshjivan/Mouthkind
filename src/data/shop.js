@@ -42,8 +42,8 @@ export const SHOP_PRODUCTS = ["gc-dmg", "gc-tmp", "gc-tm", "neutrafluor", "neutr
 // the product's own label or IFU states.
 export const SHOP_MEETS = {
   "gc-dmg": ["Gel", "Close to neutral pH", "Sugar-free", "Range of flavours", "Immediate relief for up to 4 hours"],
-  "gc-tmp": ["Calcium and phosphate", "Fluoride (900 ppm)", "Buffers plaque acid"],
-  "gc-tm": ["Calcium and phosphate", "Buffers plaque acid", "No added fluoride"],
+  "gc-tmp": ["Calcium and phosphate", "Fluoride (900 ppm)", "Neutralises plaque acids", "Supports growth of beneficial oral bacteria"],
+  "gc-tm": ["Calcium and phosphate", "Neutralises plaque acids", "Supports growth of beneficial oral bacteria", "No added fluoride"],
   "neutrafluor": ["High fluoride (5,000 ppm)"],
   "neutrafluor-plus": ["High fluoride (5,000 ppm)"],
   "oranurse": ["Unflavoured", "SLS-free", "Fluoride"],

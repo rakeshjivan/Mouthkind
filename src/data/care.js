@@ -189,7 +189,7 @@ export const CARE_TOPICS = [
   },
   {
     id: "teeth", icon: "tooth", title: "Protecting your teeth when your mouth is dry", general: true, shop: true,
-    look: ["Calcium and phosphate", "Fluoride", "Buffers plaque acid"],
+    look: ["Calcium and phosphate", "Fluoride", "Neutralises plaque acids"],
     short: "Less saliva means less acid neutralising and less mineral. Put both back.",
     forYou: () => false,
     sections: [
