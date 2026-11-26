@@ -27,7 +27,7 @@ export function Pick({ options, value, onPick, info }) {
     <div className="pick">
       {options.map((o) => (
         <div key={String(o.v)} className={`pick-item${info?.(o) ? " has-info" : ""}`}>
-          <button type="button" className={`pick-row${value === o.v ? " on" : ""}${o.danger ? " danger" : ""}`}
+          <button type="button" className={`pick-row${value === o.v ? " on" : ""}${o.danger ? " danger" : ""}${o.tone ? ` tone-${o.tone}` : ""}`}
             onClick={() => onPick(o.v)} aria-pressed={value === o.v}>
             <span><strong>{o.label}</strong>{o.hint && <em>{o.hint}</em>}</span>
             <span className="pick-dot" aria-hidden="true">{value === o.v && <Icon name="check" size={18} stroke={3} />}</span>
@@ -217,3 +217,6 @@ export function ScoreScale({ score, history = [], fmt }) {
     </div>
   );
 }
+
+/** Which third of the 5 to 15 bar a score sits in, for colouring the number to match it. */
+export const scoreTone = (v) => (v < 25 / 3 ? "green" : v < 35 / 3 ? "amber" : "red");

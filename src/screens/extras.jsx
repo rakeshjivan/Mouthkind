@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Gauge, Icon, PhInput, Sheet, Sources } from "../components/ui.jsx";
-import { Pick, ScoreScale } from "../components/kit.jsx";
+import { Pick, ScoreScale, scoreTone } from "../components/kit.jsx";
 import { SIP_OPTIONS, SIP_QUESTIONS, phColor, sipLevel } from "../data/clinical.js";
 import { PH_STEPS, PH_WINDOW, phPattern, phZone } from "../data/ph.js";
 import { FREQUENCIES, freqFor, reminderIcs } from "../data/schedule.js";
@@ -81,7 +81,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
         <div className="sip-result">
           {plain ? (<>
             {/* Plain edition: the score and its history only. The professional interprets it. */}
-            <p className="sip-num">{done.sip} out of 15</p>
+            <p className={`sip-num st-${scoreTone(done.sip)}`}>{done.sip} out of 15</p>
             <ScoreScale score={done.sip} history={[...(previous ? [previous] : []), done]} />
           </>) : (<>
             <Gauge score={done.sip} />
@@ -120,7 +120,7 @@ export function SipFlow({ every, previous: prevAtOpen, onClose, onSave, followUp
       ) : (<>
         <p className="eyebrow-q">{f.recall}</p>
         <h2 className="q">{SIP_QUESTIONS[k]}</h2>
-        <Pick options={SIP_OPTIONS.map((o) => ({ v: o.v, label: o.label, hint: o.hint }))} value={items[k]}
+        <Pick options={SIP_OPTIONS.map((o) => ({ v: o.v, label: o.label, hint: o.hint, tone: ["", "green", "amber", "red"][o.v] }))} value={items[k]}
           onPick={(v) => {
             const all = items.map((x, j) => (j === k ? v : x)); setItems(all);
             setTimeout(() => (k === 4 ? finish(all) : setK(k + 1)), 180);

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Icon, Sheet, Sources } from "../components/ui.jsx";
 import { BrandMark } from "../components/brandMark.jsx";
-import { PhTimeline, ScoreScale, SymptomChart } from "../components/kit.jsx";
+import { PhTimeline, ScoreScale, SymptomChart, scoreTone } from "../components/kit.jsx";
 import { RoutineCard } from "../screens/routine.jsx";
 import { TEETH_FLAGS, teethFlags } from "../data/daily.js";
 import { SIP_OPTIONS, SIP_QUESTIONS, phBand } from "../data/clinical.js";
@@ -194,7 +194,7 @@ export function Records({ entries, open, onDelete, tiles = [] }) {
       {show === "sip" && (
         <Sheet title="Dry mouth assessment" onClose={() => setShow(null)} footer={<button className="btn primary big" onClick={() => { setShow(null); open("sip"); }}>Start</button>}>
           {sips.length ? (<>
-            <p className="big-read"><strong>{s.sip}</strong> out of 15, {fmtShort(s.ts)}</p>
+            <p className="big-read"><strong className={`st-${scoreTone(s.sip)}`}>{s.sip}</strong> out of 15, {fmtShort(s.ts)}</p>
             <ScoreScale score={s.sip} history={sips} fmt={fmtShort} />
             <p className="panel-foot">Five questions from the Summated Xerostomia Inventory, 5 (no dryness) to 15.</p>
             {del(sips, (e) => `Dry mouth assessment ${e.sip}/15`)}

@@ -53,7 +53,8 @@ async def main():
     # Dry mouth assessment: score and the instrument's band, never called SIP
     await dlg.locator(".sheet-foot .btn.primary").click(); await pg.wait_for_timeout(300)
     await btn("Start").click(); await pg.wait_for_timeout(250)
-    for v in ["Often", "Often", "Sometimes", "Often", "Often"]:
+    for i, v in enumerate(["Often", "Often", "Sometimes", "Often", "Often"]):
+      if i == 1: await pg.screenshot(path=S + "3a-sip-q.png")
       await dlg.get_by_role("button", name=v).first.click(); await pg.wait_for_timeout(350)
     await pg.wait_for_timeout(300); await text("sip"); await pg.screenshot(path=S + "3-sip.png")
     assert "Saved to your records" in await dlg.inner_text()

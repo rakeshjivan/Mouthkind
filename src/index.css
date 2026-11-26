@@ -1884,3 +1884,13 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .ss-list { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .ss-list li { display: flex; gap: 6px; align-items: baseline; background: var(--card); border-radius: 10px; padding: 4px 10px; font-size: calc(14px * var(--s)); }
 .ss-list li span { color: var(--ink3); }
+/* Answer options in a pastel of their own (dry mouth questions: never, sometimes, often). */
+.pick-row[class*="tone-"] { background: var(--tbg); border-color: color-mix(in srgb, var(--tfg) 25%, transparent); }
+.pick-row[class*="tone-"].on { border-color: var(--tfg); box-shadow: inset 6px 0 0 var(--tfg); }
+.pick-row[class*="tone-"].on .pick-dot { background: var(--tfg); border-color: var(--tfg); color: var(--card); }
+/* The score bar: a green to orange to red gradient, thicker. */
+.ss-bar { height: 18px; background: linear-gradient(90deg, color-mix(in srgb, var(--good) 55%, var(--card)), color-mix(in srgb, var(--amber) 60%, var(--card)) 50%, color-mix(in srgb, var(--red) 60%, var(--card))); }
+.ss-bar .ss-now { width: 28px; height: 28px; }
+.ss-bar .ss-past { background: var(--card); border: 2px solid var(--ink2); opacity: .85; }
+/* The score's number takes the colour of the part of the bar it sits on. */
+.st-green { color: var(--good); } .st-amber { color: var(--amber); } .st-red { color: var(--red); }
