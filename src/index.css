@@ -1789,3 +1789,21 @@ html, body { font-feature-settings: "cv05" 1, "cv08" 1; }
 .learn .lg::before { content: none; } /* .lg is also the chart legend class */
 .learn .list-h.first { margin-top: 4px; }
 .plan-ready { margin: 12px 0; } .plan-wait .btn + .btn { margin-top: 10px; }
+/* Records as tiles: the latest reading sits large under the title. */
+.tt .tt-val { font-size: calc(20px * var(--s)); font-weight: 800; line-height: 1.2; color: var(--ink); }
+.rec-tiles { margin-top: 6px; }
+.rec-del { margin-top: 18px; }
+/* Mouth diary: each question in its own pastel card, so the options don't run together. */
+.daily { gap: 12px; }
+.daily-q { padding: 14px 14px 16px; border-radius: 18px; background: var(--dry-bg); }
+.daily-q legend { float: left; width: 100%; font-size: calc(17px * var(--s)); margin-bottom: 10px; }
+.daily-q legend + * { clear: both; }
+.daily-q:nth-child(6n+2) { background: var(--good-bg); }
+.daily-q:nth-child(6n+3) { background: var(--amberbg); }
+.daily-q:nth-child(6n+4) { background: var(--peach-bg); }
+.daily-q:nth-child(6n+5) { background: var(--lilac-bg); }
+.daily-q:nth-child(6n+6) { background: var(--rose-bg); }
+.daily-q .dseg-btn:not(.on) { background: var(--card); }
+.daily-q .dseg-btn.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.daily-q .dseg.wrap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.daily-q .dseg.wrap .dseg-btn { min-height: 52px; padding: 8px 10px; line-height: 1.25; }

@@ -222,15 +222,10 @@ export default function AppClin() {
         {tab === "learn" && <LearnPage key={focus || "l"} ctx={careCtx} focus={focus} profile={profile} setProfile={setProfile} onShop={() => go("shop")} clin={{ plan: signed }} />}
         {tab === "plan" && <PlanPage ctx={careCtx} plan={plan} profile={profile} setProfile={setProfile} open={open} setup={building ? setup : null} onSetup={continueSetup}
           onShop={() => go("shop")} onSend={send} clin={{ plan: signed, onOpen: () => setSheet("clinician") }} />}
-        {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} extra={<>
-          <section className="panel">
-            <div className="panel-h"><h2>What can affect a dry mouth</h2><button className="link-btn" onClick={() => open(risk ? "riskresult" : "risk")}>{risk ? "See" : "Start"}</button></div>
-            <p className="soft-note">{risk ? `Your medicines, health and habits, from ${fmtDate(risk.ts)}. Saved on this phone.` : "Your medicines, health and habits. About 2 minutes."}</p>
-          </section>
-          <section className="panel">
-            <div className="panel-h"><h2>Your teeth and gums</h2><button className="link-btn" onClick={() => open(teeth ? "teethresult" : "teeth")}>{teeth ? "See" : "Start"}</button></div>
-            <p className="soft-note">{teeth ? `Sensitivity, gums, brushing and diet, from ${fmtDate(teeth.ts)}. Saved on this phone.` : "Sensitivity, gums, brushing and diet. About 2 minutes."}</p>
-          </section></>} />}
+        {tab === "tracker" && <Records entries={view} open={open} onDelete={delEntries} tiles={[
+          { id: "risk", cls: "t-learn", icon: "user", title: "What can affect a dry mouth", sub: risk ? `Medicines, health and habits, ${fmtDate(risk.ts)}` : "Medicines, health and habits. About 2 minutes", onTap: () => open(risk ? "riskresult" : "risk") },
+          { id: "teeth", cls: "t-teeth", icon: "tooth", title: "Your teeth and gums", sub: teeth ? `Saved ${fmtDate(teeth.ts)}` : "Sensitivity, gums, brushing and diet. About 2 minutes", onTap: () => open(teeth ? "teethresult" : "teeth") },
+        ]} />}
         {tab === "me" && <Me profile={profile} setProfile={setProfile} prefs={prefs} setPrefs={setPrefs} open={open} onErase={erase} about={ABOUT} />}
       </main>
 

@@ -145,54 +145,71 @@ export function DiarySaved({ onClose, open }) {
   );
 }
 
-export function Records({ entries, open, onDelete, extra = null }) {
+/** Records as square tiles, each the colour of its tile on Today, showing the latest reading.
+ *  A tap opens the full record: charts, history, the action, and deleting a result.
+ *  `tiles`: extra records from the edition (each { id, cls, icon, title, value, sub, onTap }). */
+export function Records({ entries, open, onDelete, tiles = [] }) {
   const diary = diaryOf(entries), sips = sipsOf(entries), phs = phsOf(entries);
+  const [show, setShow] = useState(null);
+  const d = diary.at(-1), s = sips.at(-1), p = phs.at(-1);
+  const del = (list, label) => list.length > 0 && (
+    <details className="srcs rec-del"><summary>Delete a result</summary>
+      <ul className="lite-del">{[...list].sort((a, b) => b.ts - a.ts).slice(0, 30).map((e) => (
+        <li key={e.id}><span>{fmtDate(e.ts)} · {label(e)}</span>
+          <button className="link-btn danger-text" onClick={() => onDelete([e.id])} aria-label={`Delete the result from ${fmtDate(e.ts)}`}><Icon name="trash" size={16} /></button></li>))}</ul>
+    </details>);
+  const all = [
+    { id: "diary", cls: "t-log", icon: "plus", title: "Mouth diary", value: d ? `Dryness ${d.dryness ?? "–"} · Pain ${d.pain ?? 0}` : null, sub: d ? `Last entry ${fmtShort(d.ts)}` : "No entries yet" },
+    { id: "sip", cls: "t-sip", icon: "chart", title: "Dry mouth assessment", value: s ? `${s.sip} of 15` : null, sub: s ? `${sipLevel(s.sip).label}, ${fmtShort(s.ts)}` : "No scores yet" },
+    ...tiles,
+    { id: "ph", cls: "t-ph", icon: "drop", title: "Saliva pH", value: p ? `pH ${p.ph.toFixed(1)}` : null, sub: p ? `Last test ${fmtShort(p.ts)}` : "No results yet" },
+    { id: "report", cls: "t-send", icon: "doc", title: "Show my care team", sub: "A one-page summary to print or save as a PDF", onTap: () => open("report") },
+  ];
   return (
     <div className="screen">
       <header className="hero"><h1 className="display">Records</h1>
         <p className="lede">Everything you've recorded, to look back on or show your dentist or care team.</p></header>
+      <div className="today-tiles rec-tiles">
+        {all.map((t) => (
+          <button key={t.id} type="button" className={`tt ${t.cls}`} onClick={t.onTap || (() => setShow(t.id))}>
+            <Icon name={t.icon} size={24} /><strong>{t.title}</strong>
+            {t.value && <b className="tt-val">{t.value}</b>}
+            <em>{t.sub}</em>
+          </button>
+        ))}
+      </div>
 
-      <section className="panel">
-        <div className="panel-h"><h2>Mouth diary</h2><button className="link-btn" onClick={() => open("daily")}>Write today</button></div>
-        {diary.length ? (<>
-          {(() => { const d = diary.at(-1); return <ul className="sym-now">{d.dryness != null && <li>Dryness {d.dryness} of 10</li>}<li>Pain {d.pain ?? 0} of 10</li></ul>; })()}
-          <p className="panel-foot">Last entry {fmtShort(diary.at(-1).ts)}</p>
-          {diary.length > 1 && <SymptomChart days={diary.slice(-21).map((d) => ({ ...d, tooth: teethFlags(d).length > 0 }))} fmt={fmtShort} />}
-          {(() => { const t = diary.slice(-21).filter((d) => teethFlags(d).length); return t.length > 0 && (
-            <ul className="sym-flags">{t.reverse().slice(0, 4).map((d) => <li key={d.id}><strong>{fmtShort(d.ts)}</strong> {teethFlags(d).map((v) => TEETH_FLAGS.find((f) => f.v === v)?.label).join(", ")}</li>)}</ul>); })()}
-          <p className="panel-foot">Dryness and pain, as you scored them from 0 (none) to 10. The strip shows mouth sores as you described them.</p>
-        </>) : <p className="soft-note">No entries yet.</p>}
-      </section>
-
-      <section className="panel">
-        <div className="panel-h"><h2>Dry mouth assessment</h2><button className="link-btn" onClick={() => open("sip")}>Start</button></div>
-        {sips.length ? (<>
-          <p className="big-read"><strong>{sips.at(-1).sip}</strong> out of 15 · {sipLevel(sips.at(-1).sip).label.toLowerCase()}</p>
-          {sips.length > 1 && <p className="panel-foot">{sips.slice(-8).map((s) => `${fmtShort(s.ts)}: ${s.sip}`).join(" · ")}</p>}
-          <p className="panel-foot">Dry mouth assessment: five questions from the Summated Xerostomia Inventory, 5 (no dryness) to 15.</p>
-        </>) : <p className="soft-note">No scores yet.</p>}
-      </section>
-      {extra}
-
-      <section className="panel">
-        <div className="panel-h"><h2>Saliva pH</h2><button className="link-btn" onClick={() => open("ph")}>Record a result</button></div>
-        {phs.length ? (<>
-          <PhTimeline readings={phs} zones={PH_ZONES} color={phColor} fmt={fmtShort} max={14} />
-          <p className="panel-foot">Readings from a saliva pH test strip, with the colour zones printed on the strips.</p>
-        </>) : <p className="soft-note">No results yet. You'll need saliva pH test strips.</p>}
-      </section>
-
-      <section className="panel share">
-        <div><h2>Show your dentist or care team</h2><p>A one-page summary of your diary, scores and pH results, to print or save as a PDF.</p></div>
-        <button className="btn primary big" onClick={() => open("report")}><Icon name="doc" /> Make a summary</button>
-      </section>
-
-      {(sips.length > 0 || phs.length > 0) && (<>
-        <h2 className="list-h">Delete a result</h2>
-        <ul className="lite-del">{[...sips, ...phs].sort((a, b) => b.ts - a.ts).slice(0, 30).map((e) => (
-          <li key={e.id}><span>{fmtDate(e.ts)} · {e.sip != null ? `Dry mouth assessment ${e.sip}/15` : `pH ${e.ph.toFixed(1)}`}</span>
-            <button className="link-btn danger-text" onClick={() => onDelete([e.id])} aria-label={`Delete ${e.sip != null ? "dry mouth assessment" : "pH result"} from ${fmtDate(e.ts)}`}><Icon name="trash" size={16} /></button></li>))}</ul>
-      </>)}
+      {show === "diary" && (
+        <Sheet title="Mouth diary" onClose={() => setShow(null)} footer={<button className="btn primary big" onClick={() => { setShow(null); open("daily"); }}>Write today</button>}>
+          {diary.length ? (<>
+            <ul className="sym-now">{d.dryness != null && <li>Dryness {d.dryness} of 10</li>}<li>Pain {d.pain ?? 0} of 10</li></ul>
+            <p className="panel-foot">Last entry {fmtShort(d.ts)}</p>
+            {diary.length > 1 && <SymptomChart days={diary.slice(-21).map((x) => ({ ...x, tooth: teethFlags(x).length > 0 }))} fmt={fmtShort} />}
+            {(() => { const t = diary.slice(-21).filter((x) => teethFlags(x).length); return t.length > 0 && (
+              <ul className="sym-flags">{t.reverse().slice(0, 4).map((x) => <li key={x.id}><strong>{fmtShort(x.ts)}</strong> {teethFlags(x).map((v) => TEETH_FLAGS.find((f) => f.v === v)?.label).join(", ")}</li>)}</ul>); })()}
+            <p className="panel-foot">Dryness and pain, as you scored them from 0 (none) to 10. The strip shows mouth sores as you described them.</p>
+          </>) : <p className="soft-note">No entries yet.</p>}
+        </Sheet>
+      )}
+      {show === "sip" && (
+        <Sheet title="Dry mouth assessment" onClose={() => setShow(null)} footer={<button className="btn primary big" onClick={() => { setShow(null); open("sip"); }}>Start</button>}>
+          {sips.length ? (<>
+            <p className="big-read"><strong>{s.sip}</strong> out of 15 · {sipLevel(s.sip).label.toLowerCase()}</p>
+            {sips.length > 1 && <p className="panel-foot">{sips.slice(-8).map((x) => `${fmtShort(x.ts)}: ${x.sip}`).join(" · ")}</p>}
+            <p className="panel-foot">Five questions from the Summated Xerostomia Inventory, 5 (no dryness) to 15.</p>
+            {del(sips, (e) => `Dry mouth assessment ${e.sip}/15`)}
+          </>) : <p className="soft-note">No scores yet.</p>}
+        </Sheet>
+      )}
+      {show === "ph" && (
+        <Sheet title="Saliva pH" onClose={() => setShow(null)} footer={<button className="btn primary big" onClick={() => { setShow(null); open("ph"); }}>Record a result</button>}>
+          {phs.length ? (<>
+            <PhTimeline readings={phs} zones={PH_ZONES} color={phColor} fmt={fmtShort} max={14} />
+            <p className="panel-foot">Readings from a saliva pH test strip, with the colour zones printed on the strips.</p>
+            {del(phs, (e) => `pH ${e.ph.toFixed(1)}`)}
+          </>) : <p className="soft-note">No results yet. You'll need saliva pH test strips.</p>}
+        </Sheet>
+      )}
     </div>
   );
 }
