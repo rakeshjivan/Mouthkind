@@ -16,13 +16,14 @@ export const PRODUCTS = [
     evidence: "In people after head and neck radiotherapy, two months of use improved dryness, swallowing and nutrition scores, and reduced types of Candida.",
     refs: ["nuchit2020"],
     flavours: "Mint, raspberry, lemon, orange, fruit salad",
-    // Shop and Learn wording follows the Instructions for Use (Advertising Code s 8(2)).
+    // Shop and Learn wording follows GC's IFU and indications for use (Advertising Code s 8(2)).
     benefits: [
       "Relieves the symptoms of a dry mouth by moisturising the lining of the mouth.",
+      "Lubricates and moistens the mouth for up to 4 hours.",
       "Neutral pH.",
       "Sugar-free.",
       "Use as often as needed, day or night.",
-      "A range of flavours.",
+      "A range of flavours, including citrus flavours that help stimulate saliva flow.",
     ],
     details: "Gel. Polyglycerol (55–65%), water, carrageenan, carboxymethyl cellulose, flavour, paraben, sodium citrate. 40 g tube.",
     warnings: ["Don't use if you're allergic to parabens or flavourings.", "If you take prescription medicines, check with your doctor before using it.", "Stop and see a doctor if you get any swelling.", "Avoid contact with eyes."],
@@ -47,7 +48,7 @@ export const PRODUCTS = [
     ],
     details: "Crème with CPP-ACP (RECALDENT™, from milk) and 0.2% w/w sodium fluoride (900 ppm fluoride). 40 g (35 mL) tube.",
     warnings: ["Don't use if you're allergic or sensitive to milk protein, benzoate preservatives or flavourings.", "Not for children under 6; overnight use not for children under 12.", "Stop and see a doctor if you get any swelling.", "Avoid contact with eyes."],
-    ifu: null, // Australian IFU link to come from GC
+    ifu: "https://www.gc.dental/australasia/sites/australasia.gc.dental/files/products/downloads/gctoothmousseplus/ifu/ifu-tooth-mousse-plus.pdf",
   },
   {
     id: "gc-tm", gc: true, name: "GC Tooth Mousse™", job: "protect",
