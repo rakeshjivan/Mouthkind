@@ -40,7 +40,7 @@ async def main():
     await btn("Skip").click(); await pg.wait_for_timeout(250)
     await dlg.get_by_role("button", name="3 or 4", exact=True).click(); await pg.wait_for_timeout(400)
     for _ in range(3): await btn("None of these").click(); await pg.wait_for_timeout(250)
-    await dlg.get_by_role("button", name="1 to 10", exact=True).click(); await pg.wait_for_timeout(400)
+    await dlg.get_by_role("button", name="6 to 10", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="4 or more", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="Less than 4 glasses", exact=True).click(); await pg.wait_for_timeout(400)
     await dlg.get_by_role("button", name="65 to 79", exact=True).click(); await pg.wait_for_timeout(400)

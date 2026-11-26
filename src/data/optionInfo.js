@@ -102,7 +102,8 @@ export const OPTION_INFO = {
   },
   alcohol: {
     none: "Good for your mouth: alcohol can leave it drier, and many drinks are acidic or sugary.",
-    low: "Within the Australian guideline of no more than 10 a week. Alcohol can still leave the mouth drier, especially in the evening, so have water alongside and choose an alcohol-free mouthwash.",
+    low: "Within the Australian guideline of no more than 10 a week. Even small amounts can leave the mouth drier in the evening, so have water alongside and choose an alcohol-free mouthwash.",
+    mid: "Within the Australian guideline of no more than 10 a week, but enough to leave the mouth drier, especially at night. Wine, cider and mixers are acidic or sugary. Have water alongside, and avoid drinking close to bedtime.",
     high: "Above the Australian guideline of no more than 10 a week. Alcohol dries the mouth, and wine, cider and mixers are acidic or sugary, which wears and decays teeth faster when saliva is low. Having water alongside helps.",
   },
   caffeine: {

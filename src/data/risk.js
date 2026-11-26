@@ -223,8 +223,9 @@ export const RISK_QUESTIONS = [
     id: "alcohol", type: "one", section: "Everyday habits", text: "How many standard drinks of alcohol do you have in a usual week?",
     hint: "One standard drink is a middy (285 ml) of full-strength beer, a small glass (100 ml) of wine, or a 30 ml nip of spirits.",
     options: [
-      { v: "none", label: "None", pts: 0 },
-      { v: "low", label: "1 to 10", as: "1 to 10 standard drinks a week", pts: 0, record: true, why: "Alcohol can leave the mouth feeling drier, especially in the evening. An alcohol-free mouthwash is better for a dry mouth." },
+      { v: "none", label: "I don't drink alcohol", pts: 0 },
+      { v: "low", label: "1 to 5", as: "1 to 5 standard drinks a week", pts: 0, record: true, why: "Alcohol can leave the mouth feeling drier, especially in the evening. An alcohol-free mouthwash is better for a dry mouth." },
+      { v: "mid", label: "6 to 10", as: "6 to 10 standard drinks a week", pts: 0, record: true, why: "Alcohol can leave the mouth feeling drier, especially in the evening, and many drinks are acidic or sugary." },
       { v: "high", label: "More than 10", as: "More than 10 standard drinks a week", pts: 0, record: true, why: "More than 10 standard drinks a week is above the Australian guideline. Alcohol can leave the mouth drier, and many drinks are acidic or sugary." },
     ],
   },
