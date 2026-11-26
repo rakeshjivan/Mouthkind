@@ -9,6 +9,9 @@ import { phPattern, phZone } from "../data/ph.js";
 import { REFS } from "../data/references.js";
 import { fmtDate } from "../lib/store.js";
 
+// AHPRA registration numbers: three letters for the profession, then ten digits (e.g. DEN0001234567).
+export const AHPRA = /^[A-Z]{3}\d{10}$/;
+
 const latest = (entries, kind) => [...entries].filter((e) => e.kind === kind).sort((a, b) => b.ts - a.ts)[0];
 export const sipsOf = (entries) => entries.filter((e) => e.sip != null && e.kind !== "risk").sort((a, b) => a.ts - b.ts);
 export const phsOf = (entries) => entries.filter((e) => e.ph != null).sort((a, b) => a.ts - b.ts);

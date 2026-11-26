@@ -11,11 +11,9 @@ import { CARE_TOPICS } from "../data/care.js";
 import { sipLevel } from "../data/clinical.js";
 import { phZone } from "../data/ph.js";
 import { fmtDate, fmtShort } from "../lib/store.js";
-import { findings, findingsText, fullName, sendFindings } from "./findings.js";
+import { AHPRA, findings, findingsText, fullName, sendFindings } from "./findings.js";
 
 export const PROFESSIONS = ["Dentist", "Dental specialist", "Oral health therapist, dental hygienist or therapist", "Medical practitioner", "Nurse practitioner or registered nurse", "Pharmacist", "Other registered health professional"];
-// AHPRA registration numbers: three letters for the profession, then ten digits (e.g. DEN0001234567).
-export const AHPRA = /^[A-Z]{3}\d{10}$/;
 const MONTHS = [1, 3, 6, 12];
 const addMonths = (ts, n) => { const d = new Date(ts); d.setMonth(d.getMonth() + n); return d.getTime(); };
 
