@@ -140,7 +140,7 @@ export function PlanBlock({ plan, sum, profile, setProfile, open, refine, onShop
       {!all && todo.length > 5 && <button type="button" className="btn ghost plan-more" onClick={() => setAll(true)}>Show {todo.length - 5} more</button>}
       {doing.length > 0 && <h2 className="plan-h">You're already doing <span>{doing.length}</span></h2>}
       {doing.map(row)}
-      <p className="soft-note">{clin ? "Tick each one when you're doing it. Your dentist or care team chose this plan; ask them before changing it." : "Tick each one when you're doing it. Your plan changes as you add results. It doesn't replace your dentist, doctor or treatment team."}</p>
+      <p className="soft-note">{clin ? "Tick each one when you're doing it. A health professional chose this plan; ask them before changing it." : "Tick each one when you're doing it. Your plan changes as you add results. It doesn't replace your dentist, doctor or treatment team."}</p>
       {prod && (
         <Sheet title={prod.name} onClose={() => setProd(null)}
           footer={onShop ? <button className="btn ghost" onClick={() => { setProd(null); onShop(); }}>See all products</button> : null}>
@@ -166,7 +166,7 @@ export function SetupQuestions({ q: nextQ, m, left, profile, setProfile, onClose
       footer={q ? (back.length ? <button className="btn ghost" onClick={goBack}><Icon name="back" size={18} /> Back</button> : null)
         : <button className="btn primary big" onClick={onPlan}>{clin ? "Done" : refining ? "See my plan" : "See my routine"}</button>}>
       {q ? (<>
-        <p className="eyebrow-q">{clin ? "Last step · for your dentist" : refining ? "Your recent results raised a question" : "Last step · each answer tailors your plan"}</p>
+        <p className="eyebrow-q">{clin ? "Last step" : refining ? "Your recent results raised a question" : "Last step · each answer tailors your plan"}</p>
         <AskCard key={q.id + (revisit ? ":again" : "")} flow q={q} m={m} profile={profile} setProfile={(p) => {
           setProfile(p);
           if (revisit) {
@@ -179,7 +179,7 @@ export function SetupQuestions({ q: nextQ, m, left, profile, setProfile, onClose
         <div className="setup-done">
           <span className="setup-done-icon"><Icon name="check" size={30} stroke={2.6} /></span>
           <h2 className="q">{clin ? "All done" : refining ? "Your plan is updated" : "Your plan is ready"}</h2>
-          <p className="lede">{clin ? "Your answers are saved for your dentist or care team. At your next visit, hand them your phone so they can choose your plan." : "It's built from your checks and answers, and it updates as you add results."}</p>
+          <p className="lede">{clin ? "Your answers are saved on this phone. When you see a dentist or another health professional, hand them your phone so they can choose your plan." : "It's built from your checks and answers, and it updates as you add results."}</p>
         </div>
       )}
     </Sheet>
@@ -188,7 +188,7 @@ export function SetupQuestions({ q: nextQ, m, left, profile, setProfile, onClose
 
 /** Before the plan exists: how far along, and the one next step. */
 export function SetupCard({ setup, onSetup, slim, clin }) {
-  const what = clin ? "Get ready for your dentist" : "Build your plan";
+  const what = clin ? "Get your answers ready" : "Build your plan";
   const n = setup.next;
   if (!n) return null;
   if (slim) return (
@@ -208,7 +208,7 @@ export function SetupCard({ setup, onSetup, slim, clin }) {
         ))}
       </ol>
       <button className="btn primary big" onClick={onSetup}>{setup.at ? "Continue" : "Start"}</button>
-      <p className="setup-note">Step {setup.at + 1} of {setup.total} · about {setup.minsLeft} minute{setup.minsLeft === 1 ? "" : "s"} left. {clin ? "Your dentist uses your answers to choose your plan." : "Your plan appears when you've finished."}</p>
+      <p className="setup-note">Step {setup.at + 1} of {setup.total} · about {setup.minsLeft} minute{setup.minsLeft === 1 ? "" : "s"} left. {clin ? "A dentist or health professional uses your answers to choose your plan." : "Your plan appears when you've finished."}</p>
     </section>
   );
 }

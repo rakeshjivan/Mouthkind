@@ -147,7 +147,7 @@ export function Home({ profile, entries, prefs, open, go, plan = [], setup, onSe
   const action = plan.find((it) => it.pri >= 80 && !inRoutine.has(it.id) && !it.id.startsWith("start") && !(profile.planDone || {})[it.id] && !it.kept);
   const reviewDue = clin?.plan && Date.now() >= clin.plan.review;
   const alert = clin ? (building ? null
-    : reviewDue ? { tone: "accent", title: "Your plan review is due", sub: `Book in with ${clin.plan.by.name} or your dentist`, act: "Call", go: () => open("call") }
+    : reviewDue ? { tone: "accent", title: "Your plan review is due", sub: `Book in with ${clin.plan.by.name} or another health professional`, act: "Call", go: () => open("call") }
     : sipNext?.due ? { tone: "accent", title: "Your dry mouth assessment is due", sub: "5 quick questions", act: "Start", go: () => open("sip") }
     : !phSkip && (phNext?.due || !ph) ? { tone: "accent", title: ph ? "Your pH test is due" : "Record your saliva pH", sub: "2 minutes with a test strip", act: "Test now", go: () => open("ph") }
     : null)

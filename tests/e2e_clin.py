@@ -27,7 +27,7 @@ async def main():
     await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(200)
     await wl.get_by_role("button", name="Medicines that dry my mouth").click(); await pg.locator(".welcome-foot button").click(); await pg.wait_for_timeout(400)
     await text("home setup"); await pg.screenshot(path=S + "1-home.png")
-    assert "Get ready for your dentist" in await pg.locator(".setup-card").inner_text()
+    assert "Get your answers ready" in await pg.locator(".setup-card").inner_text()
     await pg.locator(".setup-card .btn").click(); await pg.wait_for_timeout(400)
     # Dry mouth questions
     await btn("None of these").click(); await pg.wait_for_timeout(250)
@@ -100,7 +100,7 @@ async def main():
     assert "6.7" in await pg.locator("main").inner_text()
     await pg.screenshot(path=S + "4b-learn-products.png", full_page=True)
     await pg.get_by_role("tab", name="My plan").click(); await pg.wait_for_timeout(200); await text("plan unsigned")
-    assert "Your plan comes from your dentist" in await pg.locator("main").inner_text()
+    assert "Your plan comes from a health professional" in await pg.locator("main").inner_text()
     sipnames = [w for w, t in seen if re.search(r"\bSIP\b|SIP-SCORE", t)]
     assert not sipnames, f"SIP named on: {sipnames}"
     # A product's own label indication isn't an assessment of this patient.
@@ -115,7 +115,7 @@ async def main():
     assert shared and "WHAT CAN AFFECT MY DRY MOUTH" in shared[-1]["text"], shared
     assert not re.search(r"/100|\bpts\b|RISK CHECK|TOOTH DECAY", shared[-1]["text"]), shared[-1]["text"]
     # The clinician view
-    await pg.locator(".planfrom").get_by_role("button", name="For my dentist").click(); await pg.wait_for_timeout(300)
+    await pg.locator(".planfrom").get_by_role("button", name="For a health professional").click(); await pg.wait_for_timeout(300)
     await pg.screenshot(path=S + "8-confirm.png")
     go = dlg.locator(".sheet-foot .btn.primary")
     await dlg.get_by_label("Your name").fill("Dr Test Smith")
@@ -148,7 +148,7 @@ async def main():
     assert await pg.locator(".pitem").count() >= 1
     await pg.get_by_role("tab", name="Learn").click(); await pg.wait_for_timeout(200)
     await pg.screenshot(path=S + "11-learn.png", full_page=True)
-    print("learn heading:", "Your dentist suggested" in await pg.locator("main").inner_text())
+    print("learn heading:", "Suggested in your plan" in await pg.locator("main").inner_text())
     nav = await pg.locator("nav.tabbar").inner_text()
     assert "Shop" in nav
     print("errors:", errs)

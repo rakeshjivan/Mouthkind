@@ -71,7 +71,7 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
   const send = async () => setSent(await sendFindings(findingsText(profile, entries, profile.clinPlan), `Mouthkind findings${name ? ` for ${name}` : ""}`));
 
   if (step === "confirm") return (
-    <Sheet title="For your dentist or care team" onClose={onClose}
+    <Sheet title="For a health professional" onClose={onClose}
       footer={<button className="btn primary big" disabled={!canGo} onClick={() => setStep("review")}>Continue</button>}>
       <h2 className="q">This part is for a health professional</h2>
       <p className="lede tight">It shows the app's assessment and plan options for the professional to review and choose from. If you're the patient, hand your phone to your dentist, doctor or nurse.</p>
@@ -191,9 +191,9 @@ export function ClinicianSheet({ profile, setProfile, entries, options, ctx, onC
 export function PlanFrom({ plan, onOpen, onSee, onSend }) {
   if (!plan) return (
     <section className="planfrom wait" aria-label="Your plan">
-      <h2>Your plan comes from your dentist</h2>
-      <p>At your next visit, hand your phone to your dentist or care team. They'll go through your answers and choose your plan.</p>
-      <div className="planfrom-acts"><button className="btn primary" onClick={onOpen}>For my dentist</button><button className="btn ghost" onClick={onSend}><Icon name="send" size={18} /> Send my answers</button></div>
+      <h2>Your plan comes from a health professional</h2>
+      <p>When you see a dentist or another health professional, such as your doctor, nurse or pharmacist, hand them your phone. They'll go through your answers and choose your plan.</p>
+      <div className="planfrom-acts"><button className="btn primary" onClick={onOpen}>For a health professional</button><button className="btn ghost" onClick={onSend}><Icon name="send" size={18} /> Send my answers</button></div>
     </section>
   );
   const due = Date.now() >= plan.review;
@@ -202,7 +202,7 @@ export function PlanFrom({ plan, onOpen, onSee, onSend }) {
       <p className="planfrom-k">Your plan from {plan.by.name}, {fmtDate(plan.ts)}</p>
       <p className="planfrom-sub">{plan.by.profession} · {due ? "Review due now" : `Review by ${fmtDate(plan.review)}`}</p>
       {plan.note && <p className="planfrom-note">"{plan.note}"</p>}
-      <div className="planfrom-acts"><button className="btn ghost" onClick={onSee}>See my plan</button><button className="link-btn" onClick={onOpen}>For my dentist</button></div>
+      <div className="planfrom-acts"><button className="btn ghost" onClick={onSee}>See my plan</button><button className="link-btn" onClick={onOpen}>For a health professional</button></div>
     </section>
   );
 }

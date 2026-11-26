@@ -49,7 +49,7 @@ const ABOUT = (
   <details className="panel about">
     <summary><h2 className="panel-title">About Mouthkind</h2><Icon name="chev" size={18} /></summary>
     <p><strong>What it's for.</strong> {PURPOSE}</p>
-    <p><strong>How the questions work.</strong> Your answers go to your dentist or care team, who use them to choose your plan. The dry mouth assessment is five questions from the Summated Xerostomia Inventory, a validated measure of dry mouth symptoms (Thomson et al. 2011), added up by its fixed rules to a score from 5 to 15. Your first one is your baseline, and later ones are compared with it.</p>
+    <p><strong>How the questions work.</strong> Your answers stay on this phone until you show or send them. A dentist or another health professional uses them to choose your plan. The dry mouth assessment is five questions from the Summated Xerostomia Inventory, a validated measure of dry mouth symptoms (Thomson et al. 2011), added up by its fixed rules to a score from 5 to 15. Your first one is your baseline, and later ones are compared with it.</p>
     <p><strong>Who made it.</strong> Dr Rakesh Jivan, a dentist. He is Scientific Affairs Manager at GC Australasia, which makes GC Tooth Mousse™, GC Tooth Mousse™ Plus, GC Dry Mouth Gel and GC Saliva-Check BUFFER. Products appear in your plan only when your professional chooses them.</p>
     <p><strong>Where the information comes from.</strong> Guidelines and studies are listed under "Sources" on each topic.</p>
     <p><strong>Your privacy.</strong> Everything stays on this device. Nothing is sent anywhere unless you choose to share or back it up.</p>

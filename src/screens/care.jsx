@@ -73,9 +73,9 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
           <PlanBlock plan={plan} sum={[]} profile={profile} setProfile={setProfile} open={open} onShop={onShop} clin />
         </>) : (
           <section className="plan-wait" id="my-plan">
-            <h2>Your plan comes from your dentist</h2>
-            <p>{setup?.next ? `First, finish getting ready: next is ${setup.next.label}. ` : ""}At your next visit, hand your phone to your dentist or care team. They'll go through your answers and choose your plan.</p>
-            {setup?.next ? <button className="btn primary big" onClick={onSetup}>Continue</button> : <button className="btn primary big" onClick={clin.onOpen}>For my dentist</button>}
+            <h2>Your plan comes from a health professional</h2>
+            <p>{setup?.next ? `First, finish getting ready: next is ${setup.next.label}. ` : ""}When you see a dentist or another health professional, hand them your phone. They'll go through your answers and choose your plan.</p>
+            {setup?.next ? <button className="btn primary big" onClick={onSetup}>Continue</button> : <button className="btn primary big" onClick={clin.onOpen}>For a health professional</button>}
           </section>
         ))
         : setup?.next ? (
@@ -91,12 +91,12 @@ export function Care({ ctx, focus, plan = [], sum = [], ask, profile, setProfile
         <h2 className="list-h first">Start here</h2>
         {general.map((t) => <Topic key={t.id} t={t} />)}
         {mine.length > 0 && (<>
-          <h2 className="list-h">{clin ? "Your dentist suggested" : "For you"}</h2>
+          <h2 className="list-h">{clin ? "Suggested in your plan" : "For you"}</h2>
           {mine.map((t) => <Topic key={t.id} t={t} mineFlag={false} />)}
         </>)}
         <h2 className="list-h">{mine.length ? "Everything else" : "More topics"}</h2>
         {rest.map((t) => <Topic key={t.id} t={t} />)}
-        <p className="foot-note">General information — your dentist can tailor it to you.</p>
+        <p className="foot-note">General information — a dentist, doctor or pharmacist can tailor it to you.</p>
       </>)}
     </div>
   );
