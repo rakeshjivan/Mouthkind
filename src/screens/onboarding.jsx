@@ -121,7 +121,7 @@ export function Welcome({ profile, onDone }) {
         </>)}
 
         <div className="welcome-foot">
-          <button type="button" className="link-btn welcome-help" onClick={() => setWorry(true)}><Icon name="alert" size={16} /> Need help now? When to worry</button>
+          <button type="button" className="link-btn welcome-help" onClick={() => setWorry(true)}><Icon name="alert" size={16} /> Get help now</button>
           <button className="btn primary big" disabled={!canNext} onClick={next}>{last ? "Start" : "Next"}</button>
         </div>
         {/* Urgent help is never behind the questions. */}

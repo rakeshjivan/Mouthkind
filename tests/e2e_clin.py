@@ -24,7 +24,7 @@ async def main():
     await pg.goto(BASE); await pg.wait_for_timeout(500)
     wl = pg.locator(".welcome")
     assert await pg.get_by_role("button", name="Skip").count() == 0, "no Skip on the first page"
-    await pg.get_by_role("button", name="Need help now? When to worry").click(); await pg.wait_for_timeout(250)
+    await pg.get_by_role("button", name="Get help now").click(); await pg.wait_for_timeout(250)
     assert "000" in await pg.locator(".sheet").inner_text()
     await pg.get_by_role("button", name="Close").last.click(); await pg.wait_for_timeout(200)
     await wl.get_by_role("button", name="Me", exact=True).click(); await pg.locator(".welcome-foot .btn.primary").click(); await pg.wait_for_timeout(200)
